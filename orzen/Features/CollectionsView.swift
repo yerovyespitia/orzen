@@ -4,7 +4,6 @@ struct CollectionsView: View {
     // MARK: - Properties
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
-    @State private var navigationPath: [CollectionRoute] = []
     var ownsNavigationStack = true
     private let contentHorizontalPadding: CGFloat = 16
     private let contentTopPadding: CGFloat = 8
@@ -13,7 +12,7 @@ struct CollectionsView: View {
     // MARK: - Body
     var body: some View {
         if ownsNavigationStack {
-            NavigationStack(path: $navigationPath) {
+            NavigationStack {
                 content
             }
         } else {
@@ -39,13 +38,7 @@ struct CollectionsView: View {
                     ) {
                         ForEach(collectionStore.collections) { collection in
                             NavigationLink {
-                                CollectionDetailView(
-                                    collection: collection,
-                                    usesValueNavigation: true,
-                                    onItemSelected: { item in
-                                        navigationPath.append(.item(item.id, collectionID: collection.id))
-                                    }
-                                )
+                                CollectionDetailView(collection: collection)
                             } label: {
                                 CollectionCard(collection: collection)
                             }
@@ -58,27 +51,10 @@ struct CollectionsView: View {
             .padding(.top, contentTopPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .navigationDestination(for: CollectionRoute.self, destination: destination)
         #if os(iOS)
         .toolbar(ownsNavigationStack ? .hidden : .visible, for: .navigationBar)
         .interactivePopGestureEnabled()
         #endif
-    }
-
-    @ViewBuilder
-    private func destination(for route: CollectionRoute) -> some View {
-        switch route {
-        case let .item(itemID, collectionID):
-            if let item = collectionStore.item(id: itemID, in: collectionID) {
-                InfoView(item: item)
-            } else {
-                DetailUnavailableView(
-                    systemImage: "film",
-                    title: "Title unavailable",
-                    message: "This title is no longer in the collection."
-                )
-            }
-        }
     }
 
     private var headerTitleFont: Font {
@@ -88,10 +64,6 @@ struct CollectionsView: View {
         return .title
         #endif
     }
-}
-
-enum CollectionRoute: Hashable {
-    case item(CatalogItem.ID, collectionID: MediaCollection.ID)
 }
 
 // MARK: - Collection Card View

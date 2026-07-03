@@ -3,10 +3,9 @@ import SwiftUI
 struct CollectionDetailView: View {
     // MARK: - Properties
     let collection: MediaCollection
-    var usesValueNavigation = false
-    let onItemSelected: (CatalogItem) -> Void
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
+    @State private var selectedRoute: CollectionDetailRoute?
     @Environment(\.dismiss) private var dismiss
     private let contentHorizontalPadding: CGFloat = 16
     private let contentTopPadding: CGFloat = 8
@@ -51,19 +50,12 @@ struct CollectionDetailView: View {
                             spacing: OrzenLayout.current.gridVerticalSpacing
                         ) {
                             ForEach(items) { item in
-                                if usesValueNavigation {
-                                    NavigationLink(value: CollectionRoute.item(item.id, collectionID: collection.id)) {
-                                        posterCard(for: item)
-                                    }
-                                    .buttonStyle(.plain)
-                                } else {
-                                    Button {
-                                        onItemSelected(item)
-                                    } label: {
-                                        posterCard(for: item)
-                                    }
-                                    .buttonStyle(.plain)
+                                NavigationLink {
+                                    InfoView(item: item)
+                                } label: {
+                                    posterCard(for: item)
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -72,6 +64,9 @@ struct CollectionDetailView: View {
             .padding(.horizontal, contentHorizontalPadding)
             .padding(.top, contentTopPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .navigationDestination(item: $selectedRoute) { route in
+            destination(for: route)
         }
         .navigationTitle(currentCollection.name)
         #if os(iOS)
@@ -88,9 +83,25 @@ struct CollectionDetailView: View {
             item: item,
             showsDroppedContextAction: showsDroppedContextAction,
             onViewDetails: {
-                onItemSelected(item)
+                selectedRoute = .item(item.id)
             }
         )
+    }
+
+    @ViewBuilder
+    private func destination(for route: CollectionDetailRoute) -> some View {
+        switch route {
+        case let .item(itemID):
+            if let item = collectionStore.item(id: itemID, in: collection.id) {
+                InfoView(item: item)
+            } else {
+                DetailUnavailableView(
+                    systemImage: "film",
+                    title: "Title unavailable",
+                    message: "This title is no longer in the collection."
+                )
+            }
+        }
     }
 
     private var headerTitleFont: Font {
@@ -138,6 +149,17 @@ struct CollectionDetailView: View {
     }
 }
 
+private enum CollectionDetailRoute: Hashable, Identifiable {
+    case item(CatalogItem.ID)
+
+    var id: String {
+        switch self {
+        case let .item(itemID):
+            return itemID
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
         CollectionDetailView(collection: MediaCollection(
@@ -145,6 +167,6 @@ struct CollectionDetailView: View {
             name: "Favorites",
             systemImage: "heart.fill",
             count: 12,
-        )) { _ in }
+        ))
     }
 } 
