@@ -28,7 +28,6 @@ struct FeaturedCarouselPage: View {
 
     @ViewBuilder
     private var background: some View {
-        #if os(iOS)
         GeometryReader { geometry in
             bannerImage(width: geometry.size.width, height: geometry.size.height)
                 .frame(width: geometry.size.width, height: geometry.size.height)
@@ -44,11 +43,10 @@ struct FeaturedCarouselPage: View {
                         endPoint: .bottom
                     )
                 )
+                #if os(iOS)
                 .homeStretchyHeader()
+                #endif
         }
-        #else
-        Color.clear
-        #endif
     }
 
     @ViewBuilder
