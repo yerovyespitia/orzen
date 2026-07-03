@@ -4,9 +4,15 @@ struct FeaturedCarousel: View {
     let items: [CatalogItem]
     @State private var selectedItemID: CatalogItem.ID?
     @State private var hoveredButtonImage: String?
+    @State private var dragTranslation: CGFloat = 0
     
     private let carouselAnimation = Animation.smooth(duration: 0.58, extraBounce: 0)
+    private let swipeSettleAnimation = Animation.easeInOut(duration: 0.22)
+    private let swipeSettleDuration: TimeInterval = 0.22
     private let swipeThreshold: CGFloat = 48
+    #if os(iOS)
+    private let interactivePopGestureEdgeWidth: CGFloat = 44
+    #endif
     private var metrics: OrzenLayout.Metrics {
         OrzenLayout.current
     }
@@ -16,43 +22,48 @@ struct FeaturedCarousel: View {
             let pageWidth = geometry.size.width
 
             ZStack {
+                let interactiveOffset = interactivePageOffset(for: pageWidth)
+
+                if let previousItem = adjacentItem(in: -1),
+                   interactiveOffset > 0 {
+                    carouselPage(for: previousItem, pageWidth: pageWidth)
+                        .offset(x: interactiveOffset - pageWidth)
+                        .zIndex(1)
+                }
+
+                if let nextItem = adjacentItem(in: 1),
+                   interactiveOffset < 0 {
+                    carouselPage(for: nextItem, pageWidth: pageWidth)
+                        .offset(x: interactiveOffset + pageWidth)
+                        .zIndex(1)
+                }
+
                 if let selectedItem {
-                    NavigationLink(destination: InfoView(item: selectedItem)) {
-                        FeaturedCarouselPage(item: selectedItem)
-                    }
-                    .buttonStyle(.plain)
-                    .frame(width: pageWidth, height: metrics.bannerHeight)
-                    .contentShape(Rectangle())
-                    .id(selectedItem.id)
-                    .transition(.opacity)
-                    #if os(macOS)
-                    .onHover { hovering in
-                        if hovering {
-                            NSCursor.pointingHand.push()
-                        } else {
-                            NSCursor.pop()
-                        }
-                    }
-                    #endif
-                    .zIndex(1)
+                    carouselPage(for: selectedItem, pageWidth: pageWidth)
+                        .offset(x: interactiveOffset)
+                        .zIndex(2)
                 }
 
                 if items.count > 1 {
                     carouselControls(pageWidth: pageWidth)
-                        .zIndex(2)
+                        .zIndex(3)
                 }
             }
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 24, coordinateSpace: .local)
-                    .onEnded(handleSwipe)
+                    .onChanged { value in
+                        updateDrag(with: value, pageWidth: pageWidth)
+                    }
+                    .onEnded { value in
+                        handleSwipe(value, pageWidth: pageWidth)
+                    }
             )
             .onAppear(perform: selectInitialItemIfNeeded)
             .onChange(of: items.map(\.id)) { _, ids in
                 guard selectedItemID.map({ ids.contains($0) }) != true else { return }
                 selectedItemID = ids.first
             }
-            .animation(carouselAnimation, value: selectedItemID)
         }
         .frame(height: metrics.bannerHeight)
         .padding(.bottom, 22)
@@ -86,6 +97,16 @@ struct FeaturedCarousel: View {
         return selectedIndex < items.index(before: items.endIndex)
     }
 
+    private func adjacentItem(in direction: Int) -> CatalogItem? {
+        guard !items.isEmpty else { return nil }
+
+        let currentIndex = selectedIndex ?? items.startIndex
+        let adjacentIndex = currentIndex + direction
+
+        guard items.indices.contains(adjacentIndex) else { return nil }
+        return items[adjacentIndex]
+    }
+
     private func selectInitialItemIfNeeded() {
         guard selectedItemID == nil else { return }
         selectedItemID = items.first?.id
@@ -104,17 +125,85 @@ struct FeaturedCarousel: View {
         }
     }
 
-    private func handleSwipe(_ value: DragGesture.Value) {
+    private func updateDrag(with value: DragGesture.Value, pageWidth: CGFloat) {
+        #if os(iOS)
+        guard !isInteractivePopGesture(value) else { return }
+        #endif
+
         let horizontalMovement = value.translation.width
         let verticalMovement = value.translation.height
 
+        guard abs(horizontalMovement) > abs(verticalMovement) else { return }
+        dragTranslation = clampedDragTranslation(horizontalMovement, pageWidth: pageWidth)
+    }
+
+    private func interactivePageOffset(for pageWidth: CGFloat) -> CGFloat {
+        clampedDragTranslation(dragTranslation, pageWidth: pageWidth)
+    }
+
+    private func clampedDragTranslation(_ translation: CGFloat, pageWidth: CGFloat) -> CGFloat {
+        let maximumTranslation = pageWidth
+
+        if translation > 0 {
+            let translationScale: CGFloat = canMoveBackward ? 1 : 0.18
+            return min(translation * translationScale, maximumTranslation)
+        }
+
+        if translation < 0 {
+            let translationScale: CGFloat = canMoveForward ? 1 : 0.18
+            return max(translation * translationScale, -maximumTranslation)
+        }
+
+        return 0
+    }
+
+    private func handleSwipe(_ value: DragGesture.Value, pageWidth: CGFloat) {
+        let horizontalMovement = value.translation.width
+        let verticalMovement = value.translation.height
+
+        #if os(iOS)
+        guard !isInteractivePopGesture(value) else {
+            dragTranslation = 0
+            return
+        }
+        #endif
+
         guard abs(horizontalMovement) > abs(verticalMovement),
               abs(horizontalMovement) >= swipeThreshold else {
+            withAnimation(swipeSettleAnimation) {
+                dragTranslation = 0
+            }
             return
         }
 
-        moveSelection(by: horizontalMovement < 0 ? 1 : -1)
+        let direction = horizontalMovement < 0 ? 1 : -1
+        guard let nextItem = adjacentItem(in: direction) else {
+            withAnimation(swipeSettleAnimation) {
+                dragTranslation = 0
+            }
+            return
+        }
+
+        withAnimation(swipeSettleAnimation) {
+            dragTranslation = direction > 0 ? -pageWidth : pageWidth
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + swipeSettleDuration) {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+
+            withTransaction(transaction) {
+                selectedItemID = nextItem.id
+                dragTranslation = 0
+            }
+        }
     }
+
+    #if os(iOS)
+    private func isInteractivePopGesture(_ value: DragGesture.Value) -> Bool {
+        value.startLocation.x <= interactivePopGestureEdgeWidth && value.translation.width > 0
+    }
+    #endif
     
     @ViewBuilder
     private func carouselButton(
@@ -204,6 +293,25 @@ struct FeaturedCarousel: View {
                 moveSelection(by: 1)
             }
         }
+    }
+
+    private func carouselPage(for item: CatalogItem, pageWidth: CGFloat) -> some View {
+        NavigationLink(destination: InfoView(item: item)) {
+            FeaturedCarouselPage(item: item)
+        }
+        .buttonStyle(.plain)
+        .frame(width: pageWidth, height: metrics.bannerHeight)
+        .contentShape(Rectangle())
+        .id(item.id)
+        #if os(macOS)
+        .onHover { hovering in
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
+        #endif
     }
     
 }
