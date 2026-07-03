@@ -5,16 +5,25 @@ struct CinemetaCatalogView: View {
     let type: CinemetaType
     let filters: [String]
     let fallbackItems: [CatalogItem]
+    var scrollToTopRequest: Int
 
     @ObservedObject private var catalogStore: CinemetaCatalogStore
     @State private var detailItemFromContextMenu: CatalogItem?
     @State private var isShowingContextMenuDetail = false
+    private let scrollTopID = "cinemeta-catalog-scroll-top"
 
-    init(title: String, type: CinemetaType, filters: [String], fallbackItems: [CatalogItem]) {
+    init(
+        title: String,
+        type: CinemetaType,
+        filters: [String],
+        fallbackItems: [CatalogItem],
+        scrollToTopRequest: Int = 0
+    ) {
         self.title = title
         self.type = type
         self.filters = filters
         self.fallbackItems = fallbackItems
+        self.scrollToTopRequest = scrollToTopRequest
         _catalogStore = ObservedObject(wrappedValue: CinemetaCatalogStore.shared(
             title: title,
             type: type,
@@ -118,26 +127,35 @@ struct CinemetaCatalogView: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
-                LazyVGrid(
-                    columns: OrzenLayout.posterGridColumns,
-                    alignment: .leading,
-                    spacing: OrzenLayout.current.gridVerticalSpacing
-                ) {
-                    ForEach(displayItems) { item in
-                        NavigationLink(destination: InfoView(item: item)) {
-                            CatalogPosterCard(
-                                item: item,
-                                onViewDetails: {
-                                    showContextMenuDetail(for: item)
-                                }
-                            )
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    Color.clear
+                        .frame(height: 0)
+                        .id(scrollTopID)
+
+                    LazyVGrid(
+                        columns: OrzenLayout.posterGridColumns,
+                        alignment: .leading,
+                        spacing: OrzenLayout.current.gridVerticalSpacing
+                    ) {
+                        ForEach(displayItems) { item in
+                            NavigationLink(destination: InfoView(item: item)) {
+                                CatalogPosterCard(
+                                    item: item,
+                                    onViewDetails: {
+                                        showContextMenuDetail(for: item)
+                                    }
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
+                    .padding(.bottom, 24)
                 }
-                .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
-                .padding(.bottom, 24)
+                .onChange(of: scrollToTopRequest) { _, _ in
+                    scrollToTop(with: scrollProxy)
+                }
             }
         }
     }
@@ -149,5 +167,11 @@ struct CinemetaCatalogView: View {
     private func showContextMenuDetail(for item: CatalogItem) {
         detailItemFromContextMenu = item
         isShowingContextMenuDetail = true
+    }
+
+    private func scrollToTop(with scrollProxy: ScrollViewProxy) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            scrollProxy.scrollTo(scrollTopID, anchor: .top)
+        }
     }
 }

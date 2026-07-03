@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct SeriesView: View {
+    var scrollToTopRequest = 0
+
     var body: some View {
         CinemetaCatalogView(
             title: "Series",
             type: .series,
             filters: CinemetaCatalogPresets.seriesFilters,
-            fallbackItems: series
+            fallbackItems: series,
+            scrollToTopRequest: scrollToTopRequest
         )
     }
 }

@@ -3,36 +3,46 @@ import SwiftUI
 #if os(iOS)
 struct iPhoneRootShell: View {
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
+    @State private var selectedTab: RootTab = .home
+    @State private var homeScrollToTopRequest = 0
+    @State private var searchScrollToTopRequest = 0
+    @State private var seriesScrollToTopRequest = 0
+    @State private var moviesScrollToTopRequest = 0
 
     var body: some View {
         ZStack {
-            TabView {
-                HomeView()
+            TabView(selection: selectedTabBinding) {
+                HomeView(scrollToTopRequest: homeScrollToTopRequest)
                     .tabItem {
                         Label("Home", systemImage: "house")
                     }
+                    .tag(RootTab.home)
 
-                SearchView()
+                SearchView(scrollToTopRequest: searchScrollToTopRequest)
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
                     }
+                    .tag(RootTab.search)
 
-                SeriesView()
+                SeriesView(scrollToTopRequest: seriesScrollToTopRequest)
                     .tabItem {
                         Label("Series", systemImage: "tv")
                     }
+                    .tag(RootTab.series)
 
-                MoviesView()
+                MoviesView(scrollToTopRequest: moviesScrollToTopRequest)
                     .tabItem {
                         Label("Movies", systemImage: "film")
                     }
+                    .tag(RootTab.movies)
 
                 iPhoneMoreView()
                     .tabItem {
                         Label("More", systemImage: "ellipsis")
                     }
+                    .tag(RootTab.more)
             }
-            .tint(.white)
+            .tint(.blue)
             .ignoresSafeArea(.container, edges: .top)
 
             StreamPlayerPresenter(request: $playbackStore.request)
@@ -48,6 +58,34 @@ struct iPhoneRootShell: View {
         }
     }
 
+    private var selectedTabBinding: Binding<RootTab> {
+        Binding(
+            get: { selectedTab },
+            set: { newTab in
+                if newTab == selectedTab {
+                    requestScrollToTop(for: newTab)
+                }
+
+                selectedTab = newTab
+            }
+        )
+    }
+
+    private func requestScrollToTop(for tab: RootTab) {
+        switch tab {
+        case .home:
+            homeScrollToTopRequest += 1
+        case .search:
+            searchScrollToTopRequest += 1
+        case .series:
+            seriesScrollToTopRequest += 1
+        case .movies:
+            moviesScrollToTopRequest += 1
+        case .more:
+            break
+        }
+    }
+
     private func updateOrientation(for requestID: StreamPlaybackRequest.ID?) {
         if requestID == nil {
             AppOrientationController.shared.lockToPortrait()
@@ -55,6 +93,14 @@ struct iPhoneRootShell: View {
             AppOrientationController.shared.lockToLandscape()
         }
     }
+}
+
+private enum RootTab: Hashable {
+    case home
+    case search
+    case series
+    case movies
+    case more
 }
 
 private struct StreamPlayerPresenter: UIViewControllerRepresentable {

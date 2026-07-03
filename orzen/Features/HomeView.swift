@@ -1,54 +1,66 @@
 import SwiftUI
 
 struct HomeView: View {
+    var scrollToTopRequest = 0
+
     @ObservedObject private var catalogStore = HomeCatalogStore.shared
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
     @ObservedObject private var progressStore = PlaybackProgressStore.shared
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var addonStore = LocalAddonStore.shared
+    private let scrollTopID = "home-scroll-top"
 
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        FeaturedCarousel(items: catalogStore.featured)
+                ScrollViewReader { scrollProxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Color.clear
+                                .frame(height: 0)
+                                .id(scrollTopID)
 
-                        if catalogStore.isLoading {
-                            ProgressView()
-                                .controlSize(.small)
-                                .tint(.white)
-                                .padding(.leading, OrzenLayout.current.contentLeadingInset)
-                                .padding(.bottom, 12)
-                        }
+                            FeaturedCarousel(items: catalogStore.featured)
 
-                        if !progressStore.watchingItems.isEmpty {
-                            CatalogSectionView(
-                                title: "Watching",
-                                items: progressStore.watchingItems,
-                                cardStyle: .watching,
-                                showsDroppedContextAction: true,
-                                onItemSelected: playSavedProgress
-                            )
-                        }
+                            if catalogStore.isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(.white)
+                                    .padding(.leading, OrzenLayout.current.contentLeadingInset)
+                                    .padding(.bottom, 12)
+                            }
 
-                        if !collectionStore.planToWatchItems.isEmpty {
-                            CatalogSectionView(
-                                title: "Watchlist",
-                                items: collectionStore.planToWatchItems
-                            )
-                        }
+                            if !progressStore.watchingItems.isEmpty {
+                                CatalogSectionView(
+                                    title: "Watching",
+                                    items: progressStore.watchingItems,
+                                    cardStyle: .watching,
+                                    showsDroppedContextAction: true,
+                                    onItemSelected: playSavedProgress
+                                )
+                            }
 
-                        ForEach(catalogStore.sections) { section in
-                            CatalogSectionView(
-                                title: section.title,
-                                items: section.items
-                            )
+                            if !collectionStore.planToWatchItems.isEmpty {
+                                CatalogSectionView(
+                                    title: "Watchlist",
+                                    items: collectionStore.planToWatchItems
+                                )
+                            }
+
+                            ForEach(catalogStore.sections) { section in
+                                CatalogSectionView(
+                                    title: section.title,
+                                    items: section.items
+                                )
+                            }
                         }
+                        .frame(width: geometry.size.width, alignment: .leading)
                     }
-                    .frame(width: geometry.size.width, alignment: .leading)
+                    .ignoresSafeArea(.container, edges: .top)
+                    .onChange(of: scrollToTopRequest) { _, _ in
+                        scrollToTop(with: scrollProxy)
+                    }
                 }
-                .ignoresSafeArea(.container, edges: .top)
             }
             .ignoresSafeArea(.container, edges: .top)
         }
@@ -115,5 +127,11 @@ struct HomeView: View {
         }
 
         return storedRequest
+    }
+
+    private func scrollToTop(with scrollProxy: ScrollViewProxy) {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            scrollProxy.scrollTo(scrollTopID, anchor: .top)
+        }
     }
 }

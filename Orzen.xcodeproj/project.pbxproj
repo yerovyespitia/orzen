@@ -19,6 +19,7 @@
 		6D28720D2E08100000B5D7A1 /* EpisodeWatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D28720C2E08100000B5D7A1 /* EpisodeWatchStore.swift */; };
 		6D28720F2E08100100B5D7A1 /* PlaybackProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D28720E2E08100100B5D7A1 /* PlaybackProgressStore.swift */; };
 		6D341C2F2DD0782E0072A85D /* Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D341C2E2DD0782E0072A85D /* Sidebar.swift */; };
+		6D5EA1012E17000000B5D7A1 /* SearchCatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5EA1002E17000000B5D7A1 /* SearchCatalogStore.swift */; };
 		6D5648112DD0F57D003D7144 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D56480F2DD0F57D003D7144 /* SearchView.swift */; };
 		6D5648122DD0F57D003D7144 /* CollectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5648102DD0F57D003D7144 /* CollectionsView.swift */; };
 		6D5648152DD105F8003D7144 /* MoviesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5648132DD105F8003D7144 /* MoviesView.swift */; };
@@ -89,6 +90,7 @@
 		6D28720C2E08100000B5D7A1 /* EpisodeWatchStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeWatchStore.swift; sourceTree = "<group>"; };
 		6D28720E2E08100100B5D7A1 /* PlaybackProgressStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackProgressStore.swift; sourceTree = "<group>"; };
 		6D341C2E2DD0782E0072A85D /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar.swift; sourceTree = "<group>"; };
+		6D5EA1002E17000000B5D7A1 /* SearchCatalogStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchCatalogStore.swift; sourceTree = "<group>"; };
 		6D56480F2DD0F57D003D7144 /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		6D5648102DD0F57D003D7144 /* CollectionsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
 		6D5648132DD105F8003D7144 /* MoviesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoviesView.swift; sourceTree = "<group>"; };
@@ -177,6 +179,7 @@
 				6DAA20032E04000000B5D7A1 /* HomeCatalogStore.swift */,
 				6DC0DE042E09000000B5D7A1 /* InfoViewModel.swift */,
 				6D28720E2E08100100B5D7A1 /* PlaybackProgressStore.swift */,
+				6D5EA1002E17000000B5D7A1 /* SearchCatalogStore.swift */,
 				6DAA200D2E04000000B5D7A1 /* StreamPlaybackStore.swift */,
 				6D2872082E034A0300B5D7A1 /* SubtitlePreferencesStore.swift */,
 			);
@@ -383,6 +386,7 @@
 				6D5648152DD105F8003D7144 /* MoviesView.swift in Sources */,
 				6D2872032E034A0100B5D7A1 /* StremioStreamClient.swift in Sources */,
 				6D2872072E034A0200B5D7A1 /* StremioSubtitleClient.swift in Sources */,
+				6D5EA1012E17000000B5D7A1 /* SearchCatalogStore.swift in Sources */,
 				6D2872092E034A0300B5D7A1 /* SubtitlePreferencesStore.swift in Sources */,
 				6D28720B2E05A00000B5D7A1 /* CollectionStore.swift in Sources */,
 				6D28720D2E08100000B5D7A1 /* EpisodeWatchStore.swift in Sources */,
