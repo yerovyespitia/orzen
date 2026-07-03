@@ -45,7 +45,7 @@ enum OrzenLayout {
         static let iPhone = Metrics(
             contentLeadingInset: 16,
             contentTrailingInset: 16,
-            bannerHeight: 330,
+            bannerHeight: 420,
             posterWidth: 118,
             posterHeight: 177,
             watchingWidth: 220,
