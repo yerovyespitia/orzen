@@ -238,7 +238,7 @@ struct InfoHeroView: View {
 
     private var actionIconSize: CGFloat {
         #if os(iOS)
-        return 14
+        return 18
         #else
         return 16
         #endif
@@ -246,7 +246,7 @@ struct InfoHeroView: View {
 
     private var actionButtonSize: CGFloat {
         #if os(iOS)
-        return 30
+        return 40
         #else
         return 34
         #endif

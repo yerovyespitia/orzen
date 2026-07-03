@@ -1,6 +1,8 @@
 import SwiftUI
 
 #if os(iOS)
+import UIKit
+
 struct iPhoneRootShell: View {
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
     @State private var selectedTab: RootTab = .home
@@ -8,6 +10,10 @@ struct iPhoneRootShell: View {
     @State private var searchScrollToTopRequest = 0
     @State private var seriesScrollToTopRequest = 0
     @State private var moviesScrollToTopRequest = 0
+
+    init() {
+        Self.configureTabBarAppearance()
+    }
 
     var body: some View {
         ZStack {
@@ -42,7 +48,6 @@ struct iPhoneRootShell: View {
                     }
                     .tag(RootTab.more)
             }
-            .tint(.blue)
             .ignoresSafeArea(.container, edges: .top)
 
             StreamPlayerPresenter(request: $playbackStore.request)
@@ -56,6 +61,48 @@ struct iPhoneRootShell: View {
         .onChange(of: playbackStore.request?.id) { _, requestID in
             updateOrientation(for: requestID)
         }
+    }
+
+    private static func configureTabBarAppearance() {
+        let selectedColor = UIColor.systemBlue
+        let normalColor = UIColor.white.withAlphaComponent(0.58)
+
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .black
+        appearance.shadowColor = UIColor.white.withAlphaComponent(0.12)
+
+        configureTabBarItemAppearance(
+            appearance.stackedLayoutAppearance,
+            selectedColor: selectedColor,
+            normalColor: normalColor
+        )
+        configureTabBarItemAppearance(
+            appearance.inlineLayoutAppearance,
+            selectedColor: selectedColor,
+            normalColor: normalColor
+        )
+        configureTabBarItemAppearance(
+            appearance.compactInlineLayoutAppearance,
+            selectedColor: selectedColor,
+            normalColor: normalColor
+        )
+
+        let tabBarAppearance = UITabBar.appearance()
+        tabBarAppearance.standardAppearance = appearance
+        tabBarAppearance.scrollEdgeAppearance = appearance
+        tabBarAppearance.unselectedItemTintColor = normalColor
+    }
+
+    private static func configureTabBarItemAppearance(
+        _ appearance: UITabBarItemAppearance,
+        selectedColor: UIColor,
+        normalColor: UIColor
+    ) {
+        appearance.selected.iconColor = selectedColor
+        appearance.selected.titleTextAttributes = [.foregroundColor: selectedColor]
+        appearance.normal.iconColor = normalColor
+        appearance.normal.titleTextAttributes = [.foregroundColor: normalColor]
     }
 
     private var selectedTabBinding: Binding<RootTab> {

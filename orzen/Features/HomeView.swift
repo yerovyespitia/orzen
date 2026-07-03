@@ -55,6 +55,7 @@ struct HomeView: View {
                             }
                         }
                         .frame(width: geometry.size.width, alignment: .leading)
+                        .background(Color.black)
                     }
                     .ignoresSafeArea(.container, edges: .top)
                     .onChange(of: scrollToTopRequest) { _, _ in

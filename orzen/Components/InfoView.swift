@@ -81,7 +81,7 @@ struct InfoView: View {
         #if os(iOS)
         return 220
         #else
-        return OrzenLayout.bannerHeight
+        return OrzenLayout.current.bannerHeight
         #endif
     }
 

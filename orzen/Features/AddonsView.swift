@@ -430,9 +430,25 @@ private struct SubtitleSettingsCloseButton: View {
 
     private var icon: some View {
         Image(systemName: "xmark")
-            .font(.system(size: 12, weight: .bold))
+            .font(.system(size: closeIconSize, weight: .bold))
             .foregroundColor(.primary.opacity(isHovered ? 0.86 : 0.72))
-            .frame(width: 28, height: 28)
+            .frame(width: closeButtonSize, height: closeButtonSize)
+    }
+
+    private var closeIconSize: CGFloat {
+        #if os(iOS)
+        return 18
+        #else
+        return 12
+        #endif
+    }
+
+    private var closeButtonSize: CGFloat {
+        #if os(iOS)
+        return 44
+        #else
+        return 28
+        #endif
     }
 
     private var buttonBackground: some View {

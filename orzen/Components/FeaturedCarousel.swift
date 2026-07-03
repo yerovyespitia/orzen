@@ -252,6 +252,7 @@ private struct FeaturedCarouselPage: View {
                         endPoint: .bottom
                     )
                 )
+                .homeStretchyHeader()
         }
         #else
         Color.clear
@@ -317,3 +318,23 @@ struct FeaturedCarousel_Previews: PreviewProvider {
             .background(Color.black)
     }
 } 
+
+#if os(iOS)
+private extension View {
+    func homeStretchyHeader() -> some View {
+        visualEffect { effect, geometry in
+            let currentHeight = geometry.size.height
+            let scrollOffset = geometry.frame(in: .scrollView).minY
+            let positiveOffset = max(0, scrollOffset)
+            let stretchedHeight = currentHeight + positiveOffset
+            let scaleFactor = stretchedHeight / currentHeight
+
+            return effect.scaleEffect(
+                x: scaleFactor,
+                y: scaleFactor,
+                anchor: .bottom
+            )
+        }
+    }
+}
+#endif
