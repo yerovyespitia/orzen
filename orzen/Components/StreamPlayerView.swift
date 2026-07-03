@@ -22,6 +22,9 @@ struct StreamPlayerView: View {
     @State private var nativeAudioTracks: [PlayerMediaTrack] = []
     @State private var nativeSubtitleTracks: [PlayerMediaTrack] = []
     @State private var externalSubtitleTracks: [ExternalSubtitleTrack] = []
+    @State private var selectedExternalSubtitleID: String?
+    @State private var externalSubtitleCues: [ExternalSubtitleCue] = []
+    @State private var loadingExternalSubtitleID: String?
     @State private var nativeTimeObserver: Any?
     @State private var isPreparingNativePlayback = false
     @State private var isResolvingNativeFallback = false
@@ -58,6 +61,7 @@ struct StreamPlayerView: View {
             Color.black.ignoresSafeArea()
             keyboardShortcuts
             playerSurface
+            externalSubtitleOverlay
             nextEpisodeBanner
             playerChrome
             iOSBackHitTarget
@@ -150,6 +154,9 @@ struct StreamPlayerView: View {
         .onChange(of: subtitleTracks) { _, _ in
             applySavedTrackSelectionsIfPossible()
         }
+        .onChange(of: externalSubtitleTracks) { _, _ in
+            applySavedTrackSelectionsIfPossible()
+        }
         .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { _ in
             saveCurrentProgress()
         }
@@ -233,6 +240,30 @@ struct StreamPlayerView: View {
         .allowsHitTesting(isChromePresented)
         .zIndex(3)
         .animation(.easeInOut(duration: 0.24), value: isChromePresented)
+    }
+
+    @ViewBuilder
+    private var externalSubtitleOverlay: some View {
+        #if os(iOS)
+        if let subtitleText = currentExternalSubtitleText {
+            VStack {
+                Spacer(minLength: 0)
+
+                Text(subtitleText)
+                    .font(.system(size: 18, weight: .semibold))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.95), radius: 2, x: 0, y: 1)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.black.opacity(0.42), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, isChromePresented ? 104 : 36)
+            }
+            .allowsHitTesting(false)
+            .zIndex(2.5)
+        }
+        #endif
     }
 
     @ViewBuilder
@@ -370,7 +401,55 @@ struct StreamPlayerView: View {
     }
 
     private var subtitleTracks: [PlayerMediaTrack] {
-        activePlaybackEngine == .mpv ? mpvController.subtitleTracks : nativeSubtitleTracks
+        switch activePlaybackEngine {
+        case .mpv:
+            return mpvController.subtitleTracks
+        case .native:
+            #if os(iOS)
+            return nativeSubtitleTracksWithExternalSubtitles
+            #else
+            return nativeSubtitleTracks
+            #endif
+        case nil:
+            return nativeSubtitleTracks
+        }
+    }
+
+    private var nativeSubtitleTracksWithExternalSubtitles: [PlayerMediaTrack] {
+        let nativeTracks = nativeSubtitleTracks.map { track in
+            var updatedTrack = track
+            if track.isOff {
+                updatedTrack.isSelected = selectedExternalSubtitleID == nil && track.isSelected
+            } else if selectedExternalSubtitleID != nil {
+                updatedTrack.isSelected = false
+            }
+            return updatedTrack
+        }
+
+        let externalTracks = externalSubtitleTracks.map { subtitle in
+            PlayerMediaTrack(
+                id: externalSubtitleTrackID(for: subtitle),
+                title: "\(subtitle.addonName): \(subtitle.title)",
+                language: subtitle.language,
+                kind: .subtitle,
+                isSelected: selectedExternalSubtitleID == subtitle.id,
+                isOff: false,
+                externalSubtitleID: subtitle.id
+            )
+        }
+
+        return nativeTracks + externalTracks
+    }
+
+    private var currentExternalSubtitleText: String? {
+        guard selectedExternalSubtitleID != nil,
+              activePlaybackEngine == .native else {
+            return nil
+        }
+
+        return externalSubtitleCues.first {
+            currentTime >= $0.startTime && currentTime <= $0.endTime
+        }?.text
     }
 
     private var playbackErrorMessage: String? {
@@ -826,6 +905,7 @@ struct StreamPlayerView: View {
     private func loadExternalSubtitles() async {
         guard !addonStore.subtitleAddons.isEmpty else {
             externalSubtitleTracks = []
+            clearExternalSubtitleSelection()
             return
         }
 
@@ -837,6 +917,10 @@ struct StreamPlayerView: View {
         )
 
         externalSubtitleTracks = loadedSubtitles
+        if let selectedExternalSubtitleID,
+           !loadedSubtitles.contains(where: { $0.id == selectedExternalSubtitleID }) {
+            clearExternalSubtitleSelection()
+        }
     }
 
     private func togglePlayPause() {
@@ -1006,13 +1090,48 @@ struct StreamPlayerView: View {
             case .mpv:
                 mpvController.selectSubtitleTrack(track)
             case .native:
-                selectNativeTrack(track, characteristic: .legible)
+                selectNativeSubtitleTrack(track)
             case nil:
                 break
             }
 
             saveCurrentProgress(force: true)
         }
+    }
+
+    private func selectNativeSubtitleTrack(_ track: PlayerMediaTrack) {
+        if let externalSubtitleID = track.externalSubtitleID,
+           let subtitle = externalSubtitleTracks.first(where: { $0.id == externalSubtitleID }) {
+            selectedExternalSubtitleID = externalSubtitleID
+            selectNativeTrack(NativePlayerTrackResolver.offTrack(kind: .subtitle, isSelected: true), characteristic: .legible)
+            loadExternalSubtitleCues(for: subtitle)
+            refreshNativeMediaTracks()
+            return
+        }
+
+        clearExternalSubtitleSelection()
+        selectNativeTrack(track, characteristic: .legible)
+    }
+
+    private func loadExternalSubtitleCues(for subtitle: ExternalSubtitleTrack) {
+        loadingExternalSubtitleID = subtitle.id
+        externalSubtitleCues = []
+
+        Task {
+            let cues = (try? await ExternalSubtitleResolver.loadCues(from: subtitle)) ?? []
+
+            await MainActor.run {
+                guard loadingExternalSubtitleID == subtitle.id else { return }
+                externalSubtitleCues = cues
+                loadingExternalSubtitleID = nil
+            }
+        }
+    }
+
+    private func clearExternalSubtitleSelection() {
+        selectedExternalSubtitleID = nil
+        loadingExternalSubtitleID = nil
+        externalSubtitleCues = []
     }
 
     private func toggleFullscreen() {
@@ -1175,7 +1294,11 @@ struct StreamPlayerView: View {
                 mpvController.selectSubtitleTrack(track)
             }
         case .native:
-            selectNativeTrack(track, characteristic: track.kind == .audio ? .audible : .legible)
+            if track.kind == .audio {
+                selectNativeTrack(track, characteristic: .audible)
+            } else {
+                selectNativeSubtitleTrack(track)
+            }
         case nil:
             break
         }
@@ -1188,6 +1311,10 @@ struct StreamPlayerView: View {
                     && $0.language == choice.language
                     && $0.title == choice.title
             }
+    }
+
+    private func externalSubtitleTrackID(for subtitle: ExternalSubtitleTrack) -> String {
+        "external-subtitle-\(subtitle.id)"
     }
 
     private func selectedTrackChoice(from tracks: [PlayerMediaTrack], kind: PlayerMediaTrack.Kind) -> PlaybackTrackChoice? {

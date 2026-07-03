@@ -1,5 +1,12 @@
 import Foundation
 
+struct ExternalSubtitleCue: Identifiable, Sendable {
+    let id: Int
+    let startTime: Double
+    let endTime: Double
+    let text: String
+}
+
 enum ExternalSubtitleResolver {
     static func fetchSubtitles(
         from addons: [LocalAddon],
@@ -25,5 +32,89 @@ enum ExternalSubtitleResolver {
             }
             return allSubtitles
         }
+    }
+
+    static func loadCues(from subtitle: ExternalSubtitleTrack) async throws -> [ExternalSubtitleCue] {
+        let (data, response) = try await URLSession.shared.data(from: subtitle.url)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200..<300).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+
+        guard let content = String(data: data, encoding: .utf8)
+            ?? String(data: data, encoding: .isoLatin1) else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        return parseCues(from: content)
+    }
+
+    private static func parseCues(from content: String) -> [ExternalSubtitleCue] {
+        let normalizedContent = content
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let blocks = normalizedContent.components(separatedBy: "\n\n")
+
+        return blocks.compactMap { block in
+            parseCue(from: block)
+        }
+        .enumerated()
+        .map { index, cue in
+            ExternalSubtitleCue(
+                id: index,
+                startTime: cue.startTime,
+                endTime: cue.endTime,
+                text: cue.text
+            )
+        }
+    }
+
+    private static func parseCue(from block: String) -> (startTime: Double, endTime: Double, text: String)? {
+        let lines = block
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map(String.init)
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+        guard let timeLineIndex = lines.firstIndex(where: { $0.contains("-->") }) else { return nil }
+        let timeParts = lines[timeLineIndex].components(separatedBy: "-->")
+        guard timeParts.count == 2,
+              let startTime = parseTimestamp(timeParts[0]),
+              let endTime = parseTimestamp(timeParts[1]) else {
+            return nil
+        }
+
+        let text = lines
+            .dropFirst(timeLineIndex + 1)
+            .map(cleanSubtitleText)
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !text.isEmpty else { return nil }
+        return (startTime, endTime, text)
+    }
+
+    private static func parseTimestamp(_ value: String) -> Double? {
+        let timestamp = value
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: .whitespaces)
+            .first?
+            .replacingOccurrences(of: ",", with: ".") ?? ""
+        let parts = timestamp.split(separator: ":").map(String.init)
+        guard parts.count >= 2 else { return nil }
+
+        let secondsText = parts.last ?? "0"
+        guard let seconds = Double(secondsText) else { return nil }
+
+        let minutes = Double(parts.dropLast().last ?? "0") ?? 0
+        let hours = parts.count > 2 ? (Double(parts.dropLast(2).last ?? "0") ?? 0) : 0
+        return hours * 3600 + minutes * 60 + seconds
+    }
+
+    private static func cleanSubtitleText(_ line: String) -> String {
+        line
+            .replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: "{\\an8}", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

@@ -53,7 +53,7 @@ enum NativePlayerTrackResolver {
         item.select(group.options[index], in: group)
     }
 
-    private static func offTrack(kind: PlayerMediaTrack.Kind, isSelected: Bool) -> PlayerMediaTrack {
+    static func offTrack(kind: PlayerMediaTrack.Kind, isSelected: Bool) -> PlayerMediaTrack {
         PlayerMediaTrack(
             id: "\(kind.rawValue)-off",
             title: "Off",

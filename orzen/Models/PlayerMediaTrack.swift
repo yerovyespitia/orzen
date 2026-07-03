@@ -30,6 +30,7 @@ struct PlayerMediaTrack: Identifiable, Hashable, Sendable {
     let kind: Kind
     var isSelected: Bool
     let isOff: Bool
+    var externalSubtitleID: String? = nil
 }
 
 enum PlayerTrackLanguageName {
