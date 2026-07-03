@@ -3,6 +3,7 @@ import SwiftUI
 struct FeaturedCarousel: View {
     let items: [CatalogItem]
     @State private var selectedItemID: CatalogItem.ID?
+    @State private var detailRoute: FeaturedCarouselDetailRoute?
     @State private var hoveredButtonImage: String?
     @State private var dragTranslation: CGFloat = 0
     
@@ -71,6 +72,9 @@ struct FeaturedCarousel: View {
             key: FeaturedBannerArtworkKey.self,
             value: selectedItem.map(FeaturedBannerArtwork.init)
         )
+        .navigationDestination(item: $detailRoute) { route in
+            InfoView(item: route.item)
+        }
     }
     
     private var selectedItem: CatalogItem? {
@@ -122,6 +126,14 @@ struct FeaturedCarousel: View {
         
         withAnimation(carouselAnimation) {
             selectedItemID = nextID
+        }
+    }
+
+    private func selectItem(at index: Int) {
+        guard items.indices.contains(index) else { return }
+
+        withAnimation(carouselAnimation) {
+            selectedItemID = items[index].id
         }
     }
 
@@ -270,32 +282,54 @@ struct FeaturedCarousel: View {
             }
             .padding(.horizontal, 18)
             .frame(width: pageWidth, height: metrics.bannerHeight)
-            .contentShape(Rectangle())
-            .allowsHitTesting(true)
         } else {
             carouselControlsContent()
                 .padding(.horizontal, 18)
                 .frame(width: pageWidth, height: metrics.bannerHeight)
-                .contentShape(Rectangle())
-                .allowsHitTesting(true)
         }
     }
 
     private func carouselControlsContent() -> some View {
-        HStack {
-            carouselButton(systemImage: "chevron.left", isEnabled: canMoveBackward) {
-                moveSelection(by: -1)
+        ZStack {
+            #if os(macOS)
+            HStack {
+                carouselButton(systemImage: "chevron.left", isEnabled: canMoveBackward) {
+                    moveSelection(by: -1)
+                }
+
+                Spacer()
+
+                carouselButton(systemImage: "chevron.right", isEnabled: canMoveForward) {
+                    moveSelection(by: 1)
+                }
             }
+            #endif
 
-            Spacer()
+            VStack {
+                Spacer()
 
-            carouselButton(systemImage: "chevron.right", isEnabled: canMoveForward) {
-                moveSelection(by: 1)
+                FeaturedCarouselPageIndicator(
+                    count: items.count,
+                    selectedIndex: selectedIndex ?? items.startIndex,
+                    onSelect: selectItem(at:)
+                )
+                .padding(.bottom, pageIndicatorBottomPadding)
             }
         }
     }
 
     private func carouselPage(for item: CatalogItem, pageWidth: CGFloat) -> some View {
+        #if os(iOS)
+        FeaturedCarouselPage(item: item)
+            .frame(width: pageWidth, height: metrics.bannerHeight)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                detailRoute = FeaturedCarouselDetailRoute(item: item)
+            }
+            .id(item.id)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel("Open details for \(item.title)")
+        #else
         NavigationLink(destination: InfoView(item: item)) {
             FeaturedCarouselPage(item: item)
         }
@@ -303,7 +337,9 @@ struct FeaturedCarousel: View {
         .frame(width: pageWidth, height: metrics.bannerHeight)
         .contentShape(Rectangle())
         .id(item.id)
+        .accessibilityLabel("Open details for \(item.title)")
         #if os(macOS)
+        .help("Open details for \(item.title)")
         .onHover { hovering in
             if hovering {
                 NSCursor.pointingHand.push()
@@ -312,111 +348,30 @@ struct FeaturedCarousel: View {
             }
         }
         #endif
+        #endif
+    }
+
+    private var pageIndicatorBottomPadding: CGFloat {
+        #if os(iOS)
+        return 22
+        #else
+        return 44
+        #endif
     }
     
 }
 
-private struct FeaturedCarouselPage: View {
+private struct FeaturedCarouselDetailRoute: Identifiable, Hashable {
     let item: CatalogItem
 
-    var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            background
+    var id: CatalogItem.ID { item.id }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(item.title)
-                    .font(.system(size: titleSize, weight: .bold))
-                    .foregroundColor(.white)
-                    .shadow(radius: 8)
-                    .lineLimit(2)
-
-                Text(metadata)
-                    .font(.callout)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white.opacity(0.86))
-                    .lineLimit(1)
-            }
-            .padding(.leading, OrzenLayout.current.contentLeadingInset)
-            .padding(.trailing, OrzenLayout.current.contentTrailingInset)
-            .padding(.bottom, bottomPadding)
-        }
+    static func == (lhs: FeaturedCarouselDetailRoute, rhs: FeaturedCarouselDetailRoute) -> Bool {
+        lhs.id == rhs.id
     }
 
-    @ViewBuilder
-    private var background: some View {
-        #if os(iOS)
-        GeometryReader { geometry in
-            bannerImage(width: geometry.size.width, height: geometry.size.height)
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .clipped()
-                .overlay(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.black.opacity(0.04),
-                            Color.black.opacity(0.46),
-                            Color.black
-                        ]),
-                        startPoint: .center,
-                        endPoint: .bottom
-                    )
-                )
-                .homeStretchyHeader()
-        }
-        #else
-        Color.clear
-        #endif
-    }
-
-    @ViewBuilder
-    private func bannerImage(width: CGFloat, height: CGFloat) -> some View {
-        if let backgroundURL = item.backgroundURL ?? item.posterURL {
-            CachedRemoteImage(url: backgroundURL) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: width, height: height)
-            } placeholder: {
-                OrzenArtworkPlaceholder(style: .backdrop)
-                    .frame(width: width, height: height)
-            }
-        } else if let imageName = item.imageName {
-            Image(imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: width, height: height)
-        } else {
-            OrzenArtworkPlaceholder(style: .backdrop)
-                .frame(width: width, height: height)
-        }
-    }
-
-    private var titleSize: CGFloat {
-        #if os(iOS)
-        return 30
-        #else
-        return 40
-        #endif
-    }
-
-    private var bottomPadding: CGFloat {
-        #if os(iOS)
-        return 28
-        #else
-        return 32
-        #endif
-    }
-
-    private var metadata: String {
-        [
-            item.displayYear,
-            item.genres.first,
-            item.runtime
-        ]
-        .compactMap { value in
-            guard let value, !value.isEmpty else { return nil }
-            return value
-        }
-        .joined(separator: " • ")
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 
@@ -426,23 +381,3 @@ struct FeaturedCarousel_Previews: PreviewProvider {
             .background(Color.black)
     }
 } 
-
-#if os(iOS)
-private extension View {
-    func homeStretchyHeader() -> some View {
-        visualEffect { effect, geometry in
-            let currentHeight = geometry.size.height
-            let scrollOffset = geometry.frame(in: .scrollView).minY
-            let positiveOffset = max(0, scrollOffset)
-            let stretchedHeight = currentHeight + positiveOffset
-            let scaleFactor = stretchedHeight / currentHeight
-
-            return effect.scaleEffect(
-                x: scaleFactor,
-                y: scaleFactor,
-                anchor: .bottom
-            )
-        }
-    }
-}
-#endif

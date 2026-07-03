@@ -34,6 +34,8 @@
 		6D90552B2DCE3FCF0023DEAE /* CatalogItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055282DCE3FCF0023DEAE /* CatalogItem.swift */; };
 		6D90552C2DCE3FCF0023DEAE /* CatalogCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055292DCE3FCF0023DEAE /* CatalogCardView.swift */; };
 		6D9055302DCE548B0023DEAE /* FeaturedCarousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90552F2DCE548B0023DEAE /* FeaturedCarousel.swift */; };
+		6D90553C2E1900000023DEAE /* FeaturedCarouselPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553B2E1900000023DEAE /* FeaturedCarouselPage.swift */; };
+		6D90553E2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */; };
 		6D9055322DCE56660023DEAE /* CatalogSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055312DCE56650023DEAE /* CatalogSection.swift */; };
 		6D938E892DD4C3240048DEB4 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D938E882DD4C3240048DEB4 /* CollectionDetailView.swift */; };
 		6DAA10012E04000000B5D7A1 /* AddonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20012E04000000B5D7A1 /* AddonsView.swift */; };
@@ -107,6 +109,8 @@
 		6D9055282DCE3FCF0023DEAE /* CatalogItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CatalogItem.swift; sourceTree = "<group>"; };
 		6D9055292DCE3FCF0023DEAE /* CatalogCardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CatalogCardView.swift; sourceTree = "<group>"; };
 		6D90552F2DCE548B0023DEAE /* FeaturedCarousel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeaturedCarousel.swift; sourceTree = "<group>"; };
+		6D90553B2E1900000023DEAE /* FeaturedCarouselPage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeaturedCarouselPage.swift; sourceTree = "<group>"; };
+		6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeaturedCarouselPageIndicator.swift; sourceTree = "<group>"; };
 		6D9055312DCE56650023DEAE /* CatalogSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CatalogSection.swift; sourceTree = "<group>"; };
 		6D938E882DD4C3240048DEB4 /* CollectionDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
 		6DAA20012E04000000B5D7A1 /* AddonsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonsView.swift; sourceTree = "<group>"; };
@@ -246,6 +250,8 @@
 				6DAA200F2E04000000B5D7A1 /* StreamPlayerView.swift */,
 				6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */,
 				6D90552F2DCE548B0023DEAE /* FeaturedCarousel.swift */,
+				6D90553B2E1900000023DEAE /* FeaturedCarouselPage.swift */,
+				6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */,
 				6D9055312DCE56650023DEAE /* CatalogSection.swift */,
 				6D9055292DCE3FCF0023DEAE /* CatalogCardView.swift */,
 			);
@@ -420,6 +426,8 @@
 				6D9055322DCE56660023DEAE /* CatalogSection.swift in Sources */,
 				6DAA10022E04000000B5D7A1 /* HomeView.swift in Sources */,
 				6D9055302DCE548B0023DEAE /* FeaturedCarousel.swift in Sources */,
+				6D90553C2E1900000023DEAE /* FeaturedCarouselPage.swift in Sources */,
+				6D90553E2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift in Sources */,
 				6DAA10032E04000000B5D7A1 /* HomeCatalogStore.swift in Sources */,
 				6D2872012E034A0000B5D7A1 /* LocalAddonStore.swift in Sources */,
 				6DAA10182E04000000B5D7A1 /* CatalogItemContextMenu.swift in Sources */,
