@@ -1,7 +1,14 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 @main
 struct OrzenApp: App {
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(OrzenAppDelegate.self) private var appDelegate
+    #endif
+
     var body: some Scene {
         #if os(macOS)
         WindowGroup {
@@ -26,6 +33,57 @@ struct OrzenApp: App {
         #endif
     }
 }
+
+#if os(iOS)
+final class OrzenAppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        supportedInterfaceOrientationsFor window: UIWindow?
+    ) -> UIInterfaceOrientationMask {
+        AppOrientationController.shared.supportedOrientations
+    }
+}
+
+final class AppOrientationController {
+    static let shared = AppOrientationController()
+
+    private(set) var supportedOrientations: UIInterfaceOrientationMask = .portrait
+
+    private init() {}
+
+    func lockToPortrait() {
+        updateSupportedOrientations(.portrait, preferredOrientation: .portrait)
+    }
+
+    func lockToLandscape() {
+        updateSupportedOrientations(.landscapeRight, preferredOrientation: .landscapeRight)
+    }
+
+    private func updateSupportedOrientations(
+        _ orientations: UIInterfaceOrientationMask,
+        preferredOrientation: UIInterfaceOrientation
+    ) {
+        supportedOrientations = orientations
+        UIDevice.current.setValue(preferredOrientation.rawValue, forKey: "orientation")
+
+        if #available(iOS 16.0, *) {
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .forEach { windowScene in
+                    windowScene.windows
+                        .first?
+                        .rootViewController?
+                        .setNeedsUpdateOfSupportedInterfaceOrientations()
+                    windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: orientations)) { error in
+                        print("Failed to update orientation: \(error.localizedDescription)")
+                    }
+                }
+        } else {
+            UIViewController.attemptRotationToDeviceOrientation()
+        }
+    }
+}
+#endif
 
 private enum LaunchCatalogPrefetcher {
     @MainActor

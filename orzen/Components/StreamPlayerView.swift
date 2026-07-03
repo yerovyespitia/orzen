@@ -60,6 +60,7 @@ struct StreamPlayerView: View {
             playerSurface
             nextEpisodeBanner
             playerChrome
+            iOSBackHitTarget
             episodeSidebar
             startingOverlay
             errorOverlay
@@ -232,6 +233,32 @@ struct StreamPlayerView: View {
         .allowsHitTesting(isChromePresented)
         .zIndex(3)
         .animation(.easeInOut(duration: 0.24), value: isChromePresented)
+    }
+
+    @ViewBuilder
+    private var iOSBackHitTarget: some View {
+        #if os(iOS)
+        if isChromePresented {
+            VStack {
+                HStack {
+                    Spacer(minLength: 0)
+
+                    Button(action: handleBack) {
+                        Color.clear
+                            .frame(width: 64, height: 64)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Back")
+                    .padding(.trailing, 16)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.top, 56)
+            .zIndex(4.5)
+        }
+        #endif
     }
 
     @ViewBuilder

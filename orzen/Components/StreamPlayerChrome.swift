@@ -44,6 +44,9 @@ struct StreamPlayerChrome: View {
                 .ignoresSafeArea()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #if os(iOS)
+        .ignoresSafeArea(.container, edges: .bottom)
+        #endif
     }
 
     private var header: some View {
@@ -297,7 +300,7 @@ struct StreamPlayerChrome: View {
 
     private var bottomPadding: CGFloat {
         #if os(iOS)
-        return 34
+        return 8
         #else
         return 18
         #endif

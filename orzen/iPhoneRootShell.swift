@@ -35,22 +35,141 @@ struct iPhoneRootShell: View {
             .tint(.white)
             .ignoresSafeArea(.container, edges: .top)
 
-            if let playbackRequest = playbackStore.request {
-                StreamPlayerView(
-                    request: playbackRequest,
-                    onBack: {
-                        withAnimation(.easeInOut(duration: 0.22)) {
-                            playbackStore.request = nil
-                        }
-                    }
-                )
-                .id(playbackRequest.id)
-                .zIndex(10)
-                .transition(.opacity)
-            }
+            StreamPlayerPresenter(request: $playbackStore.request)
+                .frame(width: 0, height: 0)
         }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
+        .onAppear {
+            updateOrientation(for: playbackStore.request?.id)
+        }
+        .onChange(of: playbackStore.request?.id) { _, requestID in
+            updateOrientation(for: requestID)
+        }
+    }
+
+    private func updateOrientation(for requestID: StreamPlaybackRequest.ID?) {
+        if requestID == nil {
+            AppOrientationController.shared.lockToPortrait()
+        } else {
+            AppOrientationController.shared.lockToLandscape()
+        }
+    }
+}
+
+private struct StreamPlayerPresenter: UIViewControllerRepresentable {
+    @Binding var request: StreamPlaybackRequest?
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(request: $request)
+    }
+
+    func makeUIViewController(context: Context) -> StreamPlayerPresentationController {
+        StreamPlayerPresentationController()
+    }
+
+    func updateUIViewController(
+        _ uiViewController: StreamPlayerPresentationController,
+        context: Context
+    ) {
+        uiViewController.update(request: request, coordinator: context.coordinator)
+    }
+
+    final class Coordinator {
+        private var request: Binding<StreamPlaybackRequest?>
+
+        init(request: Binding<StreamPlaybackRequest?>) {
+            self.request = request
+        }
+
+        func closePlayer() {
+            request.wrappedValue = nil
+        }
+    }
+}
+
+private final class StreamPlayerPresentationController: UIViewController {
+    private var playerController: StreamPlayerHostingController?
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .portrait
+    }
+
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        .portrait
+    }
+
+    func update(request: StreamPlaybackRequest?, coordinator: StreamPlayerPresenter.Coordinator) {
+        guard let request else {
+            dismissPlayerIfNeeded()
+            return
+        }
+
+        let onBack = { [weak self, weak coordinator] in
+            self?.dismissPlayerIfNeeded()
+            coordinator?.closePlayer()
+        }
+
+        if let playerController {
+            guard playerController.requestID != request.id else {
+                playerController.rootView = StreamPlayerView(request: request, onBack: onBack)
+                return
+            }
+
+            playerController.rootView = StreamPlayerView(request: request, onBack: onBack)
+            playerController.requestID = request.id
+            return
+        }
+
+        let playerController = StreamPlayerHostingController(
+            requestID: request.id,
+            rootView: StreamPlayerView(request: request, onBack: onBack)
+        )
+        playerController.modalPresentationStyle = .fullScreen
+        playerController.modalTransitionStyle = .crossDissolve
+        self.playerController = playerController
+
+        AppOrientationController.shared.lockToLandscape()
+        present(playerController, animated: false)
+    }
+
+    private func dismissPlayerIfNeeded() {
+        guard let playerController else {
+            AppOrientationController.shared.lockToPortrait()
+            return
+        }
+
+        self.playerController = nil
+        playerController.dismiss(animated: false) {
+            AppOrientationController.shared.lockToPortrait()
+        }
+    }
+}
+
+private final class StreamPlayerHostingController: UIHostingController<StreamPlayerView> {
+    var requestID: StreamPlaybackRequest.ID
+
+    init(requestID: StreamPlaybackRequest.ID, rootView: StreamPlayerView) {
+        self.requestID = requestID
+        super.init(rootView: rootView)
+        modalPresentationCapturesStatusBarAppearance = true
+    }
+
+    @available(*, unavailable)
+    @MainActor dynamic required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        .landscapeRight
+    }
+
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+        .landscapeRight
+    }
+
+    override var prefersStatusBarHidden: Bool {
+        true
     }
 }
 
