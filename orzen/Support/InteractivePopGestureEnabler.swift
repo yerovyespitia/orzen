@@ -7,10 +7,6 @@ extension View {
     func interactivePopGestureEnabled() -> some View {
         background(InteractivePopGestureEnabler())
     }
-
-    func edgeSwipeBackGesture() -> some View {
-        modifier(EdgeSwipeBackModifier())
-    }
 }
 
 private struct InteractivePopGestureEnabler: UIViewControllerRepresentable {
@@ -39,34 +35,6 @@ private struct InteractivePopGestureEnabler: UIViewControllerRepresentable {
             gesture.isEnabled = true
             gesture.delegate = nil
         }
-    }
-}
-
-private struct EdgeSwipeBackModifier: ViewModifier {
-    @Environment(\.dismiss) private var dismiss
-
-    private let edgeWidth: CGFloat = 28
-    private let swipeThreshold: CGFloat = 72
-
-    func body(content: Content) -> some View {
-        content
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 24, coordinateSpace: .local)
-                    .onEnded(handleSwipe)
-            )
-    }
-
-    private func handleSwipe(_ value: DragGesture.Value) {
-        let horizontalMovement = value.translation.width
-        let verticalMovement = value.translation.height
-
-        guard value.startLocation.x <= edgeWidth,
-              horizontalMovement >= swipeThreshold,
-              abs(horizontalMovement) > abs(verticalMovement) else {
-            return
-        }
-
-        dismiss()
     }
 }
 #endif
