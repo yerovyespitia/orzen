@@ -349,7 +349,7 @@ struct FeaturedCarousel: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel("Open details for \(item.title)")
         #else
-        FeaturedCarouselPage(item: item)
+        FeaturedCarouselPage(item: item, showsBackground: false)
             .frame(width: pageWidth, height: metrics.bannerHeight)
             .contentShape(Rectangle())
             .gesture(

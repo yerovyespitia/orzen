@@ -2,10 +2,15 @@ import SwiftUI
 
 struct FeaturedCarouselPage: View {
     let item: CatalogItem
+    var showsBackground = true
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            background
+            if showsBackground {
+                background
+            } else {
+                Color.clear
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(item.title)

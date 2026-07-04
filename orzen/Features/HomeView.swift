@@ -55,7 +55,14 @@ struct HomeView: View {
                             }
                         }
                         .frame(width: geometry.size.width, alignment: .leading)
-                        .background(Color.black)
+                        .background(alignment: .top) {
+                            VStack(spacing: 0) {
+                                Color.clear
+                                    .frame(height: OrzenLayout.current.bannerHeight)
+
+                                Color.black
+                            }
+                        }
                     }
                     .ignoresSafeArea(.container, edges: .top)
                     .onChange(of: scrollToTopRequest) { _, _ in
