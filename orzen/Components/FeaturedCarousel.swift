@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 struct FeaturedCarousel: View {
     let items: [CatalogItem]
@@ -11,6 +14,9 @@ struct FeaturedCarousel: View {
     private let swipeSettleAnimation = Animation.easeInOut(duration: 0.22)
     private let swipeSettleDuration: TimeInterval = 0.22
     private let swipeThreshold: CGFloat = 48
+    #if os(macOS)
+    private let titlebarInteractionExclusionHeight: CGFloat = 72
+    #endif
     #if os(iOS)
     private let interactivePopGestureEdgeWidth: CGFloat = 44
     #endif
@@ -49,6 +55,11 @@ struct FeaturedCarousel: View {
                     carouselControls(pageWidth: pageWidth)
                         .zIndex(3)
                 }
+
+                #if os(macOS)
+                titlebarDragRegion(pageWidth: pageWidth)
+                    .zIndex(4)
+                #endif
             }
             .contentShape(Rectangle())
             .gesture(
@@ -318,6 +329,14 @@ struct FeaturedCarousel: View {
         }
     }
 
+    #if os(macOS)
+    private func titlebarDragRegion(pageWidth: CGFloat) -> some View {
+        WindowDragRegion()
+            .frame(width: pageWidth, height: titlebarInteractionExclusionHeight)
+            .frame(maxHeight: .infinity, alignment: .top)
+    }
+    #endif
+
     private func carouselPage(for item: CatalogItem, pageWidth: CGFloat) -> some View {
         #if os(iOS)
         FeaturedCarouselPage(item: item)
@@ -330,24 +349,29 @@ struct FeaturedCarousel: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityLabel("Open details for \(item.title)")
         #else
-        NavigationLink(destination: InfoView(item: item)) {
-            FeaturedCarouselPage(item: item)
-        }
-        .buttonStyle(.plain)
-        .frame(width: pageWidth, height: metrics.bannerHeight)
-        .contentShape(Rectangle())
-        .id(item.id)
-        .accessibilityLabel("Open details for \(item.title)")
-        #if os(macOS)
-        .help("Open details for \(item.title)")
-        .onHover { hovering in
-            if hovering {
-                NSCursor.pointingHand.push()
-            } else {
-                NSCursor.pop()
+        FeaturedCarouselPage(item: item)
+            .frame(width: pageWidth, height: metrics.bannerHeight)
+            .contentShape(Rectangle())
+            .gesture(
+                SpatialTapGesture(coordinateSpace: .local)
+                    .onEnded { value in
+                        guard value.location.y > titlebarInteractionExclusionHeight else { return }
+                        detailRoute = FeaturedCarouselDetailRoute(item: item)
+                    }
+            )
+            .id(item.id)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel("Open details for \(item.title)")
+            #if os(macOS)
+            .help("Open details for \(item.title)")
+            .onHover { hovering in
+                if hovering {
+                    NSCursor.pointingHand.push()
+                } else {
+                    NSCursor.pop()
+                }
             }
-        }
-        #endif
+            #endif
         #endif
     }
 
@@ -374,6 +398,30 @@ private struct FeaturedCarouselDetailRoute: Identifiable, Hashable {
         hasher.combine(id)
     }
 }
+
+#if os(macOS)
+private struct WindowDragRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> DraggableView {
+        DraggableView()
+    }
+
+    func updateNSView(_ nsView: DraggableView, context: Context) {}
+}
+
+private final class DraggableView: NSView {
+    override var mouseDownCanMoveWindow: Bool {
+        true
+    }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
+    }
+}
+#endif
 
 struct FeaturedCarousel_Previews: PreviewProvider {
     static var previews: some View {
