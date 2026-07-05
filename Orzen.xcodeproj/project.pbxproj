@@ -57,6 +57,7 @@
 		6DAA10112E04000000B5D7A1 /* NativePlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20112E04000000B5D7A1 /* NativePlayerView.swift */; };
 		6DAA10122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift */; };
 		6DAA10132E04000000B5D7A1 /* InfoHeroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20132E04000000B5D7A1 /* InfoHeroView.swift */; };
+		6DAA101D2E19010000B5D7A1 /* ExpandableDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */; };
 		6DAA10142E04000000B5D7A1 /* NativePlayerTrackResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20142E04000000B5D7A1 /* NativePlayerTrackResolver.swift */; };
 		6DAA10152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift */; };
 		6DAA10162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift */; };
@@ -132,6 +133,7 @@
 		6DAA20112E04000000B5D7A1 /* NativePlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlayerView.swift; sourceTree = "<group>"; };
 		6DAA20122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackKeyboardShortcutView.swift; sourceTree = "<group>"; };
 		6DAA20132E04000000B5D7A1 /* InfoHeroView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfoHeroView.swift; sourceTree = "<group>"; };
+		6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpandableDescriptionText.swift; sourceTree = "<group>"; };
 		6DAA20142E04000000B5D7A1 /* NativePlayerTrackResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlayerTrackResolver.swift; sourceTree = "<group>"; };
 		6DAA20152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerChromeVisibilityController.swift; sourceTree = "<group>"; };
 		6DAA20162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerKeyboardControls.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 				6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */,
 				6DAA20092E04000000B5D7A1 /* DetailUnavailableView.swift */,
 				6DAA200A2E04000000B5D7A1 /* EpisodeRow.swift */,
+				6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */,
 				6DAA20132E04000000B5D7A1 /* InfoHeroView.swift */,
 				6DAA20112E04000000B5D7A1 /* NativePlayerView.swift */,
 				6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */,
@@ -408,6 +411,7 @@
 				6D77A0022E16000000B5D7A1 /* NativePlaybackCompatibility.swift in Sources */,
 				6DAA10052E04000000B5D7A1 /* CatalogFilterButton.swift in Sources */,
 				6D341C2F2DD0782E0072A85D /* Sidebar.swift in Sources */,
+				6DAA101D2E19010000B5D7A1 /* ExpandableDescriptionText.swift in Sources */,
 				6DAA10112E04000000B5D7A1 /* NativePlayerView.swift in Sources */,
 				6DAA10132E04000000B5D7A1 /* InfoHeroView.swift in Sources */,
 				6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */,

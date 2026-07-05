@@ -65,7 +65,7 @@ struct InfoHeroView: View {
 
     private var mobileBody: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .bottom, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
                 posterImage
                     .frame(width: 92, height: 138)
                     .clipped()
@@ -76,25 +76,24 @@ struct InfoHeroView: View {
                             .stroke(Color.white.opacity(0.18), lineWidth: 1)
                     )
 
-                Text(item.title)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
-                    .lineLimit(3)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(item.title)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(3)
+
+                    detailPills
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    actionButtons
+                }
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
 
-            detailPills
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            actionButtons
-
-            Text(item.description)
-                .font(.body)
-                .foregroundColor(.white.opacity(0.86))
-                .fixedSize(horizontal: false, vertical: true)
+            ExpandableDescriptionText(text: item.description)
         }
         .padding(.horizontal, horizontalPadding)
-        .padding(.top, 52)
+        .padding(.top, 58)
         .alert("Mark all episodes as watched?", isPresented: $isConfirmingMarkAllWatched) {
             Button("Cancel", role: .cancel) { }
             Button("Mark All", action: markSeriesWatched)

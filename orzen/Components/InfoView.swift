@@ -310,7 +310,7 @@ struct InfoView: View {
 
     private var backIconSize: CGFloat {
         #if os(iOS)
-        return 15
+        return 21
         #else
         return 13
         #endif
@@ -318,7 +318,7 @@ struct InfoView: View {
 
     private var backButtonSize: CGFloat {
         #if os(iOS)
-        return 36
+        return 44
         #else
         return 28
         #endif
