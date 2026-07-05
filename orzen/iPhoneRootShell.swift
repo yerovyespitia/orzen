@@ -8,8 +8,6 @@ struct iPhoneRootShell: View {
     @State private var selectedTab: RootTab = .home
     @State private var homeScrollToTopRequest = 0
     @State private var searchScrollToTopRequest = 0
-    @State private var seriesScrollToTopRequest = 0
-    @State private var moviesScrollToTopRequest = 0
 
     init() {
         Self.configureTabBarAppearance()
@@ -24,29 +22,23 @@ struct iPhoneRootShell: View {
                     }
                     .tag(RootTab.home)
 
+                CollectionsView()
+                    .tabItem {
+                        Label("Collections", systemImage: "square.stack")
+                    }
+                    .tag(RootTab.collections)
+
+                AddonsView()
+                    .tabItem {
+                        Label("Addons", systemImage: "puzzlepiece.extension")
+                    }
+                    .tag(RootTab.addons)
+
                 SearchView(scrollToTopRequest: searchScrollToTopRequest)
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
                     }
                     .tag(RootTab.search)
-
-                SeriesView(scrollToTopRequest: seriesScrollToTopRequest)
-                    .tabItem {
-                        Label("Series", systemImage: "tv")
-                    }
-                    .tag(RootTab.series)
-
-                MoviesView(scrollToTopRequest: moviesScrollToTopRequest)
-                    .tabItem {
-                        Label("Movies", systemImage: "film")
-                    }
-                    .tag(RootTab.movies)
-
-                iPhoneMoreView()
-                    .tabItem {
-                        Label("More", systemImage: "ellipsis")
-                    }
-                    .tag(RootTab.more)
             }
             .ignoresSafeArea(.container, edges: .top)
 
@@ -124,11 +116,7 @@ struct iPhoneRootShell: View {
             homeScrollToTopRequest += 1
         case .search:
             searchScrollToTopRequest += 1
-        case .series:
-            seriesScrollToTopRequest += 1
-        case .movies:
-            moviesScrollToTopRequest += 1
-        case .more:
+        case .collections, .addons:
             break
         }
     }
@@ -145,9 +133,8 @@ struct iPhoneRootShell: View {
 private enum RootTab: Hashable {
     case home
     case search
-    case series
-    case movies
-    case more
+    case collections
+    case addons
 }
 
 private struct StreamPlayerPresenter: UIViewControllerRepresentable {
@@ -266,66 +253,4 @@ private final class StreamPlayerHostingController: UIHostingController<StreamPla
     }
 }
 
-private struct iPhoneMoreView: View {
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    moreLink(
-                        title: "Collections",
-                        systemImage: "square.stack.fill",
-                        destination: CollectionsView(ownsNavigationStack: false)
-                    )
-
-                    Divider()
-                        .overlay(Color.white.opacity(0.12))
-
-                    moreLink(
-                        title: "Addons",
-                        systemImage: "puzzlepiece.extension.fill",
-                        destination: AddonsView(ownsNavigationStack: false)
-                    )
-                }
-                .padding(.horizontal, 16)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .padding(.top, 12)
-            }
-            .navigationTitle("More")
-            .navigationBarTitleDisplayMode(.inline)
-            .interactivePopGestureEnabled()
-        }
-    }
-
-    private func moreLink<Destination: View>(
-        title: String,
-        systemImage: String,
-        destination: Destination
-    ) -> some View {
-        NavigationLink {
-            destination
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.84))
-                    .frame(width: 24)
-
-                Text(title)
-                    .font(.body)
-                    .foregroundColor(.white)
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(.white.opacity(0.42))
-            }
-            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-}
 #endif
