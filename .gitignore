@@ -1,6 +1,7 @@
 .DS_Store
 .env
 buildServer.json
+Pods/
 *.xcuserstate
 *.xcscmblueprint
 *.xccheckout

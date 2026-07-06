@@ -32,13 +32,13 @@ enum NativePlaybackCompatibility: Sendable {
     var badgeTitle: String? {
         switch self {
         case .supported:
-            return "iOS ready"
+            return nil
         case .likely:
-            return "Likely iOS"
+            return nil
         case .unknown:
-            return "Check on play"
+            return nil
         case .unsupported:
-            return "Needs conversion"
+            return "Unavailable"
         }
     }
 
@@ -65,29 +65,10 @@ enum NativePlaybackCompatibilityResolver {
         }
 
         guard ["http", "https"].contains(playbackURL.scheme?.lowercased()) else {
-            return .unsupported("This source uses \(playbackURL.scheme ?? "an unsupported") links. iOS can only open direct HTTP or HTTPS media streams.")
+            return .unsupported("This source uses \(playbackURL.scheme ?? "an unsupported") links. Orzen needs a direct HTTP or HTTPS media stream.")
         }
 
-        let extensionHint = playbackURL.pathExtension.lowercased()
-        if let compatibility = compatibility(forExtension: extensionHint) {
-            return compatibility
-        }
-
-        let searchableText = [
-            playbackURL.absoluteString,
-            source.title,
-            source.description,
-            source.metadata.joined(separator: " "),
-            source.compatibilityHints.joined(separator: " ")
-        ]
-            .joined(separator: " ")
-            .lowercased()
-
-        if let compatibility = compatibility(forText: searchableText) {
-            return compatibility
-        }
-
-        return .unknown
+        return .supported
     }
 
     static func sortedForNativePlayback(_ sources: [StreamSource]) -> [StreamSource] {

@@ -99,8 +99,6 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     func beginPlayback(for request: StreamPlaybackRequest) {
-        guard let item = request.item else { return }
-
         if let entry = entry(contentID: request.contentID, contentType: request.contentType),
            sourcesMatch(entry.source, request.source) {
             saveProgress(
@@ -112,22 +110,6 @@ final class PlaybackProgressStore: ObservableObject {
             )
             return
         }
-
-        saveEntry(
-            PlaybackProgressEntry(
-                contentID: request.contentID,
-                contentType: request.contentType,
-                item: item,
-                episode: request.episode,
-                source: request.source,
-                title: request.title,
-                subtitle: request.subtitle,
-                position: 0,
-                duration: 0,
-                trackSelections: nil,
-                updatedAt: Date()
-            )
-        )
     }
 
     func savePendingProgress(
@@ -205,6 +187,14 @@ final class PlaybackProgressStore: ObservableObject {
 
     func clearProgress(contentID: String, contentType: CinemetaType) {
         entries.removeAll { $0.id == PlaybackProgressEntry.key(contentID: contentID, contentType: contentType) }
+        save()
+    }
+
+    func clearProgress(for request: StreamPlaybackRequest) {
+        entries.removeAll { entry in
+            entry.id == PlaybackProgressEntry.key(contentID: request.contentID, contentType: request.contentType)
+                && sourcesMatch(entry.source, request.source)
+        }
         save()
     }
 

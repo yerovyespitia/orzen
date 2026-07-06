@@ -30,7 +30,7 @@ enum ExternalSubtitleResolver {
             for await addonSubtitles in group {
                 allSubtitles.append(contentsOf: addonSubtitles)
             }
-            return allSubtitles
+            return uniqueSubtitles(from: allSubtitles)
         }
     }
 
@@ -116,5 +116,12 @@ enum ExternalSubtitleResolver {
             .replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
             .replacingOccurrences(of: "{\\an8}", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func uniqueSubtitles(from subtitles: [ExternalSubtitleTrack]) -> [ExternalSubtitleTrack] {
+        var seenIDs: Set<String> = []
+        return subtitles.filter { subtitle in
+            seenIDs.insert(subtitle.id).inserted
+        }
     }
 }

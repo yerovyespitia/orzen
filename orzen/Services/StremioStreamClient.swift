@@ -91,6 +91,7 @@ enum StreamSourceCategory: String, Codable, Hashable, Sendable {
 
 enum StreamPlaybackEngine: Sendable {
     case native
+    case vlc
     case mpv
 }
 

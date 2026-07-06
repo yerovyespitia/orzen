@@ -46,10 +46,15 @@ struct StreamPlayerView: View {
     @State private var prefetchedNextEpisodeID: CatalogEpisode.ID?
     @State private var prefetchedNextSource: StreamSource?
     @StateObject private var playbackObserver = StreamPlaybackObserver()
+    #if os(iOS)
+    @StateObject private var vlcController = VLCPlaybackController()
+    #endif
     @StateObject private var mpvController = MPVPlaybackController()
     @StateObject private var chromeVisibility = StreamPlayerChromeVisibilityController()
 
     private let nativeStartupMinimumProgress = 1.0
+    private let minimumCompletableMovieDuration = 20 * 60.0
+    private let minimumCompletableEpisodeDuration = 5 * 60.0
 
     init(request: StreamPlaybackRequest, onBack: @escaping () -> Void) {
         self.request = request
@@ -59,7 +64,9 @@ struct StreamPlayerView: View {
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
+            #if os(macOS)
             keyboardShortcuts
+            #endif
             playerSurface
             externalSubtitleOverlay
             nextEpisodeBanner
@@ -134,6 +141,12 @@ struct StreamPlayerView: View {
             guard didFinishToEnd else { return }
             handlePlaybackEnded()
         }
+        #if os(iOS)
+        .onChange(of: vlcController.didReachEnd) { _, didReachEnd in
+            guard didReachEnd else { return }
+            handlePlaybackEnded()
+        }
+        #endif
         .onChange(of: isEpisodeSidebarPresented) { _, isPresented in
             if isPresented {
                 chromeVisibility.keepVisible()
@@ -170,6 +183,9 @@ struct StreamPlayerView: View {
             player?.pause()
             removeNativeTimeObserver()
             playbackObserver.stop()
+            #if os(iOS)
+            vlcController.stop()
+            #endif
             mpvController.stop()
         }
     }
@@ -194,7 +210,11 @@ struct StreamPlayerView: View {
             Color.black.ignoresSafeArea()
         }
         #else
-        if activePlaybackEngine == .native, let player {
+        if activePlaybackEngine == .vlc {
+            VLCPlayerView(controller: vlcController)
+                .background(Color.black)
+                .ignoresSafeArea()
+        } else if activePlaybackEngine == .native, let player {
             NativePlayerView(player: player)
                 .background(Color.black)
                 .ignoresSafeArea()
@@ -377,33 +397,69 @@ struct StreamPlayerView: View {
     }
 
     private var isPaused: Bool {
-        activePlaybackEngine == .mpv ? mpvController.isPaused : nativeIsPaused
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.isPaused
+        }
+        #endif
+        return activePlaybackEngine == .mpv ? mpvController.isPaused : nativeIsPaused
     }
 
     private var currentTime: Double {
-        activePlaybackEngine == .mpv ? mpvController.currentTime : nativeTime
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.currentTime
+        }
+        #endif
+        return activePlaybackEngine == .mpv ? mpvController.currentTime : nativeTime
     }
 
     private var duration: Double {
-        activePlaybackEngine == .mpv ? mpvController.duration : nativeDuration
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.duration
+        }
+        #endif
+        return activePlaybackEngine == .mpv ? mpvController.duration : nativeDuration
     }
 
     private var volume: Double {
-        activePlaybackEngine == .mpv ? mpvController.volume : nativeVolume
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.volume
+        }
+        #endif
+        return activePlaybackEngine == .mpv ? mpvController.volume : nativeVolume
     }
 
     private var isMuted: Bool {
-        activePlaybackEngine == .mpv ? mpvController.isMuted : nativeIsMuted
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.isMuted
+        }
+        #endif
+        return activePlaybackEngine == .mpv ? mpvController.isMuted : nativeIsMuted
     }
 
     private var audioTracks: [PlayerMediaTrack] {
-        activePlaybackEngine == .mpv ? mpvController.audioTracks : nativeAudioTracks
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.audioTracks
+        }
+        #endif
+        return activePlaybackEngine == .mpv ? mpvController.audioTracks : nativeAudioTracks
     }
 
     private var subtitleTracks: [PlayerMediaTrack] {
         switch activePlaybackEngine {
         case .mpv:
             return mpvController.subtitleTracks
+        case .vlc:
+            #if os(iOS)
+            return vlcSubtitleTracksWithExternalSubtitles
+            #else
+            return []
+            #endif
         case .native:
             #if os(iOS)
             return nativeSubtitleTracksWithExternalSubtitles
@@ -441,9 +497,37 @@ struct StreamPlayerView: View {
         return nativeTracks + externalTracks
     }
 
+    #if os(iOS)
+    private var vlcSubtitleTracksWithExternalSubtitles: [PlayerMediaTrack] {
+        let vlcTracks = vlcController.subtitleTracks.map { track in
+            var updatedTrack = track
+            if track.isOff {
+                updatedTrack.isSelected = selectedExternalSubtitleID == nil && track.isSelected
+            } else if selectedExternalSubtitleID != nil {
+                updatedTrack.isSelected = false
+            }
+            return updatedTrack
+        }
+
+        let externalTracks = externalSubtitleTracks.map { subtitle in
+            PlayerMediaTrack(
+                id: externalSubtitleTrackID(for: subtitle),
+                title: "\(subtitle.addonName): \(subtitle.title)",
+                language: subtitle.language,
+                kind: .subtitle,
+                isSelected: selectedExternalSubtitleID == subtitle.id,
+                isOff: false,
+                externalSubtitleID: subtitle.id
+            )
+        }
+
+        return vlcTracks + externalTracks
+    }
+    #endif
+
     private var currentExternalSubtitleText: String? {
         guard selectedExternalSubtitleID != nil,
-              activePlaybackEngine == .native else {
+              activePlaybackEngine == .native || activePlaybackEngine == .vlc else {
             return nil
         }
 
@@ -456,20 +540,31 @@ struct StreamPlayerView: View {
         switch activePlaybackEngine {
         #if os(macOS)
         case .mpv:
-            mpvController.errorMessage
+            return mpvController.errorMessage
         #else
         case .mpv:
-            playbackObserver.errorMessage
+            return playbackObserver.errorMessage
         #endif
+        case .vlc:
+            #if os(iOS)
+            return vlcController.errorMessage
+            #else
+            return playbackObserver.errorMessage
+            #endif
         case .native:
-            playbackObserver.errorMessage
+            return playbackObserver.errorMessage
         case nil:
-            playbackObserver.errorMessage ?? mpvController.errorMessage
+            return playbackObserver.errorMessage ?? mpvController.errorMessage
         }
     }
 
     private var isPreparingPlayback: Bool {
-        isPreparingNativePlayback || (activePlaybackEngine == .mpv && mpvController.isStarting)
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            return vlcController.isStarting
+        }
+        #endif
+        return isPreparingNativePlayback || (activePlaybackEngine == .mpv && mpvController.isStarting)
     }
 
     private var isChromePresented: Bool {
@@ -569,8 +664,20 @@ struct StreamPlayerView: View {
         guard !isClosing else { return }
         isClosing = true
         saveCurrentProgress(force: true)
+        if duration > 0, !canCompleteCurrentPlayback {
+            clearCurrentPlaybackProgress()
+        }
         chromeVisibility.cancelAutoHide()
         player?.pause()
+        #if os(iOS)
+        if activePlaybackEngine == .vlc {
+            vlcController.stop()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                onBack()
+            }
+            return
+        }
+        #endif
         mpvController.pause()
         onBack()
     }
@@ -608,12 +715,7 @@ struct StreamPlayerView: View {
         }
 
         #if os(iOS)
-        if let nativePlaybackError = request.source.nativePlaybackError {
-            playbackObserver.errorMessage = nativePlaybackError
-            return
-        }
-
-        startNativePlayback(with: playbackURL)
+        startVLCPlayback(with: playbackURL)
         #else
         guard request.source.preferredPlaybackEngine == .native else {
             activePlaybackEngine = .mpv
@@ -625,6 +727,20 @@ struct StreamPlayerView: View {
         startNativePlayback(with: playbackURL)
         #endif
     }
+
+    #if os(iOS)
+    private func startVLCPlayback(with playbackURL: URL) {
+        guard vlcController.isAvailable else {
+            startNativePlayback(with: playbackURL)
+            return
+        }
+
+        activePlaybackEngine = .vlc
+        playbackObserver.stop()
+        playbackObserver.errorMessage = nil
+        vlcController.play(url: playbackURL)
+    }
+    #endif
 
     private func startNativeFallbackIfPossible() {
         #if os(macOS)
@@ -684,10 +800,9 @@ struct StreamPlayerView: View {
 
     private func startNativeFallbackAfterRuntimeErrorIfPossible() {
         #if os(iOS)
-        guard activePlaybackEngine == .native,
-              player != nil,
-              !isPreparingNativePlayback,
-              !isResolvingNativeFallback else {
+        guard !isPreparingNativePlayback,
+              !isResolvingNativeFallback,
+              activePlaybackEngine == .vlc || (activePlaybackEngine == .native && player != nil) else {
             return
         }
 
@@ -700,16 +815,23 @@ struct StreamPlayerView: View {
                 isResolvingNativeFallback = false
                 guard !isClosing, let fallbackRequest else { return }
 
-                player?.pause()
-                removeNativeTimeObserver()
-                playbackObserver.stop()
-                cancelNativeStartupTimeout()
-                player = nil
+                stopCurrentIOSPlaybackForFallback()
                 StreamPlaybackStore.shared.request = fallbackRequest
             }
         }
         #endif
     }
+
+    #if os(iOS)
+    private func stopCurrentIOSPlaybackForFallback() {
+        vlcController.stop()
+        player?.pause()
+        removeNativeTimeObserver()
+        playbackObserver.stop()
+        cancelNativeStartupTimeout()
+        player = nil
+    }
+    #endif
 
     private func fallbackPlaybackRequestAfterNativeFailure() async -> StreamPlaybackRequest? {
         #if os(iOS)
@@ -783,8 +905,18 @@ struct StreamPlayerView: View {
             return
         }
 
-        if progressStore.isComplete(position: currentTime, duration: duration, contentType: request.contentType) {
+        if progressStore.isComplete(position: currentTime, duration: duration, contentType: request.contentType),
+           canCompleteCurrentPlayback {
             completeCurrentContent()
+            return
+        }
+
+        if duration > 0, !canCompleteCurrentPlayback {
+            clearCurrentPlaybackProgress()
+            return
+        }
+
+        if hasReachedPlaybackEnd && !canCompleteCurrentPlayback {
             return
         }
 
@@ -807,7 +939,10 @@ struct StreamPlayerView: View {
     }
 
     private func completeCurrentContent() {
-        guard !hasCompletedCurrentContent else { return }
+        guard !hasCompletedCurrentContent,
+              canCompleteCurrentPlayback else {
+            return
+        }
         hasCompletedCurrentContent = true
 
         guard let item = request.item else {
@@ -842,6 +977,12 @@ struct StreamPlayerView: View {
         guard !hasHandledPlaybackEnd else { return }
         hasHandledPlaybackEnd = true
 
+        guard canCompleteCurrentPlayback else {
+            clearCurrentPlaybackProgress()
+            chromeVisibility.keepVisible()
+            return
+        }
+
         completeCurrentContent()
 
         guard request.contentType == .series,
@@ -865,6 +1006,21 @@ struct StreamPlayerView: View {
         }
 
         return max(duration - currentTime, 0) <= 1.25
+    }
+
+    private var canCompleteCurrentPlayback: Bool {
+        guard duration.isFinite else { return false }
+
+        switch request.contentType {
+        case .movie:
+            return duration >= minimumCompletableMovieDuration
+        case .series:
+            return duration >= minimumCompletableEpisodeDuration
+        }
+    }
+
+    private func clearCurrentPlaybackProgress() {
+        progressStore.clearProgress(contentID: request.contentID, contentType: request.contentType)
     }
 
     private func savePendingNextEpisodeProgress(
@@ -928,6 +1084,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.togglePlayPause()
+            case .vlc:
+                #if os(iOS)
+                vlcController.togglePlayPause()
+                #endif
             case .native:
                 guard let player else { return }
                 if player.timeControlStatus == .playing {
@@ -948,6 +1108,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.seek(to: time)
+            case .vlc:
+                #if os(iOS)
+                vlcController.seek(to: time)
+                #endif
             case .native:
                 let target = CMTime(seconds: time, preferredTimescale: 600)
                 player?.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero)
@@ -963,6 +1127,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.seek(by: offset)
+            case .vlc:
+                #if os(iOS)
+                vlcController.seek(by: offset)
+                #endif
             case .native:
                 let targetTime = min(max(nativeTime + offset, 0), max(nativeDuration, 0))
                 seek(to: targetTime)
@@ -979,6 +1147,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.setVolume(clampedValue)
+            case .vlc:
+                #if os(iOS)
+                vlcController.setVolume(clampedValue)
+                #endif
             case .native:
                 player?.volume = Float(clampedValue / 100)
                 player?.isMuted = clampedValue == 0
@@ -995,6 +1167,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.toggleMute()
+            case .vlc:
+                #if os(iOS)
+                vlcController.toggleMute()
+                #endif
             case .native:
                 guard let player else { return }
                 player.isMuted.toggle()
@@ -1074,6 +1250,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.selectAudioTrack(track)
+            case .vlc:
+                #if os(iOS)
+                vlcController.selectAudioTrack(track)
+                #endif
             case .native:
                 selectNativeTrack(track, characteristic: .audible)
             case nil:
@@ -1089,6 +1269,10 @@ struct StreamPlayerView: View {
             switch activePlaybackEngine {
             case .mpv:
                 mpvController.selectSubtitleTrack(track)
+            case .vlc:
+                #if os(iOS)
+                selectVLCSubtitleTrack(track)
+                #endif
             case .native:
                 selectNativeSubtitleTrack(track)
             case nil:
@@ -1112,6 +1296,20 @@ struct StreamPlayerView: View {
         clearExternalSubtitleSelection()
         selectNativeTrack(track, characteristic: .legible)
     }
+
+    #if os(iOS)
+    private func selectVLCSubtitleTrack(_ track: PlayerMediaTrack) {
+        if let externalSubtitleID = track.externalSubtitleID,
+           let subtitle = externalSubtitleTracks.first(where: { $0.id == externalSubtitleID }) {
+            selectedExternalSubtitleID = externalSubtitleID
+            loadExternalSubtitleCues(for: subtitle)
+            return
+        }
+
+        clearExternalSubtitleSelection()
+        vlcController.selectSubtitleTrack(track)
+    }
+    #endif
 
     private func loadExternalSubtitleCues(for subtitle: ExternalSubtitleTrack) {
         loadingExternalSubtitleID = subtitle.id
@@ -1293,6 +1491,14 @@ struct StreamPlayerView: View {
             } else {
                 mpvController.selectSubtitleTrack(track)
             }
+        case .vlc:
+            #if os(iOS)
+            if track.kind == .audio {
+                vlcController.selectAudioTrack(track)
+            } else {
+                selectVLCSubtitleTrack(track)
+            }
+            #endif
         case .native:
             if track.kind == .audio {
                 selectNativeTrack(track, characteristic: .audible)
