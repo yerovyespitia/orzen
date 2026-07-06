@@ -15,9 +15,11 @@ struct ExpandableDescriptionText: View {
                 descriptionText
                     .lineLimit(isExpanded ? nil : collapsedLineLimit)
                     .fixedSize(horizontal: false, vertical: true)
+                    .mask(descriptionMask)
 
                 if shouldShowExpansionControl && !isExpanded {
-                    collapsedOverlay
+                    toggleButton(systemImage: "chevron.down")
+                        .padding(.bottom, 1)
                 }
             }
 
@@ -27,7 +29,6 @@ struct ExpandableDescriptionText: View {
         }
         .background(fullHeightReader)
         .background(collapsedHeightReader)
-        .animation(.easeInOut(duration: 0.16), value: isExpanded)
     }
 
     private var descriptionText: some View {
@@ -37,27 +38,31 @@ struct ExpandableDescriptionText: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var collapsedOverlay: some View {
-        LinearGradient(
-            colors: [
-                Color.black.opacity(0),
-                Color.black.opacity(0.88),
-                Color.black
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .frame(height: 42)
-        .frame(maxWidth: .infinity, alignment: .bottom)
-        .overlay(alignment: .bottom) {
-            toggleButton(systemImage: "chevron.down")
-                .padding(.bottom, 1)
+    @ViewBuilder
+    private var descriptionMask: some View {
+        if shouldShowExpansionControl && !isExpanded {
+            LinearGradient(
+                colors: [
+                    Color.white,
+                    Color.white,
+                    Color.white.opacity(0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            Rectangle()
         }
     }
 
     private func toggleButton(systemImage: String) -> some View {
         Button {
-            isExpanded.toggle()
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+
+            withTransaction(transaction) {
+                isExpanded.toggle()
+            }
         } label: {
             Image(systemName: systemImage)
                 .font(.system(size: 17, weight: .bold))
