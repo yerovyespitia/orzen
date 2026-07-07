@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SearchView: View {
     var scrollToTopRequest = 0
+    var popToRootRequest = 0
 
     @State private var searchText = ""
     @State private var detailItemFromContextMenu: CatalogItem?
@@ -26,6 +27,9 @@ struct SearchView: View {
                     InfoView(item: detailItemFromContextMenu)
                 }
             }
+            #if os(iOS)
+            .popNavigationToRoot(on: popToRootRequest)
+            #endif
         }
         #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)

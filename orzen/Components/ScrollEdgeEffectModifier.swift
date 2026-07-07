@@ -32,7 +32,7 @@ private struct OrzenTopScrollEdgeEffectModifier: ViewModifier {
         if #available(iOS 18.0, *) {
             styled(content)
                 .onScrollGeometryChange(for: Bool.self) { geometry in
-                    geometry.contentOffset.y + geometry.contentInsets.top > 4
+                    geometry.contentOffset.y + geometry.contentInsets.top > 12
                 } action: { _, newValue in
                     withAnimation(.easeInOut(duration: 0.16)) {
                         showsFade = newValue
@@ -57,14 +57,14 @@ private struct OrzenTopScrollEdgeFade: View {
     var body: some View {
         LinearGradient(
             colors: [
-                Color.black.opacity(0.86),
-                Color.black.opacity(0.58),
+                Color.black.opacity(0.46),
+                Color.black.opacity(0.18),
                 Color.black.opacity(0)
             ],
             startPoint: .top,
             endPoint: .bottom
         )
-        .frame(height: 150)
+        .frame(height: 82)
         .ignoresSafeArea(.container, edges: .top)
     }
 }

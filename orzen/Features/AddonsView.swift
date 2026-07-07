@@ -5,11 +5,17 @@ struct AddonsView: View {
     @State private var configuringSubtitleAddon: LocalAddon?
     @State private var editingAddon: LocalAddon?
     var ownsNavigationStack = true
+    var popToRootRequest = 0
+    private let contentHorizontalPadding: CGFloat = 16
+    private let contentTopPadding: CGFloat = 8
 
     var body: some View {
         if ownsNavigationStack {
             NavigationStack {
                 content
+                    #if os(iOS)
+                    .popNavigationToRoot(on: popToRootRequest)
+                    #endif
             }
         } else {
             content
@@ -22,11 +28,16 @@ struct AddonsView: View {
 
             VStack(alignment: .leading, spacing: contentSpacing) {
                 header
-                addonList
-                Spacer()
+
+                ScrollView {
+                    addonList
+                        .padding(.bottom, 24)
+                }
+                .orzenTopScrollEdgeEffect()
             }
-            .padding(.horizontal)
-            .padding(.bottom, 24)
+            .padding(.horizontal, contentHorizontalPadding)
+            .padding(.top, contentTopPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .navigationTitle(ownsNavigationStack ? "Addons" : "")
         .sheet(item: $configuringSubtitleAddon) { addon in
@@ -48,9 +59,6 @@ struct AddonsView: View {
                     .font(headerTitleFont)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
-
-                Text("Manage the addons available for your account.")
-                    .foregroundColor(.white.opacity(0.7))
             }
 
             Spacer()
@@ -161,7 +169,7 @@ private struct AddonRow: View {
             actionButtons
         }
         .padding(rowPadding)
-        .background(Color.white.opacity(0.06))
+        .background(Color.white.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: rowCornerRadius))
     }
 
@@ -183,7 +191,7 @@ private struct AddonRow: View {
 
     private var rowCornerRadius: CGFloat {
         #if os(iOS)
-        return 14
+        return 8
         #else
         return 18
         #endif

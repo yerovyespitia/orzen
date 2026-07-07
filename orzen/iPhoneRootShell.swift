@@ -8,6 +8,10 @@ struct iPhoneRootShell: View {
     @State private var selectedTab: RootTab = .home
     @State private var homeScrollToTopRequest = 0
     @State private var searchScrollToTopRequest = 0
+    @State private var homePopToRootRequest = 0
+    @State private var collectionsPopToRootRequest = 0
+    @State private var addonsPopToRootRequest = 0
+    @State private var searchPopToRootRequest = 0
 
     init() {
         Self.configureTabBarAppearance()
@@ -16,25 +20,31 @@ struct iPhoneRootShell: View {
     var body: some View {
         ZStack {
             TabView(selection: selectedTabBinding) {
-                HomeView(scrollToTopRequest: homeScrollToTopRequest)
+                HomeView(
+                    scrollToTopRequest: homeScrollToTopRequest,
+                    popToRootRequest: homePopToRootRequest
+                )
                     .tabItem {
                         Label("Home", systemImage: "house")
                     }
                     .tag(RootTab.home)
 
-                CollectionsView()
+                CollectionsView(popToRootRequest: collectionsPopToRootRequest)
                     .tabItem {
                         Label("Collections", systemImage: "square.stack")
                     }
                     .tag(RootTab.collections)
 
-                AddonsView()
+                AddonsView(popToRootRequest: addonsPopToRootRequest)
                     .tabItem {
                         Label("Addons", systemImage: "puzzlepiece.extension")
                     }
                     .tag(RootTab.addons)
 
-                SearchView(scrollToTopRequest: searchScrollToTopRequest)
+                SearchView(
+                    scrollToTopRequest: searchScrollToTopRequest,
+                    popToRootRequest: searchPopToRootRequest
+                )
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
                     }
@@ -102,7 +112,7 @@ struct iPhoneRootShell: View {
             get: { selectedTab },
             set: { newTab in
                 if newTab == selectedTab {
-                    requestScrollToTop(for: newTab)
+                    handleTabReselection(for: newTab)
                 }
 
                 selectedTab = newTab
@@ -110,14 +120,18 @@ struct iPhoneRootShell: View {
         )
     }
 
-    private func requestScrollToTop(for tab: RootTab) {
+    private func handleTabReselection(for tab: RootTab) {
         switch tab {
         case .home:
+            homePopToRootRequest += 1
             homeScrollToTopRequest += 1
+        case .collections:
+            collectionsPopToRootRequest += 1
+        case .addons:
+            addonsPopToRootRequest += 1
         case .search:
+            searchPopToRootRequest += 1
             searchScrollToTopRequest += 1
-        case .collections, .addons:
-            break
         }
     }
 

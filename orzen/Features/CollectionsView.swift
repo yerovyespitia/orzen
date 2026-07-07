@@ -5,6 +5,7 @@ struct CollectionsView: View {
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
     var ownsNavigationStack = true
+    var popToRootRequest = 0
     private let contentHorizontalPadding: CGFloat = 16
     private let contentTopPadding: CGFloat = 8
     private let contentSpacing: CGFloat = 12
@@ -14,6 +15,9 @@ struct CollectionsView: View {
         if ownsNavigationStack {
             NavigationStack {
                 content
+                    #if os(iOS)
+                    .popNavigationToRoot(on: popToRootRequest)
+                    #endif
             }
         } else {
             content

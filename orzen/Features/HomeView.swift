@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     var scrollToTopRequest = 0
+    var popToRootRequest = 0
 
     @ObservedObject private var catalogStore = HomeCatalogStore.shared
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
@@ -72,6 +73,9 @@ struct HomeView: View {
                 }
             }
             .ignoresSafeArea(.container, edges: .top)
+            #if os(iOS)
+            .popNavigationToRoot(on: popToRootRequest)
+            #endif
         }
         #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)
