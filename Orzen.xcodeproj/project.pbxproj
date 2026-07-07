@@ -40,6 +40,7 @@
 		6D90553A2E1450010023DEAE /* iPhoneRootShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055392E1450010023DEAE /* iPhoneRootShell.swift */; };
 		6D90553C2E1900000023DEAE /* FeaturedCarouselPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553B2E1900000023DEAE /* FeaturedCarouselPage.swift */; };
 		6D90553E2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */; };
+		6D9055402E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */; };
 		6D938E892DD4C3240048DEB4 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D938E882DD4C3240048DEB4 /* CollectionDetailView.swift */; };
 		6DAA10202E1B20000B5D7A1 /* AddonSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */; };
 		6DAA10012E04000000B5D7A1 /* AddonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20012E04000000B5D7A1 /* AddonsView.swift */; };
@@ -120,6 +121,7 @@
 		6D9055392E1450010023DEAE /* iPhoneRootShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPhoneRootShell.swift; sourceTree = "<group>"; };
 		6D90553B2E1900000023DEAE /* FeaturedCarouselPage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeaturedCarouselPage.swift; sourceTree = "<group>"; };
 		6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeaturedCarouselPageIndicator.swift; sourceTree = "<group>"; };
+		6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScrollEdgeEffectModifier.swift; sourceTree = "<group>"; };
 		6D938E882DD4C3240048DEB4 /* CollectionDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
 		6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonSettingsViews.swift; sourceTree = "<group>"; };
 		6DAA20012E04000000B5D7A1 /* AddonsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonsView.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 				6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */,
 				6DAA20122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift */,
 				6DAA200B2E04000000B5D7A1 /* SeasonButton.swift */,
+				6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */,
 				6DAA20172E04000000B5D7A1 /* SourceFilterPicker.swift */,
 				6DAA200C2E04000000B5D7A1 /* SourceRow.swift */,
 				6DAA20102E04000000B5D7A1 /* StreamPlayerChrome.swift */,
@@ -495,6 +498,7 @@
 				6D1AD9362E1B100100BFF0DE /* VLCPlayerView.swift in Sources */,
 				6DAA10132E04000000B5D7A1 /* InfoHeroView.swift in Sources */,
 				6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */,
+				6D9055402E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift in Sources */,
 				6DAA10172E04000000B5D7A1 /* SourceFilterPicker.swift in Sources */,
 				6DAA100C2E04000000B5D7A1 /* SourceRow.swift in Sources */,
 				6D1AD92B2E03A9A100BFF0DE /* MPVPlayerView.swift in Sources */,

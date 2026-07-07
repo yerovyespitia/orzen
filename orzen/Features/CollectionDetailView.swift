@@ -59,6 +59,7 @@ struct CollectionDetailView: View {
                             }
                         }
                     }
+                    .orzenTopScrollEdgeEffect()
                 }
             }
             .padding(.horizontal, contentHorizontalPadding)

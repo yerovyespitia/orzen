@@ -140,6 +140,7 @@ struct SearchView: View {
                 }
                 .frame(maxHeight: .infinity)
                 .ignoresSafeArea(.container, edges: .bottom)
+                .orzenTopScrollEdgeEffect()
                 .onChange(of: scrollToTopRequest) { _, _ in
                     scrollToTop(with: scrollProxy)
                 }

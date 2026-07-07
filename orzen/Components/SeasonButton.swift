@@ -68,3 +68,14 @@ private extension View {
             .shadow(color: .black.opacity(isSelected ? 0.18 : 0), radius: 8, y: 3)
     }
 }
+
+extension View {
+    @ViewBuilder
+    func seasonSelectorScrollClippingDisabled() -> some View {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            self.scrollClipDisabled()
+        } else {
+            self
+        }
+    }
+}

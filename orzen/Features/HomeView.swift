@@ -65,6 +65,7 @@ struct HomeView: View {
                         }
                     }
                     .ignoresSafeArea(.container, edges: .top)
+                    .orzenTopScrollEdgeEffect()
                     .onChange(of: scrollToTopRequest) { _, _ in
                         scrollToTop(with: scrollProxy)
                     }

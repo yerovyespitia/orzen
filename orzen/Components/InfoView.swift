@@ -43,6 +43,7 @@ struct InfoView: View {
                     }
                     .padding(.bottom, 40)
                 }
+                .orzenTopScrollEdgeEffect()
                 .onChange(of: viewModel.pendingEpisodeScrollID) { _, episodeID in
                     scrollToPendingEpisode(episodeID, with: scrollProxy)
                 }
@@ -400,7 +401,10 @@ struct InfoView: View {
                         .id(season)
                     }
                 }
+                .padding(.horizontal, 6)
+                .padding(.vertical, 6)
             }
+            .seasonSelectorScrollClippingDisabled()
             .onChange(of: viewModel.selectedSeason) { _, season in
                 scrollToSelectedSeasonButton(season, with: scrollProxy)
             }

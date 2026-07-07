@@ -153,6 +153,7 @@ struct CinemetaCatalogView: View {
                     .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
                     .padding(.bottom, 24)
                 }
+                .orzenTopScrollEdgeEffect()
                 .onChange(of: scrollToTopRequest) { _, _ in
                     scrollToTop(with: scrollProxy)
                 }

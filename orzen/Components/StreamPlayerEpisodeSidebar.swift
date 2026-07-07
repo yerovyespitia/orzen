@@ -4,6 +4,7 @@ struct StreamPlayerEpisodeSidebar: View {
     private static let width: CGFloat = 440
     private static let horizontalPadding: CGFloat = 18
     private static let episodeListTopID = "stream-player-episode-list-top"
+    private static let seasonSelectorHeight: CGFloat = 46
 
     let item: CatalogItem
     let currentEpisodeID: CatalogEpisode.ID?
@@ -158,10 +159,11 @@ struct StreamPlayerEpisodeSidebar: View {
                             .id(season)
                         }
                     }
-                    .padding(.vertical, 2)
-                    .padding(.horizontal, 1)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 6)
                 }
-                .frame(width: viewportWidth, height: 38, alignment: .leading)
+                .seasonSelectorScrollClippingDisabled()
+                .frame(width: viewportWidth, height: Self.seasonSelectorHeight, alignment: .leading)
                 .onChange(of: viewModel.selectedSeason) { _, season in
                     scrollToSelectedSeasonButton(season, with: scrollProxy)
                 }
@@ -173,9 +175,7 @@ struct StreamPlayerEpisodeSidebar: View {
                 }
             }
         }
-        .frame(width: viewportWidth, height: 38, alignment: .leading)
-        .compositingGroup()
-        .clipShape(Rectangle())
+        .frame(width: viewportWidth, height: Self.seasonSelectorHeight, alignment: .leading)
     }
 
     private var episodeList: some View {
