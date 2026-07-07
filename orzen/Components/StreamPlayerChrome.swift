@@ -4,6 +4,7 @@ struct StreamPlayerChrome: View {
     let title: String
     let subtitle: String
     let isPaused: Bool
+    let isPreparingPlayback: Bool
     let currentTime: Double
     let duration: Double
     let volume: Double
@@ -107,7 +108,9 @@ struct StreamPlayerChrome: View {
             centerTransportButton(
                 systemName: isPaused ? "play.fill" : "pause.fill",
                 size: .large,
-                help: isPaused ? "Play" : "Pause",
+                help: isPreparingPlayback ? "Loading" : (isPaused ? "Play" : "Pause"),
+                isLoading: isPreparingPlayback,
+                isEnabled: !isPreparingPlayback,
                 action: onPlayPause
             )
 
@@ -314,12 +317,14 @@ struct StreamPlayerChrome: View {
         systemName: String,
         size: CenterTransportButtonSize,
         help: String,
+        isLoading: Bool = false,
+        isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
         let hoverID = "transport-\(systemName)-\(size.buttonSize)"
 
-        return circularButton(hoverID: hoverID, help: help, action: action) {
-            centerTransportIcon(systemName: systemName, size: size)
+        return circularButton(hoverID: hoverID, help: help, isEnabled: isEnabled, action: action) {
+            centerTransportIcon(systemName: systemName, size: size, isLoading: isLoading)
         }
     }
 
@@ -327,6 +332,7 @@ struct StreamPlayerChrome: View {
     private func circularButton<Icon: View>(
         hoverID: String,
         help: String,
+        isEnabled: Bool = true,
         action: @escaping () -> Void,
         @ViewBuilder icon: () -> Icon
     ) -> some View {
@@ -346,6 +352,7 @@ struct StreamPlayerChrome: View {
             .animation(.easeInOut(duration: 0.12), value: hoveredCircularButton)
             .help(help)
             .accessibilityLabel(help)
+            .disabled(!isEnabled)
         } else {
             Button(action: action) {
                 icon()
@@ -361,6 +368,7 @@ struct StreamPlayerChrome: View {
             .animation(.easeInOut(duration: 0.12), value: hoveredCircularButton)
             .help(help)
             .accessibilityLabel(help)
+            .disabled(!isEnabled)
         }
     }
 
@@ -375,11 +383,23 @@ struct StreamPlayerChrome: View {
             )
     }
 
-    private func centerTransportIcon(systemName: String, size: CenterTransportButtonSize) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: size.iconSize, weight: .semibold))
-            .foregroundColor(.white)
-            .frame(width: size.buttonSize, height: size.buttonSize)
+    @ViewBuilder
+    private func centerTransportIcon(
+        systemName: String,
+        size: CenterTransportButtonSize,
+        isLoading: Bool = false
+    ) -> some View {
+        if isLoading {
+            ProgressView()
+                .controlSize(.large)
+                .tint(.white)
+                .frame(width: size.buttonSize, height: size.buttonSize)
+        } else {
+            Image(systemName: systemName)
+                .font(.system(size: size.iconSize, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: size.buttonSize, height: size.buttonSize)
+        }
     }
 
     private func formatTime(_ value: Double) -> String {

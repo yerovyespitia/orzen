@@ -3,6 +3,7 @@ import SwiftUI
 struct AddonsView: View {
     @ObservedObject private var addonStore = LocalAddonStore.shared
     @State private var configuringSubtitleAddon: LocalAddon?
+    @State private var editingAddon: LocalAddon?
     var ownsNavigationStack = true
 
     var body: some View {
@@ -30,6 +31,9 @@ struct AddonsView: View {
         .navigationTitle(ownsNavigationStack ? "Addons" : "")
         .sheet(item: $configuringSubtitleAddon) { addon in
             SubtitleAddonSettingsView(addonName: addon.name)
+        }
+        .sheet(item: $editingAddon) { addon in
+            AddonManifestEditorView(addon: addon)
         }
         #if os(iOS)
         .toolbar(ownsNavigationStack ? .hidden : .visible, for: .navigationBar)
@@ -77,6 +81,7 @@ struct AddonsView: View {
                 category: "Catalogs",
                 isRemovable: false,
                 isConfigurable: false,
+                editAction: nil,
                 configurationAction: nil,
                 removeAction: nil
             )
@@ -88,6 +93,9 @@ struct AddonsView: View {
                     category: addon.resourceSummary,
                     isRemovable: addon.isRemovable,
                     isConfigurable: addon.resources.contains(.subtitles),
+                    editAction: {
+                        editingAddon = addon
+                    },
                     configurationAction: {
                         configuringSubtitleAddon = addon
                     },
@@ -114,6 +122,7 @@ private struct AddonRow: View {
     let category: String
     let isRemovable: Bool
     let isConfigurable: Bool
+    let editAction: (() -> Void)?
     let configurationAction: (() -> Void)?
     let removeAction: (() -> Void)?
 
@@ -234,6 +243,14 @@ private struct AddonRow: View {
     private var actionButtonContent: some View {
         HStack(spacing: 4) {
             AddonActionButton(
+                systemName: "square.and.pencil",
+                isEnabled: editAction != nil,
+                help: "Edit addon URL"
+            ) {
+                editAction?()
+            }
+
+            AddonActionButton(
                 systemName: "gearshape",
                 isEnabled: isConfigurable,
                 help: "Configure addon"
@@ -308,185 +325,5 @@ private struct AddonActionButton: View {
                     .stroke(Color.white.opacity(isHovered ? 0.14 : 0.06), lineWidth: 1)
             )
             .opacity(isEnabled ? 1 : 0.42)
-    }
-}
-
-private struct SubtitleAddonSettingsView: View {
-    let addonName: String
-
-    @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var preferences = SubtitlePreferencesStore.shared
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(addonName)
-                        .font(.title2.weight(.semibold))
-
-                    Text("Subtitle languages")
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                SubtitleSettingsCloseButton {
-                    dismiss()
-                }
-            }
-
-            VStack(spacing: 0) {
-                ForEach(SubtitlePreferencesStore.availableLanguages) { option in
-                    SubtitleLanguageRow(
-                        option: option,
-                        isSelected: Binding(
-                            get: {
-                                preferences.isSelected(option)
-                            },
-                            set: { isSelected in
-                                preferences.setSelected(isSelected, for: option)
-                            }
-                        )
-                    )
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .background(Color.white.opacity(0.08))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-
-            Spacer(minLength: 0)
-        }
-        .padding(settingsPadding)
-        .frame(width: settingsWidth)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .presentationDetents(presentationDetents)
-        #if os(iOS)
-        .presentationDragIndicator(.visible)
-        #endif
-        .background(.thinMaterial)
-        .presentationBackground(.thinMaterial)
-    }
-
-    private var settingsPadding: CGFloat {
-        #if os(iOS)
-        return 20
-        #else
-        return 24
-        #endif
-    }
-
-    private var settingsWidth: CGFloat? {
-        #if os(iOS)
-        return nil
-        #else
-        return 420
-        #endif
-    }
-
-    private var presentationDetents: Set<PresentationDetent> {
-        #if os(iOS)
-        return [.height(330)]
-        #else
-        return [.height(300)]
-        #endif
-    }
-}
-
-private struct SubtitleSettingsCloseButton: View {
-    let action: () -> Void
-
-    @State private var isHovered = false
-
-    var body: some View {
-        if #available(macOS 26, *) {
-            Button(action: action) {
-                icon
-                    .background(buttonBackground)
-                    .glassEffect(.regular.interactive(), in: Circle())
-            }
-            .buttonStyle(.plain)
-            .contentShape(Circle())
-            .onHover { hovering in
-                isHovered = hovering
-            }
-            .animation(.easeInOut(duration: 0.12), value: isHovered)
-            .help("Close")
-            .accessibilityLabel("Close")
-        } else {
-            Button(action: action) {
-                icon
-                    .background(buttonBackground)
-            }
-            .buttonStyle(.plain)
-            .contentShape(Circle())
-            .onHover { hovering in
-                isHovered = hovering
-            }
-            .animation(.easeInOut(duration: 0.12), value: isHovered)
-            .help("Close")
-            .accessibilityLabel("Close")
-        }
-    }
-
-    private var icon: some View {
-        Image(systemName: "xmark")
-            .font(.system(size: closeIconSize, weight: .bold))
-            .foregroundColor(.primary.opacity(isHovered ? 0.86 : 0.72))
-            .frame(width: closeButtonSize, height: closeButtonSize)
-    }
-
-    private var closeIconSize: CGFloat {
-        #if os(iOS)
-        return 18
-        #else
-        return 12
-        #endif
-    }
-
-    private var closeButtonSize: CGFloat {
-        #if os(iOS)
-        return 44
-        #else
-        return 28
-        #endif
-    }
-
-    private var buttonBackground: some View {
-        Circle()
-            .fill(Color.primary.opacity(isHovered ? 0.12 : 0.08))
-            .overlay(
-                Circle()
-                    .stroke(Color.primary.opacity(isHovered ? 0.12 : 0.06), lineWidth: 1)
-            )
-    }
-}
-
-private struct SubtitleLanguageRow: View {
-    let option: SubtitleLanguageOption
-    @Binding var isSelected: Bool
-
-    var body: some View {
-        HStack {
-            Text(option.title)
-                .font(.body.weight(.medium))
-                .foregroundStyle(.primary)
-
-            Spacer()
-
-            Toggle("", isOn: $isSelected)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .tint(.green)
-        }
-        .padding(.horizontal, 20)
-        .frame(height: 54)
-        .overlay(alignment: .bottom) {
-            if option.id != SubtitlePreferencesStore.availableLanguages.last?.id {
-                Rectangle()
-                    .fill(Color.white.opacity(0.1))
-                    .frame(height: 1)
-                    .padding(.leading, 20)
-            }
-        }
     }
 }

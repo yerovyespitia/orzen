@@ -9,6 +9,8 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
     let compatibilityHints: [String]
     let sourceCategory: StreamSourceCategory
     let playbackURL: URL?
+    let torrentInfoHash: String?
+    let torrentFileIndex: Int?
 
     init(
         id: String,
@@ -18,7 +20,9 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         metadata: [String],
         compatibilityHints: [String] = [],
         sourceCategory: StreamSourceCategory,
-        playbackURL: URL?
+        playbackURL: URL?,
+        torrentInfoHash: String? = nil,
+        torrentFileIndex: Int? = nil
     ) {
         self.id = id
         self.addonName = addonName
@@ -28,6 +32,8 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         self.compatibilityHints = compatibilityHints
         self.sourceCategory = sourceCategory
         self.playbackURL = playbackURL
+        self.torrentInfoHash = torrentInfoHash
+        self.torrentFileIndex = torrentFileIndex
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -39,6 +45,8 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         case compatibilityHints
         case sourceCategory
         case playbackURL
+        case torrentInfoHash
+        case torrentFileIndex
     }
 
     init(from decoder: Decoder) throws {
@@ -51,6 +59,8 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         compatibilityHints = try container.decodeIfPresent([String].self, forKey: .compatibilityHints) ?? []
         sourceCategory = try container.decode(StreamSourceCategory.self, forKey: .sourceCategory)
         playbackURL = try container.decodeIfPresent(URL.self, forKey: .playbackURL)
+        torrentInfoHash = try container.decodeIfPresent(String.self, forKey: .torrentInfoHash)
+        torrentFileIndex = try container.decodeIfPresent(Int.self, forKey: .torrentFileIndex)
     }
 
     var preferredPlaybackEngine: StreamPlaybackEngine {
@@ -60,6 +70,10 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
 
     var playbackURLError: String? {
         guard let playbackURL else {
+            if torrentInfoHash != nil {
+                return "This source only exposes BitTorrent metadata. Orzen on iPhone needs a direct HTTP or HTTPS stream from a configured addon or debrid provider."
+            }
+
             return "This source does not expose a direct video URL. Orzen can only open direct HTTP or HTTPS video streams returned by the addon."
         }
 
@@ -142,9 +156,33 @@ private struct StremioStream: Decodable {
     let title: String?
     let description: String?
     let url: URL?
+    let externalUrl: URL?
     let infoHash: String?
     let fileIdx: Int?
     let behaviorHints: StremioStreamBehaviorHints?
+
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case title
+        case description
+        case url
+        case externalUrl
+        case infoHash
+        case fileIdx
+        case behaviorHints
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        url = Self.decodeURL(from: container, forKey: .url)
+        externalUrl = Self.decodeURL(from: container, forKey: .externalUrl)
+        infoHash = try container.decodeIfPresent(String.self, forKey: .infoHash)
+        fileIdx = try container.decodeIfPresent(Int.self, forKey: .fileIdx)
+        behaviorHints = try container.decodeIfPresent(StremioStreamBehaviorHints.self, forKey: .behaviorHints)
+    }
 
     func source(
         addonName: String,
@@ -169,8 +207,35 @@ private struct StremioStream: Decodable {
             metadata: metadata(addonName: addonName, titleLines: lines),
             compatibilityHints: compatibilityHints(titleLines: lines),
             sourceCategory: sourceCategory,
-            playbackURL: url
+            playbackURL: directPlaybackURL,
+            torrentInfoHash: infoHash,
+            torrentFileIndex: fileIdx
         )
+    }
+
+    private var directPlaybackURL: URL? {
+        [url, externalUrl].compactMap { $0 }.first { playbackURL in
+            ["http", "https"].contains(playbackURL.scheme?.lowercased())
+        }
+    }
+
+    private static func decodeURL(
+        from container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) -> URL? {
+        guard let rawValue = try? container.decodeIfPresent(String.self, forKey: key) else {
+            return nil
+        }
+
+        let trimmedValue = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedValue.isEmpty else { return nil }
+
+        if let url = URL(string: trimmedValue) {
+            return url
+        }
+
+        return trimmedValue.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed)
+            .flatMap(URL.init(string:))
     }
 
     private func metadata(addonName: String, titleLines: [String]) -> [String] {

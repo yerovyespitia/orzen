@@ -137,6 +137,21 @@ final class LocalAddonStore: ObservableObject {
         addons.removeAll { $0.id == addon.id }
         save()
     }
+
+    func updateManifestURL(for addon: LocalAddon, manifestURL: URL) {
+        guard let index = addons.firstIndex(where: { $0.id == addon.id }) else { return }
+
+        addons[index] = LocalAddon(
+            id: addon.id,
+            manifestURL: manifestURL,
+            name: addon.name,
+            description: addon.description,
+            resources: addon.resources,
+            sourceCategory: addon.sourceCategory,
+            isRemovable: addon.isRemovable
+        )
+        save()
+    }
     
     private func load() {
         let storedValue = UserDefaults.standard.object(forKey: Self.storageKey)

@@ -229,6 +229,7 @@ struct StreamPlayerView: View {
             title: request.title,
             subtitle: request.subtitle,
             isPaused: isPaused,
+            isPreparingPlayback: isPreparingPlayback,
             currentTime: currentTime,
             duration: duration,
             volume: volume,
@@ -356,14 +357,7 @@ struct StreamPlayerView: View {
 
     @ViewBuilder
     private var startingOverlay: some View {
-        if isPreparingPlayback {
-            ProgressView()
-                .controlSize(.large)
-                .tint(.white)
-                .padding(24)
-                .background(Color.black.opacity(0.42), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .zIndex(2)
-        }
+        EmptyView()
     }
 
     @ViewBuilder

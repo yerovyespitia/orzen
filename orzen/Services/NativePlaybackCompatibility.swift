@@ -61,6 +61,10 @@ enum NativePlaybackCompatibilityResolver {
 
     static func compatibility(for source: StreamSource) -> NativePlaybackCompatibility {
         guard let playbackURL = source.playbackURL else {
+            if source.torrentInfoHash != nil {
+                return .unsupported("This source only exposes BitTorrent metadata. Orzen on iPhone needs a direct HTTP or HTTPS stream from a configured addon or debrid provider.")
+            }
+
             return .unsupported("This source does not expose a direct video URL. iOS needs a direct HLS or MP4-style stream.")
         }
 
