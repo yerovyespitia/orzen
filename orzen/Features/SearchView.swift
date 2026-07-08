@@ -1,26 +1,85 @@
 import SwiftUI
 
 struct SearchView: View {
-    var scrollToTopRequest = 0
-    var popToRootRequest = 0
+    private var scrollToTopRequest: Int
+    private var popToRootRequest: Int
+    private var externalSearchText: Binding<String>?
+    private var showsSearchBar: Bool
+    private var systemSearchActivationRequest: Int
 
-    @State private var searchText = ""
+    @State private var localSearchText = ""
     @State private var detailItemFromContextMenu: CatalogItem?
     @State private var isShowingContextMenuDetail = false
+    @State private var isSystemSearchPresented = false
     @ObservedObject private var searchStore = SearchCatalogStore.shared
     private let scrollTopID = "search-scroll-top"
 
+    init(
+        scrollToTopRequest: Int = 0,
+        popToRootRequest: Int = 0,
+        searchText: Binding<String>? = nil,
+        showsSearchBar: Bool = true,
+        systemSearchActivationRequest: Int = 0
+    ) {
+        self.scrollToTopRequest = scrollToTopRequest
+        self.popToRootRequest = popToRootRequest
+        self.externalSearchText = searchText
+        self.showsSearchBar = showsSearchBar
+        self.systemSearchActivationRequest = systemSearchActivationRequest
+    }
+
     var body: some View {
+        searchContainer
+            .task {
+                await searchStore.prepareIndexIfNeeded()
+            }
+            .task(id: searchTextValue) {
+                let currentQuery = searchTextValue
+
+                do {
+                    try await Task.sleep(for: .milliseconds(450))
+                    guard !Task.isCancelled else { return }
+                    await searchStore.updateSearch(for: currentQuery)
+                } catch {
+                    return
+                }
+            }
+    }
+
+    @ViewBuilder
+    private var searchContainer: some View {
+        #if os(iOS)
+        if showsSearchBar {
+            navigationContent
+        } else {
+            navigationContent
+                .searchable(text: searchTextBinding, isPresented: $isSystemSearchPresented)
+                .onAppear {
+                    presentSystemSearch()
+                }
+                .onChange(of: systemSearchActivationRequest) { _, _ in
+                    presentSystemSearch()
+                }
+        }
+        #else
+        navigationContent
+        #endif
+    }
+
+    private var navigationContent: some View {
         NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
 
                 VStack(spacing: 20) {
-                    searchBar
+                    if showsSearchBar {
+                        searchBar
+                    }
+
                     content
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.top, 20)
+                .padding(.top, showsSearchBar ? 20 : 0)
             }
             .navigationDestination(isPresented: $isShowingContextMenuDetail) {
                 if let detailItemFromContextMenu {
@@ -35,20 +94,6 @@ struct SearchView: View {
         .toolbar(.hidden, for: .navigationBar)
         .interactivePopGestureEnabled()
         #endif
-        .task {
-            await searchStore.prepareIndexIfNeeded()
-        }
-        .task(id: searchText) {
-            let currentQuery = searchText
-
-            do {
-                try await Task.sleep(for: .milliseconds(450))
-                guard !Task.isCancelled else { return }
-                await searchStore.updateSearch(for: currentQuery)
-            } catch {
-                return
-            }
-        }
     }
 
     private var searchBar: some View {
@@ -56,13 +101,13 @@ struct SearchView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
 
-            TextField("Search movies, series, genres...", text: $searchText)
+            TextField("Search movies, series, genres...", text: searchTextBinding)
                 .textFieldStyle(.plain)
                 .foregroundColor(.white)
 
-            if !searchText.isEmpty {
+            if !searchTextValue.isEmpty {
                 Button {
-                    searchText = ""
+                    searchTextBinding.wrappedValue = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(.gray)
@@ -78,7 +123,7 @@ struct SearchView: View {
 
     @ViewBuilder
     private var content: some View {
-        let trimmedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedSearchText = searchTextValue.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if searchStore.isSearching {
             ProgressView("Searching...")
@@ -86,7 +131,7 @@ struct SearchView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         } else if trimmedSearchText.isEmpty {
-            suggestedSearches
+            emptySearchContent
         } else if let errorMessage = searchStore.errorMessage {
             ContentUnavailableView {
                 Label("Search unavailable", systemImage: "wifi.exclamationmark")
@@ -96,7 +141,7 @@ struct SearchView: View {
                 Button("Retry") {
                     Task {
                         await searchStore.forceReload()
-                        await searchStore.updateSearch(for: searchText)
+                        await searchStore.updateSearch(for: searchTextValue)
                     }
                 }
             }
@@ -140,10 +185,9 @@ struct SearchView: View {
                         }
                     }
                     .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 22)
                 }
                 .frame(maxHeight: .infinity)
-                .ignoresSafeArea(.container, edges: .bottom)
                 .orzenTopScrollEdgeEffect()
                 .onChange(of: scrollToTopRequest) { _, _ in
                     scrollToTop(with: scrollProxy)
@@ -164,7 +208,7 @@ struct SearchView: View {
                 HStack(spacing: 12) {
                     ForEach(SearchCatalogStore.suggestedTerms, id: \.self) { term in
                         Button {
-                            searchText = term
+                            searchTextBinding.wrappedValue = term
                         } label: {
                             Text(term)
                                 .foregroundColor(.white)
@@ -182,6 +226,42 @@ struct SearchView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    @ViewBuilder
+    private var emptySearchContent: some View {
+        if showsSearchBar {
+            suggestedSearches
+        } else {
+            VStack(spacing: 0) {
+                suggestedSearches
+                    .padding(.top, 18)
+
+                Spacer(minLength: 0)
+
+                recentSearchesEmptyState
+
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var recentSearchesEmptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 56, weight: .regular))
+                .foregroundColor(.gray)
+
+            Text("No Recent Searches")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+
+            Text("Your recent searches will appear here.")
+                .foregroundColor(.gray.opacity(0.75))
+        }
+        .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
+    }
+
     private func showContextMenuDetail(for item: CatalogItem) {
         detailItemFromContextMenu = item
         isShowingContextMenuDetail = true
@@ -192,6 +272,22 @@ struct SearchView: View {
             scrollProxy.scrollTo(scrollTopID, anchor: .top)
         }
     }
+
+    private var searchTextBinding: Binding<String> {
+        externalSearchText ?? $localSearchText
+    }
+
+    private var searchTextValue: String {
+        searchTextBinding.wrappedValue
+    }
+
+    #if os(iOS)
+    private func presentSystemSearch() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            isSystemSearchPresented = true
+        }
+    }
+    #endif
 }
 
 #Preview {

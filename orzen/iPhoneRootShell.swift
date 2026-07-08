@@ -12,44 +12,44 @@ struct iPhoneRootShell: View {
     @State private var collectionsPopToRootRequest = 0
     @State private var addonsPopToRootRequest = 0
     @State private var searchPopToRootRequest = 0
+    @State private var searchText = ""
+    @State private var searchActivationRequest = 0
 
     init() {
-        Self.configureTabBarAppearance()
+        if #unavailable(iOS 26) {
+            Self.configureTabBarAppearance()
+        }
     }
 
     var body: some View {
         ZStack {
             TabView(selection: selectedTabBinding) {
-                HomeView(
-                    scrollToTopRequest: homeScrollToTopRequest,
-                    popToRootRequest: homePopToRootRequest
-                )
-                    .tabItem {
-                        Label("Home", systemImage: "house")
-                    }
-                    .tag(RootTab.home)
+                Tab("Home", systemImage: "house", value: RootTab.home) {
+                    HomeView(
+                        scrollToTopRequest: homeScrollToTopRequest,
+                        popToRootRequest: homePopToRootRequest
+                    )
+                }
 
-                CollectionsView(popToRootRequest: collectionsPopToRootRequest)
-                    .tabItem {
-                        Label("Collections", systemImage: "square.stack")
-                    }
-                    .tag(RootTab.collections)
+                Tab("Collections", systemImage: "square.stack", value: RootTab.collections) {
+                    CollectionsView(popToRootRequest: collectionsPopToRootRequest)
+                }
 
-                AddonsView(popToRootRequest: addonsPopToRootRequest)
-                    .tabItem {
-                        Label("Addons", systemImage: "puzzlepiece.extension")
-                    }
-                    .tag(RootTab.addons)
+                Tab("Addons", systemImage: "puzzlepiece.extension", value: RootTab.addons) {
+                    AddonsView(popToRootRequest: addonsPopToRootRequest)
+                }
 
-                SearchView(
-                    scrollToTopRequest: searchScrollToTopRequest,
-                    popToRootRequest: searchPopToRootRequest
-                )
-                    .tabItem {
-                        Label("Search", systemImage: "magnifyingglass")
-                    }
-                    .tag(RootTab.search)
+                Tab(value: RootTab.search, role: .search) {
+                    SearchView(
+                        scrollToTopRequest: searchScrollToTopRequest,
+                        popToRootRequest: searchPopToRootRequest,
+                        searchText: $searchText,
+                        showsSearchBar: false,
+                        systemSearchActivationRequest: searchActivationRequest
+                    )
+                }
             }
+            .tabViewSearchActivation(.searchTabSelection)
             .ignoresSafeArea(.container, edges: .top)
 
             StreamPlayerPresenter(request: $playbackStore.request)
@@ -116,6 +116,10 @@ struct iPhoneRootShell: View {
                 }
 
                 selectedTab = newTab
+
+                if newTab == .search {
+                    searchActivationRequest += 1
+                }
             }
         )
     }
@@ -132,6 +136,7 @@ struct iPhoneRootShell: View {
         case .search:
             searchPopToRootRequest += 1
             searchScrollToTopRequest += 1
+            searchActivationRequest += 1
         }
     }
 
