@@ -115,6 +115,10 @@ enum StremioStreamClient {
         type: CinemetaType,
         id: String
     ) async throws -> [StreamSource] {
+        guard addon.supports(resource: .stream, type: type, id: id) else {
+            return []
+        }
+
         let url = streamURL(from: addon.manifestURL, type: type, id: id)
         let (data, response) = try await URLSession.shared.data(from: url)
 
@@ -124,7 +128,7 @@ enum StremioStreamClient {
         }
 
         let streamResponse = try JSONDecoder().decode(StremioStreamResponse.self, from: data)
-        return streamResponse.streams.enumerated().map { index, stream in
+        return streamResponse.streams.enumerated().compactMap { index, stream in
             stream.source(
                 addonName: addon.name,
                 fallbackID: "\(addon.id.uuidString)-\(index)",
@@ -188,7 +192,9 @@ private struct StremioStream: Decodable {
         addonName: String,
         fallbackID: String,
         sourceCategory: StreamSourceCategory
-    ) -> StreamSource {
+    ) -> StreamSource? {
+        guard let directPlaybackURL else { return nil }
+
         let lines = (title ?? name ?? "Source")
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }

@@ -6,6 +6,8 @@ struct AddonManifestEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var addonStore = LocalAddonStore.shared
     @State private var manifestURLString: String
+    @State private var saveErrorMessage: String?
+    @State private var isSaving = false
 
     init(addon: LocalAddon) {
         self.addon = addon
@@ -82,6 +84,13 @@ struct AddonManifestEditorView: View {
                     .foregroundStyle(.white.opacity(0.68))
                     .fixedSize(horizontal: false, vertical: true)
             }
+
+            if let saveErrorMessage {
+                Text(saveErrorMessage)
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.68))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
@@ -92,7 +101,7 @@ struct AddonManifestEditorView: View {
             Button {
                 saveIfPossible()
             } label: {
-                Text("Save")
+                Text(isSaving ? "Saving" : "Save")
                     .font(.body.weight(.semibold))
                     .foregroundStyle(saveButtonForeground)
                     .frame(minWidth: 94)
@@ -104,7 +113,7 @@ struct AddonManifestEditorView: View {
                     }
             }
             .buttonStyle(.plain)
-            .disabled(validatedManifestURL == nil)
+            .disabled(validatedManifestURL == nil || isSaving)
         }
     }
 
@@ -117,15 +126,15 @@ struct AddonManifestEditorView: View {
     }
 
     private var saveButtonForeground: Color {
-        validatedManifestURL == nil ? .white.opacity(0.34) : .black.opacity(0.86)
+        validatedManifestURL == nil || isSaving ? .white.opacity(0.34) : .black.opacity(0.86)
     }
 
     private var saveButtonBackground: Color {
-        validatedManifestURL == nil ? .white.opacity(0.08) : .white.opacity(0.9)
+        validatedManifestURL == nil || isSaving ? .white.opacity(0.08) : .white.opacity(0.9)
     }
 
     private var saveButtonStroke: Color {
-        validatedManifestURL == nil ? .white.opacity(0.08) : .white.opacity(0.18)
+        validatedManifestURL == nil || isSaving ? .white.opacity(0.08) : .white.opacity(0.18)
     }
 
     private var trimmedManifestURLString: String {
@@ -149,9 +158,20 @@ struct AddonManifestEditorView: View {
     }
 
     private func saveIfPossible() {
-        guard let validatedManifestURL else { return }
-        addonStore.updateManifestURL(for: addon, manifestURL: validatedManifestURL)
-        dismiss()
+        guard let validatedManifestURL, !isSaving else { return }
+
+        isSaving = true
+        saveErrorMessage = nil
+
+        Task {
+            do {
+                try await addonStore.updateManifestURL(for: addon, manifestURL: validatedManifestURL)
+                dismiss()
+            } catch {
+                saveErrorMessage = "This URL did not return a compatible Stremio manifest."
+                isSaving = false
+            }
+        }
     }
 
     private var settingsPadding: CGFloat {
@@ -266,7 +286,7 @@ struct SubtitleAddonSettingsView: View {
     }
 }
 
-private struct AddonSettingsCloseButton: View {
+struct AddonSettingsCloseButton: View {
     let action: () -> Void
 
     @State private var isHovered = false

@@ -22,6 +22,9 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
     let description: String
     let resources: Set<Resource>
     let sourceCategory: StreamSourceCategory
+    let supportedTypes: [String]
+    let idPrefixes: [String]?
+    let resourceCapabilities: [StremioAddonManifest.Resource]
     let isRemovable: Bool
 
     init(
@@ -31,6 +34,9 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         description: String,
         resources: Set<Resource> = [.stream],
         sourceCategory: StreamSourceCategory = .general,
+        supportedTypes: [String] = [],
+        idPrefixes: [String]? = nil,
+        resourceCapabilities: [StremioAddonManifest.Resource] = [],
         isRemovable: Bool = true
     ) {
         self.id = id
@@ -39,6 +45,9 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         self.description = description
         self.resources = resources
         self.sourceCategory = sourceCategory
+        self.supportedTypes = supportedTypes
+        self.idPrefixes = idPrefixes
+        self.resourceCapabilities = resourceCapabilities
         self.isRemovable = isRemovable
     }
 
@@ -56,6 +65,9 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         case description
         case resources
         case sourceCategory
+        case supportedTypes
+        case idPrefixes
+        case resourceCapabilities
         case isRemovable
     }
 
@@ -68,7 +80,74 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         resources = try container.decodeIfPresent(Set<Resource>.self, forKey: .resources) ?? [.stream]
         sourceCategory = try container.decodeIfPresent(StreamSourceCategory.self, forKey: .sourceCategory)
             ?? Self.inferredSourceCategory(name: name, description: description, manifestURL: manifestURL)
+        supportedTypes = try container.decodeIfPresent([String].self, forKey: .supportedTypes) ?? []
+        idPrefixes = try container.decodeIfPresent([String].self, forKey: .idPrefixes)
+        resourceCapabilities = try container.decodeIfPresent(
+            [StremioAddonManifest.Resource].self,
+            forKey: .resourceCapabilities
+        ) ?? []
         isRemovable = try container.decodeIfPresent(Bool.self, forKey: .isRemovable) ?? true
+    }
+
+    init(
+        id: UUID = UUID(),
+        manifestURL: URL,
+        manifest: StremioAddonManifest,
+        sourceCategory: StreamSourceCategory? = nil,
+        isRemovable: Bool = true
+    ) {
+        let supportedResources = Set(manifest.resources.compactMap { resource in
+            Resource(manifestResourceName: resource.name)
+        })
+        let description = manifest.description ?? "Stremio-compatible addon."
+
+        self.init(
+            id: id,
+            manifestURL: manifestURL,
+            name: manifest.name,
+            description: description,
+            resources: supportedResources,
+            sourceCategory: sourceCategory ?? Self.inferredSourceCategory(
+                name: manifest.name,
+                description: description,
+                manifestURL: manifestURL
+            ),
+            supportedTypes: manifest.types,
+            idPrefixes: manifest.idPrefixes,
+            resourceCapabilities: manifest.resources,
+            isRemovable: isRemovable
+        )
+    }
+
+    var hasSupportedResources: Bool {
+        !resources.isDisjoint(with: [.stream, .subtitles])
+    }
+
+    func supports(resource: Resource, type: CinemetaType, id: String) -> Bool {
+        guard resources.contains(resource) else { return false }
+
+        let resourceName = resource.manifestName
+        guard let capability = resourceCapabilities.first(where: { $0.name == resourceName }) else {
+            return supportsLegacyResource(type: type, id: id)
+        }
+
+        let typeValues = capability.types ?? supportedTypes
+        let typeSupported = !typeValues.isEmpty && typeValues.contains(type.rawValue)
+        let prefixes = capability.idPrefixes ?? idPrefixes
+        let idSupported = prefixes.map { values in
+            values.isEmpty || values.contains { id.hasPrefix($0) }
+        } ?? true
+
+        return typeSupported && idSupported
+    }
+
+    private func supportsLegacyResource(type: CinemetaType, id: String) -> Bool {
+        let typeSupported = supportedTypes.isEmpty || supportedTypes.contains(type.rawValue)
+        let idSupported = idPrefixes.map { values in
+            values.isEmpty || values.contains { id.hasPrefix($0) }
+        } ?? true
+
+        return typeSupported && idSupported
     }
 
     private static func inferredSourceCategory(
@@ -87,6 +166,28 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         }
 
         return .general
+    }
+}
+
+private extension LocalAddon.Resource {
+    init?(manifestResourceName: String) {
+        switch manifestResourceName {
+        case "stream":
+            self = .stream
+        case "subtitles":
+            self = .subtitles
+        default:
+            return nil
+        }
+    }
+
+    var manifestName: String {
+        switch self {
+        case .stream:
+            return "stream"
+        case .subtitles:
+            return "subtitles"
+        }
     }
 }
 
@@ -122,6 +223,9 @@ final class LocalAddonStore: ObservableObject {
     
     private init() {
         load()
+        Task {
+            await refreshMissingManifestMetadata()
+        }
     }
     
     var streamAddons: [LocalAddon] {
@@ -138,18 +242,32 @@ final class LocalAddonStore: ObservableObject {
         save()
     }
 
-    func updateManifestURL(for addon: LocalAddon, manifestURL: URL) {
-        guard let index = addons.firstIndex(where: { $0.id == addon.id }) else { return }
+    func addManifestURL(_ manifestURL: URL) async throws {
+        let manifest = try await StremioManifestClient.fetchManifest(from: manifestURL)
+        let addon = LocalAddon(manifestURL: manifestURL, manifest: manifest)
+        guard addon.hasSupportedResources else {
+            throw LocalAddonStoreError.unsupportedManifest
+        }
 
-        addons[index] = LocalAddon(
+        addons.removeAll { $0.manifestURL == manifestURL }
+        addons.append(addon)
+        save()
+    }
+
+    func updateManifestURL(for addon: LocalAddon, manifestURL: URL) async throws {
+        guard let index = addons.firstIndex(where: { $0.id == addon.id }) else { return }
+        let manifest = try await StremioManifestClient.fetchManifest(from: manifestURL)
+        let updatedAddon = LocalAddon(
             id: addon.id,
             manifestURL: manifestURL,
-            name: addon.name,
-            description: addon.description,
-            resources: addon.resources,
-            sourceCategory: addon.sourceCategory,
+            manifest: manifest,
             isRemovable: addon.isRemovable
         )
+        guard updatedAddon.hasSupportedResources else {
+            throw LocalAddonStoreError.unsupportedManifest
+        }
+
+        addons[index] = updatedAddon
         save()
     }
     
@@ -209,6 +327,25 @@ final class LocalAddonStore: ObservableObject {
         UserDefaults.standard.set(Array(updatedSeededAddonIDs), forKey: Self.seededAddonIDsKey)
         save()
     }
+
+    private func refreshMissingManifestMetadata() async {
+        for addon in addons where addon.resourceCapabilities.isEmpty {
+            guard let manifest = try? await StremioManifestClient.fetchManifest(from: addon.manifestURL),
+                  let index = addons.firstIndex(where: { $0.id == addon.id }) else {
+                continue
+            }
+
+            addons[index] = LocalAddon(
+                id: addon.id,
+                manifestURL: addon.manifestURL,
+                manifest: manifest,
+                sourceCategory: addon.sourceCategory,
+                isRemovable: addon.isRemovable
+            )
+        }
+
+        save()
+    }
     
     private static func loadKeychainAddonsData() -> Data? {
         let query: [String: Any] = [
@@ -243,4 +380,8 @@ final class LocalAddonStore: ObservableObject {
             SecItemAdd(newItem as CFDictionary, nil)
         }
     }
+}
+
+enum LocalAddonStoreError: Error {
+    case unsupportedManifest
 }

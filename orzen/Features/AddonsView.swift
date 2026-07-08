@@ -2,8 +2,10 @@ import SwiftUI
 
 struct AddonsView: View {
     @ObservedObject private var addonStore = LocalAddonStore.shared
+    @State private var isAddingAddon = false
     @State private var configuringSubtitleAddon: LocalAddon?
     @State private var editingAddon: LocalAddon?
+    @State private var addonPendingRemoval: LocalAddon?
     var ownsNavigationStack = true
     var popToRootRequest = 0
     private let contentHorizontalPadding: CGFloat = 16
@@ -46,6 +48,17 @@ struct AddonsView: View {
         .sheet(item: $editingAddon) { addon in
             AddonManifestEditorView(addon: addon)
         }
+        .sheet(isPresented: $isAddingAddon) {
+            AddonManifestInstallView()
+        }
+        .alert("Remove addon?", isPresented: isConfirmingAddonRemoval) {
+            Button("Cancel", role: .cancel) {
+                addonPendingRemoval = nil
+            }
+            Button("Remove", role: .destructive, action: removePendingAddon)
+        } message: {
+            Text("This addon will be removed from Orzen on this device.")
+        }
         #if os(iOS)
         .toolbar(ownsNavigationStack ? .hidden : .visible, for: .navigationBar)
         .interactivePopGestureEnabled()
@@ -62,6 +75,14 @@ struct AddonsView: View {
             }
 
             Spacer()
+
+            AddonActionButton(
+                systemName: "plus",
+                isEnabled: true,
+                help: "Add addon"
+            ) {
+                isAddingAddon = true
+            }
         }
     }
 
@@ -108,11 +129,28 @@ struct AddonsView: View {
                         configuringSubtitleAddon = addon
                     },
                     removeAction: {
-                        addonStore.remove(addon)
+                        addonPendingRemoval = addon
                     }
                 )
             }
         }
+    }
+
+    private var isConfirmingAddonRemoval: Binding<Bool> {
+        Binding(
+            get: { addonPendingRemoval != nil },
+            set: { isPresented in
+                if !isPresented {
+                    addonPendingRemoval = nil
+                }
+            }
+        )
+    }
+
+    private func removePendingAddon() {
+        guard let addonPendingRemoval else { return }
+        addonStore.remove(addonPendingRemoval)
+        self.addonPendingRemoval = nil
     }
 
     private var addonRowSpacing: CGFloat {

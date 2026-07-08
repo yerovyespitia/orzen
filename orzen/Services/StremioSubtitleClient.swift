@@ -15,6 +15,10 @@ enum StremioSubtitleClient {
         id: String,
         allowedLanguageCodes: Set<String>
     ) async throws -> [ExternalSubtitleTrack] {
+        guard addon.supports(resource: .subtitles, type: type, id: id) else {
+            return []
+        }
+
         let url = subtitlesURL(from: addon.manifestURL, type: type, id: id)
         let (data, response) = try await URLSession.shared.data(from: url)
 
