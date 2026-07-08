@@ -1,11 +1,18 @@
 import SwiftUI
 
-struct PlayerTrackMenu: View {
+struct PlayerTrackMenu: View, Equatable {
     let systemName: String
     let help: String
     let emptyTitle: String
     let tracks: [PlayerMediaTrack]
     let onSelect: (PlayerMediaTrack) -> Void
+
+    static func == (lhs: PlayerTrackMenu, rhs: PlayerTrackMenu) -> Bool {
+        lhs.systemName == rhs.systemName
+            && lhs.help == rhs.help
+            && lhs.emptyTitle == rhs.emptyTitle
+            && lhs.tracks == rhs.tracks
+    }
 
     var body: some View {
         Menu {

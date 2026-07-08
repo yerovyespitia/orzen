@@ -187,6 +187,7 @@ struct StreamPlayerChrome: View {
                     tracks: subtitleTracks,
                     onSelect: onSubtitleTrackSelect
                 )
+                .equatable()
 
                 PlayerTrackMenu(
                     systemName: "waveform",
@@ -195,6 +196,7 @@ struct StreamPlayerChrome: View {
                     tracks: audioTracks,
                     onSelect: onAudioTrackSelect
                 )
+                .equatable()
 
                 PlayerIconButton(
                     systemName: "sidebar.right",

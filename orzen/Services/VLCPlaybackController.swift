@@ -163,18 +163,26 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     private func refreshTracks() {
-        audioTracks = tracks(
+        let refreshedAudioTracks = tracks(
             vlcTracks: player.audioTracks,
             kind: .audio,
             prefix: "vlc-audio",
             includesOffOption: false
         )
-        subtitleTracks = tracks(
+        let refreshedSubtitleTracks = tracks(
             vlcTracks: player.textTracks,
             kind: .subtitle,
             prefix: "vlc-subtitle",
             includesOffOption: true
         )
+
+        if audioTracks != refreshedAudioTracks {
+            audioTracks = refreshedAudioTracks
+        }
+
+        if subtitleTracks != refreshedSubtitleTracks {
+            subtitleTracks = refreshedSubtitleTracks
+        }
     }
 
     private func tracks(
