@@ -146,7 +146,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
 
     private func refreshPlaybackState() {
         currentTime = seconds(from: player.time)
-        duration = seconds(from: currentMedia?.length)
+        duration = resolvedDuration(currentTime: currentTime)
         isPaused = !player.isPlaying
         volume = Double(player.audio?.volume ?? 0)
         isMuted = (player.audio?.volume ?? 0) == 0
@@ -238,6 +238,18 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         guard let time else { return 0 }
         let value = Double(time.value?.doubleValue ?? 0) / 1000
         return value.isFinite && value > 0 ? value : 0
+    }
+
+    private func resolvedDuration(currentTime: Double) -> Double {
+        let mediaDuration = seconds(from: currentMedia?.length)
+        guard mediaDuration <= 0,
+              currentTime > 0,
+              player.position > 0 else {
+            return mediaDuration
+        }
+
+        let estimatedDuration = currentTime / Double(player.position)
+        return estimatedDuration.isFinite && estimatedDuration > currentTime ? estimatedDuration : 0
     }
 }
 

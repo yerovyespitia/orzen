@@ -932,7 +932,10 @@ struct StreamPlayerView: View {
         seek(to: pendingResumePosition)
     }
 
-    private func saveCurrentProgress(force: Bool = false) {
+    private func saveCurrentProgress(
+        force: Bool = false,
+        trackSelections: PlaybackTrackSelections? = nil
+    ) {
         guard !hasCompletedCurrentContent,
               activePlaybackEngine != nil,
               playbackErrorMessage == nil,
@@ -968,7 +971,7 @@ struct StreamPlayerView: View {
             for: request,
             position: currentTime,
             duration: duration,
-            trackSelections: currentTrackSelections,
+            trackSelections: trackSelections ?? currentTrackSelections,
             force: force
         )
         lastSavedProgressPosition = currentTime
@@ -1296,7 +1299,13 @@ struct StreamPlayerView: View {
                 break
             }
 
-            saveCurrentProgress(force: true)
+            let updatedSelections = PlaybackTrackSelections(
+                audio: trackChoice(from: track),
+                subtitle: currentTrackSelections.subtitle
+            )
+            pendingTrackSelections = updatedSelections
+            appliedSavedAudioTrackID = track.id
+            saveCurrentProgress(force: true, trackSelections: updatedSelections)
         }
     }
 
@@ -1315,7 +1324,13 @@ struct StreamPlayerView: View {
                 break
             }
 
-            saveCurrentProgress(force: true)
+            let updatedSelections = PlaybackTrackSelections(
+                audio: currentTrackSelections.audio,
+                subtitle: trackChoice(from: track)
+            )
+            pendingTrackSelections = updatedSelections
+            appliedSavedSubtitleTrackID = track.id
+            saveCurrentProgress(force: true, trackSelections: updatedSelections)
         }
     }
 
@@ -1562,6 +1577,10 @@ struct StreamPlayerView: View {
     private func selectedTrackChoice(from tracks: [PlayerMediaTrack], kind: PlayerMediaTrack.Kind) -> PlaybackTrackChoice? {
         guard let track = tracks.first(where: { $0.kind == kind && $0.isSelected }) else { return nil }
 
+        return trackChoice(from: track)
+    }
+
+    private func trackChoice(from track: PlayerMediaTrack) -> PlaybackTrackChoice {
         return PlaybackTrackChoice(
             id: track.id,
             title: track.title,
