@@ -51,10 +51,16 @@ struct StreamPlayerView: View {
     #endif
     @StateObject private var mpvController = MPVPlaybackController()
     @StateObject private var chromeVisibility = StreamPlayerChromeVisibilityController()
+    #if os(iOS)
+    @State private var videoScale: CGFloat = 1
+    #endif
 
     private let nativeStartupMinimumProgress = 1.0
     private let minimumCompletableMovieDuration = 20 * 60.0
     private let minimumCompletableEpisodeDuration = 5 * 60.0
+    #if os(iOS)
+    private let expandedVideoScale: CGFloat = 1.22
+    #endif
 
     init(request: StreamPlaybackRequest, onBack: @escaping () -> Void) {
         self.request = request
@@ -86,8 +92,7 @@ struct StreamPlayerView: View {
         }
         #else
         .onTapGesture {
-            chromeVisibility.reveal()
-            scheduleChromeHideIfNeeded()
+            handlePlayerTap()
         }
         #endif
         .onAppear {
@@ -213,11 +218,15 @@ struct StreamPlayerView: View {
         if activePlaybackEngine == .vlc {
             VLCPlayerView(controller: vlcController)
                 .background(Color.black)
+                .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
+                .gesture(videoPinchGesture)
         } else if activePlaybackEngine == .native, let player {
             NativePlayerView(player: player)
                 .background(Color.black)
+                .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
+                .gesture(videoPinchGesture)
         } else {
             Color.black.ignoresSafeArea()
         }
@@ -569,6 +578,23 @@ struct StreamPlayerView: View {
         !isPaused && playbackErrorMessage == nil && !isEpisodeSidebarPresented
     }
 
+    #if os(iOS)
+    private var effectiveVideoScale: CGFloat {
+        videoScale
+    }
+
+    private var videoPinchGesture: some Gesture {
+        MagnificationGesture()
+            .onEnded { value in
+                if value > 1.05 {
+                    videoScale = expandedVideoScale
+                } else if value < 0.95 {
+                    videoScale = 1
+                }
+            }
+    }
+    #endif
+
     private var currentTrackSelections: PlaybackTrackSelections {
         PlaybackTrackSelections(
             audio: selectedTrackChoice(from: audioTracks, kind: .audio),
@@ -618,6 +644,22 @@ struct StreamPlayerView: View {
     private func scheduleChromeHideIfNeeded() {
         chromeVisibility.scheduleAutoHide(isAllowed: shouldAutoHideChrome)
     }
+
+    #if os(iOS)
+    private func handlePlayerTap() {
+        guard shouldAutoHideChrome else {
+            chromeVisibility.keepVisible()
+            return
+        }
+
+        if chromeVisibility.isVisible {
+            chromeVisibility.hide()
+        } else {
+            chromeVisibility.reveal()
+            scheduleChromeHideIfNeeded()
+        }
+    }
+    #endif
 
     private func performPlayerAction(_ action: () -> Void) {
         guard !isClosing else { return }
@@ -1528,3 +1570,13 @@ struct StreamPlayerView: View {
         )
     }
 }
+
+#if os(iOS)
+private extension View {
+    func iOSVideoZoom(scale: CGFloat) -> some View {
+        self
+            .scaleEffect(scale)
+            .clipped()
+    }
+}
+#endif

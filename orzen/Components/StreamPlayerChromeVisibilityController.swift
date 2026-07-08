@@ -19,6 +19,17 @@ final class StreamPlayerChromeVisibilityController: ObservableObject {
         reveal()
     }
 
+    func hide() {
+        hideTask?.cancel()
+        hideTask = nil
+
+        guard isVisible else { return }
+
+        withAnimation(.easeInOut(duration: 0.18)) {
+            isVisible = false
+        }
+    }
+
     func scheduleAutoHide(isAllowed: Bool) {
         hideTask?.cancel()
 
