@@ -130,7 +130,14 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     func selectSubtitleTrack(_ track: PlayerMediaTrack) {
+        if track.isOff {
+            player.deselectAllTextTracks()
+            refreshTracks()
+            return
+        }
+
         guard let index = trackIndex(from: track.id) else { return }
+        player.deselectAllTextTracks()
         player.selectTrack(at: index, type: .text)
         refreshTracks()
     }

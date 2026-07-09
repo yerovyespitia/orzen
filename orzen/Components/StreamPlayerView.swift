@@ -288,7 +288,7 @@ struct StreamPlayerView: View {
                     .padding(.vertical, 8)
                     .background(Color.black.opacity(0.42), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .padding(.horizontal, 28)
-                    .padding(.bottom, isChromePresented ? 104 : 36)
+                    .padding(.bottom, isChromePresented ? 69 : 16)
             }
             .allowsHitTesting(false)
             .zIndex(2.5)
@@ -1353,6 +1353,16 @@ struct StreamPlayerView: View {
         if let externalSubtitleID = track.externalSubtitleID,
            let subtitle = externalSubtitleTracks.first(where: { $0.id == externalSubtitleID }) {
             selectedExternalSubtitleID = externalSubtitleID
+            vlcController.selectSubtitleTrack(
+                PlayerMediaTrack(
+                    id: "vlc-subtitle-off",
+                    title: "Off",
+                    language: nil,
+                    kind: .subtitle,
+                    isSelected: true,
+                    isOff: true
+                )
+            )
             loadExternalSubtitleCues(for: subtitle)
             return
         }
