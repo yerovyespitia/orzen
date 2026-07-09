@@ -145,7 +145,7 @@ struct StreamPlayerChrome: View {
                 expandsWhileInteracting: true,
                 onInteractionChange: handleTimelineInteraction
             )
-            .offset(y: 3)
+            .offset(y: 12)
 
             HStack(spacing: 12) {
                 PlayerIconButton(
@@ -231,7 +231,7 @@ struct StreamPlayerChrome: View {
                 expandsWhileInteracting: true,
                 onInteractionChange: handleTimelineInteraction
             )
-            .offset(y: 3)
+            .offset(y: 12)
 
             HStack(spacing: 14) {
                 Text(formatTime(displayedTimelineTime))
