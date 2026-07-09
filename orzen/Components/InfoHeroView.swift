@@ -109,7 +109,7 @@ struct InfoHeroView: View {
                 image
                     .resizable()
                     .scaledToFill()
-            } placeholder: {
+            } placeholder: { _ in
                 posterPlaceholder
             }
         } else if let imageName = item.imageName {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EpisodeRow: View {
     let episode: CatalogEpisode
+    let bannerURL: URL?
     var isSelected = false
     var isWatched = false
     var isCurrent = false
@@ -129,11 +130,11 @@ struct EpisodeRow: View {
                 image
                     .resizable()
                     .scaledToFill()
-            } placeholder: {
-                thumbnailPlaceholder
+            } placeholder: { isLoading in
+                thumbnailPlaceholder(isLoading: isLoading)
             }
         } else {
-            thumbnailPlaceholder
+            thumbnailPlaceholder(isLoading: false)
         }
     }
 
@@ -169,13 +170,37 @@ struct EpisodeRow: View {
         .shadow(color: .black.opacity(0.3), radius: 5, y: 2)
     }
 
-    private var thumbnailPlaceholder: some View {
+    private func thumbnailPlaceholder(isLoading: Bool) -> some View {
         ZStack {
-            OrzenArtworkPlaceholder(style: .backdrop)
+            if isLoading {
+                OrzenArtworkPlaceholder(style: .backdrop)
+                Image(systemName: "play.rectangle")
+                    .font(.title2)
+                    .foregroundColor(.white.opacity(0.64))
+            } else {
+                bannerArtwork
 
-            Image(systemName: "play.rectangle")
-                .font(.title2)
-                .foregroundColor(.white.opacity(0.64))
+                if bannerURL == nil {
+                    Image(systemName: "play.rectangle")
+                        .font(.title2)
+                        .foregroundColor(.white.opacity(0.64))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var bannerArtwork: some View {
+        if let bannerURL {
+            CachedRemoteImage(url: bannerURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: { _ in
+                OrzenArtworkPlaceholder(style: .backdrop)
+            }
+        } else {
+            OrzenArtworkPlaceholder(style: .backdrop)
         }
     }
 }

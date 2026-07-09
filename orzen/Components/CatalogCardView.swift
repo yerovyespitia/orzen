@@ -14,7 +14,7 @@ private typealias OrzenPlatformImage = UIImage
 struct CachedRemoteImage<Content: View, Placeholder: View>: View {
     let url: URL
     let content: (Image) -> Content
-    let placeholder: () -> Placeholder
+    let placeholder: (Bool) -> Placeholder
     
     @StateObject private var loader = CachedRemoteImageLoader()
     
@@ -23,7 +23,7 @@ struct CachedRemoteImage<Content: View, Placeholder: View>: View {
             if let image = loader.image {
                 content(Image(orzenPlatformImage: image))
             } else {
-                placeholder()
+                placeholder(loader.isLoading)
             }
         }
         .onAppear {
@@ -45,6 +45,7 @@ private final class CachedRemoteImageLoader: ObservableObject {
     }()
     
     @Published private(set) var image: OrzenPlatformImage?
+    @Published private(set) var isLoading = true
     
     private var currentURL: URL?
     private var loadTask: Task<Void, Never>?
@@ -54,10 +55,12 @@ private final class CachedRemoteImageLoader: ObservableObject {
             loadTask?.cancel()
             currentURL = url
             image = nil
+            isLoading = true
         }
         
         if let cachedImage = Self.cache.object(forKey: url as NSURL) {
             image = cachedImage
+            isLoading = false
             return
         }
         
@@ -76,6 +79,10 @@ private final class CachedRemoteImageLoader: ObservableObject {
                       let httpResponse = response as? HTTPURLResponse,
                       (200..<300).contains(httpResponse.statusCode),
                       let loadedImage = OrzenPlatformImage(data: data) else {
+                    await MainActor.run {
+                        guard self.currentURL == url else { return }
+                        self.isLoading = false
+                    }
                     return
                 }
                 
@@ -83,7 +90,13 @@ private final class CachedRemoteImageLoader: ObservableObject {
                     Self.cache.setObject(loadedImage, forKey: url as NSURL, cost: data.count)
                     if self.currentURL == url {
                         self.image = loadedImage
+                        self.isLoading = false
                     }
+                }
+            } catch where !Task.isCancelled {
+                await MainActor.run {
+                    guard self.currentURL == url else { return }
+                    self.isLoading = false
                 }
             } catch {
                 return

@@ -64,7 +64,7 @@ struct CatalogPosterCard: View {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-            } placeholder: {
+            } placeholder: { _ in
                 placeholder
             }
         } else if let imageName = item.imageName {

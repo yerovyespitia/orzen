@@ -257,7 +257,7 @@ private struct RootFeaturedBanner: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: width, height: height)
-            } placeholder: {
+            } placeholder: { _ in
                 OrzenArtworkPlaceholder(style: .backdrop)
                     .frame(width: width, height: height)
             }

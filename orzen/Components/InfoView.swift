@@ -107,7 +107,7 @@ struct InfoView: View {
                 image
                     .resizable()
                     .scaledToFill()
-            } placeholder: {
+            } placeholder: { _ in
                 OrzenArtworkPlaceholder(style: .backdrop)
             }
         } else {
@@ -159,6 +159,7 @@ struct InfoView: View {
                             } label: {
                                 EpisodeRow(
                                     episode: episode,
+                                    bannerURL: item.backgroundURL,
                                     isSelected: viewModel.selectedEpisodeID == episode.id,
                                     isWatched: episodeWatchStore.isWatched(episode),
                                     isCurrent: currentWatchingEpisodeID == episode.id

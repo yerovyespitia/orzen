@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StreamPlayerEpisodeSidebarRow: View {
     let episode: CatalogEpisode
+    let bannerURL: URL?
     let isSelected: Bool
     let isCurrent: Bool
     let isWatched: Bool
@@ -59,20 +60,45 @@ struct StreamPlayerEpisodeSidebarRow: View {
                 image
                     .resizable()
                     .scaledToFill()
-            } placeholder: {
-                placeholder
+            } placeholder: { isLoading in
+                placeholder(isLoading: isLoading)
             }
         } else {
-            placeholder
+            placeholder(isLoading: false)
         }
     }
 
-    private var placeholder: some View {
+    private func placeholder(isLoading: Bool) -> some View {
         ZStack {
+            if isLoading {
+                OrzenArtworkPlaceholder(style: .backdrop)
+                Image(systemName: "play.rectangle")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.56))
+            } else {
+                bannerArtwork
+
+                if bannerURL == nil {
+                    Image(systemName: "play.rectangle")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.56))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var bannerArtwork: some View {
+        if let bannerURL {
+            CachedRemoteImage(url: bannerURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: { _ in
+                OrzenArtworkPlaceholder(style: .backdrop)
+            }
+        } else {
             OrzenArtworkPlaceholder(style: .backdrop)
-            Image(systemName: "play.rectangle")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white.opacity(0.56))
         }
     }
 

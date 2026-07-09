@@ -175,12 +175,27 @@ private struct WatchingCard: View {
 
     @ViewBuilder
     private var artwork: some View {
-        if let artworkURL = progressStore.watchingArtworkURL(for: item) {
+        if let artworkURL = progressStore.watchingArtworkURL(for: item), artworkURL != item.backgroundURL {
             CachedRemoteImage(url: artworkURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-            } placeholder: {
+            } placeholder: { _ in
+                bannerArtwork
+            }
+        } else {
+            bannerArtwork
+        }
+    }
+
+    @ViewBuilder
+    private var bannerArtwork: some View {
+        if let bannerURL = item.backgroundURL {
+            CachedRemoteImage(url: bannerURL) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: { _ in
                 OrzenArtworkPlaceholder(style: .backdrop)
             }
         } else {

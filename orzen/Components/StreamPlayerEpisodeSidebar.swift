@@ -222,6 +222,7 @@ struct StreamPlayerEpisodeSidebar: View {
         } label: {
             StreamPlayerEpisodeSidebarRow(
                 episode: episode,
+                bannerURL: item.backgroundURL,
                 isSelected: viewModel.selectedEpisodeID == episode.id,
                 isCurrent: currentEpisodeID == episode.id,
                 isWatched: episodeWatchStore.isWatched(episode)
