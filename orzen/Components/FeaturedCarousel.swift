@@ -79,12 +79,12 @@ struct FeaturedCarousel: View {
         }
         .frame(height: metrics.bannerHeight)
         .padding(.bottom, 22)
-        .preference(
-            key: FeaturedBannerArtworkKey.self,
-            value: selectedItem.map(FeaturedBannerArtwork.init)
-        )
         .navigationDestination(item: $detailRoute) { route in
             InfoView(item: route.item)
+        }
+        .onAppear(perform: updateBannerArtwork)
+        .onChange(of: selectedItemID) { _, _ in
+            updateBannerArtwork()
         }
     }
     
@@ -125,6 +125,10 @@ struct FeaturedCarousel: View {
     private func selectInitialItemIfNeeded() {
         guard selectedItemID == nil else { return }
         selectedItemID = items.first?.id
+    }
+
+    private func updateBannerArtwork() {
+        HomeBannerArtworkStore.shared.artwork = selectedItem.map(FeaturedBannerArtwork.init)
     }
     
     private func moveSelection(by offset: Int) {

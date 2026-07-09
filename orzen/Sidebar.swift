@@ -100,19 +100,18 @@ struct FeaturedBannerArtwork: Equatable {
     }
 }
 
-struct FeaturedBannerArtworkKey: PreferenceKey {
-    static let defaultValue: FeaturedBannerArtwork? = nil
-
-    static func reduce(value: inout FeaturedBannerArtwork?, nextValue: () -> FeaturedBannerArtwork?) {
-        value = nextValue() ?? value
-    }
-}
-
 @MainActor
 final class HomeBannerScrollStore: ObservableObject {
     static let shared = HomeBannerScrollStore()
 
     @Published var backgroundOffset: CGFloat = 0
+}
+
+@MainActor
+final class HomeBannerArtworkStore: ObservableObject {
+    static let shared = HomeBannerArtworkStore()
+
+    @Published var artwork: FeaturedBannerArtwork?
 }
 
 struct SidebarItem: Identifiable, Hashable {
@@ -123,7 +122,7 @@ struct SidebarItem: Identifiable, Hashable {
 
 struct SidebarView<DetailContent: View>: View {
     @State private var selection: SidebarItem? = items.first(where: { $0.title == "Home" })
-    @State private var featuredBannerArtwork: FeaturedBannerArtwork?
+    @ObservedObject private var bannerArtworkStore = HomeBannerArtworkStore.shared
     @ObservedObject private var homeBannerScrollStore = HomeBannerScrollStore.shared
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
     let detailContent: (SidebarItem?) -> DetailContent
@@ -137,8 +136,9 @@ struct SidebarView<DetailContent: View>: View {
             ZStack(alignment: .topLeading) {
                 Color.black.ignoresSafeArea()
 
-                if selection?.title == "Home", let featuredBannerArtwork {
-                    RootFeaturedBanner(artwork: featuredBannerArtwork)
+                if selection?.title == "Home", let artwork = bannerArtworkStore.artwork {
+                    RootFeaturedBanner(artwork: artwork)
+                        .id(artwork.id)
                         .frame(width: windowGeometry.size.width, height: OrzenLayout.bannerHeight)
                         .offset(y: homeBannerScrollStore.backgroundOffset)
                         .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
@@ -204,9 +204,6 @@ struct SidebarView<DetailContent: View>: View {
                     .zIndex(10)
                     .transition(.opacity)
                 }
-            }
-            .onPreferenceChange(FeaturedBannerArtworkKey.self) { artwork in
-                featuredBannerArtwork = artwork
             }
         }
         #if os(macOS)
