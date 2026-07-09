@@ -20,6 +20,7 @@ struct StreamPlayerChrome: View {
     let onSeekBackward: () -> Void
     let onSeekForward: () -> Void
     let onSeek: (Double) -> Void
+    let onTimelineInteractionChange: (Bool) -> Void
     let onVolumeChange: (Double) -> Void
     let onMute: () -> Void
     let onNextEpisode: () -> Void
@@ -28,6 +29,7 @@ struct StreamPlayerChrome: View {
     let onEpisodeSidebarToggle: () -> Void
     let onFullscreen: () -> Void
     @State private var hoveredCircularButton: String?
+    @State private var timelinePreviewTime: Double?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -135,12 +137,15 @@ struct StreamPlayerChrome: View {
         VStack(spacing: 12) {
             PlayerFlatSlider(
                 value: Binding(
-                    get: { min(currentTime, max(duration, 0)) },
-                    set: { onSeek($0) }
+                    get: { displayedTimelineTime },
+                    set: { timelinePreviewTime = $0 }
                 ),
                 in: 0...max(duration, 1),
-                accessibilityLabel: "Playback position"
+                accessibilityLabel: "Playback position",
+                expandsWhileInteracting: true,
+                onInteractionChange: handleTimelineInteraction
             )
+            .offset(y: 3)
 
             HStack(spacing: 12) {
                 PlayerIconButton(
@@ -173,7 +178,7 @@ struct StreamPlayerChrome: View {
                 )
                 .frame(width: 92)
 
-                Text("\(formatTime(currentTime)) / \(formatTime(duration))")
+                Text("\(formatTime(displayedTimelineTime)) / \(formatTime(duration))")
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundColor(.white.opacity(0.86))
                     .frame(minWidth: 96, alignment: .leading)
@@ -215,18 +220,21 @@ struct StreamPlayerChrome: View {
     }
 
     private var mobileControls: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 0) {
             PlayerFlatSlider(
                 value: Binding(
-                    get: { min(currentTime, max(duration, 0)) },
-                    set: { onSeek($0) }
+                    get: { displayedTimelineTime },
+                    set: { timelinePreviewTime = $0 }
                 ),
                 in: 0...max(duration, 1),
-                accessibilityLabel: "Playback position"
+                accessibilityLabel: "Playback position",
+                expandsWhileInteracting: true,
+                onInteractionChange: handleTimelineInteraction
             )
+            .offset(y: 3)
 
             HStack(spacing: 14) {
-                Text(formatTime(currentTime))
+                Text(formatTime(displayedTimelineTime))
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundColor(.white.opacity(0.86))
 
@@ -313,6 +321,24 @@ struct StreamPlayerChrome: View {
 
     private var displayedVolume: Double {
         isMuted ? 0 : volume
+    }
+
+    private var displayedTimelineTime: Double {
+        let playbackTime = min(currentTime, max(duration, 0))
+        return timelinePreviewTime ?? playbackTime
+    }
+
+    private func handleTimelineInteraction(_ isInteracting: Bool) {
+        onTimelineInteractionChange(isInteracting)
+
+        if isInteracting {
+            timelinePreviewTime = displayedTimelineTime
+            return
+        }
+
+        guard let timelinePreviewTime else { return }
+        onSeek(timelinePreviewTime)
+        self.timelinePreviewTime = nil
     }
 
     private func centerTransportButton(

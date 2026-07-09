@@ -43,6 +43,7 @@ struct StreamPlayerView: View {
     @State private var hasHandledPlaybackEnd = false
     @State private var isLoadingNextEpisode = false
     @State private var isEpisodeSidebarPresented = false
+    @State private var isAdjustingTimeline = false
     @State private var prefetchedNextEpisodeID: CatalogEpisode.ID?
     @State private var prefetchedNextSource: StreamSource?
     @StateObject private var playbackObserver = StreamPlaybackObserver()
@@ -92,6 +93,7 @@ struct StreamPlayerView: View {
         }
         #else
         .onTapGesture {
+            guard !isAdjustingTimeline else { return }
             handlePlayerTap()
         }
         #endif
@@ -258,6 +260,7 @@ struct StreamPlayerView: View {
                 seek(by: 5)
             },
             onSeek: seek(to:),
+            onTimelineInteractionChange: handleTimelineInteractionChange,
             onVolumeChange: setVolume(_:),
             onMute: toggleMute,
             onNextEpisode: playNextEpisode,
@@ -575,7 +578,10 @@ struct StreamPlayerView: View {
     }
 
     private var shouldAutoHideChrome: Bool {
-        !isPaused && playbackErrorMessage == nil && !isEpisodeSidebarPresented
+        !isPaused
+            && playbackErrorMessage == nil
+            && !isEpisodeSidebarPresented
+            && !isAdjustingTimeline
     }
 
     #if os(iOS)
@@ -643,6 +649,16 @@ struct StreamPlayerView: View {
 
     private func scheduleChromeHideIfNeeded() {
         chromeVisibility.scheduleAutoHide(isAllowed: shouldAutoHideChrome)
+    }
+
+    private func handleTimelineInteractionChange(_ isInteracting: Bool) {
+        isAdjustingTimeline = isInteracting
+
+        if isInteracting {
+            chromeVisibility.keepVisible()
+        } else {
+            scheduleChromeHideIfNeeded()
+        }
     }
 
     #if os(iOS)
