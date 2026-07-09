@@ -57,12 +57,6 @@ struct iPhoneRootShell: View {
         }
         .background(Color.black.ignoresSafeArea())
         .preferredColorScheme(.dark)
-        .onAppear {
-            updateOrientation(for: playbackStore.request?.id)
-        }
-        .onChange(of: playbackStore.request?.id) { _, requestID in
-            updateOrientation(for: requestID)
-        }
     }
 
     private static func configureTabBarAppearance() {
@@ -140,13 +134,6 @@ struct iPhoneRootShell: View {
         }
     }
 
-    private func updateOrientation(for requestID: StreamPlaybackRequest.ID?) {
-        if requestID == nil {
-            AppOrientationController.shared.lockToPortrait()
-        } else {
-            AppOrientationController.shared.lockToLandscape()
-        }
-    }
 }
 
 private enum RootTab: Hashable {
@@ -228,8 +215,10 @@ private final class StreamPlayerPresentationController: UIViewController {
         playerController.modalTransitionStyle = .crossDissolve
         self.playerController = playerController
 
-        AppOrientationController.shared.lockToLandscape()
-        present(playerController, animated: false)
+        AppOrientationController.shared.allowPlayerPresentation()
+        present(playerController, animated: false) {
+            AppOrientationController.shared.lockToLandscape()
+        }
     }
 
     private func dismissPlayerIfNeeded() {

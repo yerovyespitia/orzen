@@ -59,12 +59,15 @@ final class AppOrientationController {
         updateSupportedOrientations(.landscapeRight, preferredOrientation: .landscapeRight)
     }
 
+    func allowPlayerPresentation() {
+        supportedOrientations = [.portrait, .landscapeRight]
+    }
+
     private func updateSupportedOrientations(
         _ orientations: UIInterfaceOrientationMask,
         preferredOrientation: UIInterfaceOrientation
     ) {
         supportedOrientations = orientations
-        UIDevice.current.setValue(preferredOrientation.rawValue, forKey: "orientation")
 
         if #available(iOS 16.0, *) {
             UIApplication.shared.connectedScenes
