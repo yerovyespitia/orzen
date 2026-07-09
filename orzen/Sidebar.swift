@@ -108,6 +108,13 @@ struct FeaturedBannerArtworkKey: PreferenceKey {
     }
 }
 
+@MainActor
+final class HomeBannerScrollStore: ObservableObject {
+    static let shared = HomeBannerScrollStore()
+
+    @Published var backgroundOffset: CGFloat = 0
+}
+
 struct SidebarItem: Identifiable, Hashable {
     let id = UUID()
     let title: String
@@ -117,6 +124,7 @@ struct SidebarItem: Identifiable, Hashable {
 struct SidebarView<DetailContent: View>: View {
     @State private var selection: SidebarItem? = items.first(where: { $0.title == "Home" })
     @State private var featuredBannerArtwork: FeaturedBannerArtwork?
+    @ObservedObject private var homeBannerScrollStore = HomeBannerScrollStore.shared
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
     let detailContent: (SidebarItem?) -> DetailContent
 
@@ -132,6 +140,7 @@ struct SidebarView<DetailContent: View>: View {
                 if selection?.title == "Home", let featuredBannerArtwork {
                     RootFeaturedBanner(artwork: featuredBannerArtwork)
                         .frame(width: windowGeometry.size.width, height: OrzenLayout.bannerHeight)
+                        .offset(y: homeBannerScrollStore.backgroundOffset)
                         .ignoresSafeArea(.container, edges: [.top, .leading, .trailing])
                 }
 
