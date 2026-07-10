@@ -79,6 +79,7 @@ struct StreamPlayerView: View {
             nextEpisodeBanner
             playerChrome
             episodeSidebar
+            episodeSidebarCloseButton
             startingOverlay
             errorOverlay
         }
@@ -241,6 +242,7 @@ struct StreamPlayerView: View {
         #if os(iOS)
         playerSurface
             .contentShape(Rectangle())
+            .allowsHitTesting(!isChromePresented)
             .onTapGesture {
                 guard !isAdjustingTimeline else { return }
                 handlePlayerTap()
@@ -352,6 +354,31 @@ struct StreamPlayerView: View {
             }
             .zIndex(4)
         }
+    }
+
+    @ViewBuilder
+    private var episodeSidebarCloseButton: some View {
+        #if os(iOS)
+        if isEpisodeSidebarPresented {
+            VStack {
+                HStack {
+                    Spacer(minLength: 0)
+
+                    PlayerIconButton(
+                        systemName: "xmark",
+                        help: "Close episodes",
+                        usesGlassBackground: true,
+                        action: closeEpisodeSidebar
+                    )
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 22)
+
+                Spacer(minLength: 0)
+            }
+            .zIndex(5)
+        }
+        #endif
     }
 
     @ViewBuilder

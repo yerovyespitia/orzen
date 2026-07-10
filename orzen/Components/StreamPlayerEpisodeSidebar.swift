@@ -86,12 +86,14 @@ struct StreamPlayerEpisodeSidebar: View {
                 )
             }
 
+            #if os(macOS)
             chromeButton(
                 id: .close,
                 systemName: "xmark",
                 help: "Close episodes",
                 action: onClose
             )
+            #endif
         }
     }
 
@@ -352,11 +354,14 @@ struct StreamPlayerEpisodeSidebar: View {
         help: String,
         action: @escaping () -> Void
     ) -> some View {
+        let buttonSize: CGFloat = id == .close ? 44 : 30
+        let iconSize: CGFloat = id == .close ? 16 : 13
+
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: iconSize, weight: .semibold))
                 .foregroundColor(.white.opacity(0.88))
-                .frame(width: 30, height: 30)
+                .frame(width: buttonSize, height: buttonSize)
                 .background(chromeButtonBackground(id))
                 .modifier(SidebarGlassButtonModifier(shape: Circle()))
         }

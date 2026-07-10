@@ -16,6 +16,7 @@ struct PlayerIconButton: View {
                 .modifier(PlayerLiquidGlassCircleSurface(isActive: usesGlassBackground))
         }
         .buttonStyle(.plain)
+        .contentShape(Circle())
         .help(help)
         .accessibilityLabel(help)
         .disabled(!isEnabled)
