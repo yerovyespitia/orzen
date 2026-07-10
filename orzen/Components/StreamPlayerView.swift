@@ -174,6 +174,14 @@ struct StreamPlayerView: View {
         .onChange(of: subtitleTracks) { _, _ in
             applySavedTrackSelectionsIfPossible()
         }
+        .onChange(of: nativeSubtitleTracks) { _, _ in
+            ensureEmbeddedSubtitlesAreDisabled()
+        }
+        #if os(iOS)
+        .onChange(of: vlcController.subtitleTracks) { _, _ in
+            ensureEmbeddedSubtitlesAreDisabled()
+        }
+        #endif
         .onChange(of: externalSubtitleTracks) { _, _ in
             applySavedTrackSelectionsIfPossible()
         }
@@ -1407,6 +1415,39 @@ struct StreamPlayerView: View {
         selectedExternalSubtitleID = nil
         loadingExternalSubtitleID = nil
         externalSubtitleCues = []
+    }
+
+    private func ensureEmbeddedSubtitlesAreDisabled() {
+        guard selectedExternalSubtitleID != nil else { return }
+
+        switch activePlaybackEngine {
+        case .native:
+            guard nativeSubtitleTracks.contains(where: { !$0.isOff && $0.isSelected }) else {
+                return
+            }
+            selectNativeTrack(
+                NativePlayerTrackResolver.offTrack(kind: .subtitle, isSelected: true),
+                characteristic: .legible
+            )
+        case .vlc:
+            #if os(iOS)
+            guard vlcController.subtitleTracks.contains(where: { !$0.isOff && $0.isSelected }) else {
+                return
+            }
+            vlcController.selectSubtitleTrack(
+                PlayerMediaTrack(
+                    id: "vlc-subtitle-off",
+                    title: "Off",
+                    language: nil,
+                    kind: .subtitle,
+                    isSelected: true,
+                    isOff: true
+                )
+            )
+            #endif
+        case .mpv, nil:
+            break
+        }
     }
 
     private func toggleFullscreen() {
