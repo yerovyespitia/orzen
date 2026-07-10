@@ -282,7 +282,8 @@ struct StreamPlayerView: View {
             onAudioTrackSelect: selectAudioTrack(_:),
             onSubtitleTrackSelect: selectSubtitleTrack(_:),
             onEpisodeSidebarOpen: showEpisodeSidebar,
-            onFullscreen: toggleFullscreen
+            onFullscreen: toggleFullscreen,
+            onBackgroundTap: handlePlayerTap
         )
         .opacity(isChromePresented ? 1 : 0)
         .allowsHitTesting(isChromePresented)
@@ -675,7 +676,6 @@ struct StreamPlayerView: View {
         }
     }
 
-    #if os(iOS)
     private func handlePlayerTap() {
         guard shouldAutoHideChrome else {
             chromeVisibility.keepVisible()
@@ -689,7 +689,6 @@ struct StreamPlayerView: View {
             scheduleChromeHideIfNeeded()
         }
     }
-    #endif
 
     private func performPlayerAction(_ action: () -> Void) {
         guard !isClosing else { return }

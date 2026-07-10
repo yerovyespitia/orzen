@@ -26,11 +26,18 @@ struct StreamPlayerChrome: View {
     let onSubtitleTrackSelect: (PlayerMediaTrack) -> Void
     let onEpisodeSidebarOpen: () -> Void
     let onFullscreen: () -> Void
+    let onBackgroundTap: () -> Void
     @Environment(\.colorScheme) private var colorScheme
     @State private var timelinePreviewTime: Double?
 
     var body: some View {
         ZStack {
+            #if os(iOS)
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onBackgroundTap)
+            #endif
+
             VStack(spacing: 0) {
                 header
                 Spacer(minLength: 0)
