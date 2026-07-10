@@ -74,27 +74,20 @@ struct StreamPlayerView: View {
             #if os(macOS)
             keyboardShortcuts
             #endif
-            playerSurface
+            interactivePlayerSurface
             externalSubtitleOverlay
             nextEpisodeBanner
             playerChrome
-            iOSBackHitTarget
             episodeSidebar
             startingOverlay
             errorOverlay
         }
         .background(Color.black)
-        .contentShape(Rectangle())
         #if os(macOS)
         .onContinuousHover { phase in
             guard case .active = phase else { return }
             chromeVisibility.reveal()
             scheduleChromeHideIfNeeded()
-        }
-        #else
-        .onTapGesture {
-            guard !isAdjustingTimeline else { return }
-            handlePlayerTap()
         }
         #endif
         .onAppear {
@@ -243,6 +236,20 @@ struct StreamPlayerView: View {
         #endif
     }
 
+    @ViewBuilder
+    private var interactivePlayerSurface: some View {
+        #if os(iOS)
+        playerSurface
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard !isAdjustingTimeline else { return }
+                handlePlayerTap()
+            }
+        #else
+        playerSurface
+        #endif
+    }
+
     private var playerChrome: some View {
         StreamPlayerChrome(
             title: request.title,
@@ -256,7 +263,6 @@ struct StreamPlayerView: View {
             isFullscreen: isFullscreen,
             audioTracks: audioTracks,
             subtitleTracks: subtitleTracks,
-            canPlayNextEpisode: nextEpisode != nil,
             canShowEpisodeSidebar: canShowEpisodeSidebar,
             isEpisodeSidebarPresented: isEpisodeSidebarPresented,
             onBack: handleBack,
@@ -271,10 +277,9 @@ struct StreamPlayerView: View {
             onTimelineInteractionChange: handleTimelineInteractionChange,
             onVolumeChange: setVolume(_:),
             onMute: toggleMute,
-            onNextEpisode: playNextEpisode,
             onAudioTrackSelect: selectAudioTrack(_:),
             onSubtitleTrackSelect: selectSubtitleTrack(_:),
-            onEpisodeSidebarToggle: toggleEpisodeSidebar,
+            onEpisodeSidebarOpen: showEpisodeSidebar,
             onFullscreen: toggleFullscreen
         )
         .opacity(isChromePresented ? 1 : 0)
@@ -308,50 +313,24 @@ struct StreamPlayerView: View {
     }
 
     @ViewBuilder
-    private var iOSBackHitTarget: some View {
-        #if os(iOS)
-        if isChromePresented {
-            VStack {
-                HStack {
-                    Spacer(minLength: 0)
-
-                    Button(action: handleBack) {
-                        Color.clear
-                            .frame(width: 64, height: 64)
-                            .contentShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Back")
-                    .padding(.trailing, 16)
-                }
-
-                Spacer(minLength: 0)
-            }
-            .padding(.top, 56)
-            .zIndex(4.5)
-        }
-        #endif
-    }
-
-    @ViewBuilder
     private var nextEpisodeBanner: some View {
         if shouldShowNextEpisodeBanner, let nextEpisode {
             VStack {
                 Spacer(minLength: 0)
 
                 HStack {
-                    Spacer(minLength: 0)
-
                     StreamPlayerNextEpisodeBanner(
                         episodeTitle: nextEpisode.playbackTitle,
                         isLoading: isLoadingNextEpisode,
                         action: playNextEpisode
                     )
-                    .padding(.trailing, 28)
+                    .padding(.leading, 28)
                     .padding(.bottom, nextEpisodeBannerBottomPadding)
+
+                    Spacer(minLength: 0)
                 }
             }
-            .transition(.opacity.combined(with: .move(edge: .trailing)))
+            .transition(.opacity.combined(with: .move(edge: .leading)))
             .zIndex(3.5)
             .animation(.easeInOut(duration: 0.22), value: isChromePresented)
         }
@@ -399,7 +378,7 @@ struct StreamPlayerView: View {
             onBack: handleBack,
             onPlayPause: togglePlayPause,
             onFullscreen: toggleFullscreen,
-            onEpisodeSidebarToggle: toggleEpisodeSidebar,
+            onEpisodeSidebarOpen: showEpisodeSidebar,
             onMute: toggleMute,
             onSeekBackward: {
                 seek(by: -5)
@@ -742,14 +721,13 @@ struct StreamPlayerView: View {
         onBack()
     }
 
-    private func toggleEpisodeSidebar() {
+    private func showEpisodeSidebar() {
         guard canShowEpisodeSidebar else { return }
 
         performPlayerAction {
-            isEpisodeSidebarPresented.toggle()
-            if isEpisodeSidebarPresented {
-                chromeVisibility.keepVisible()
-            }
+            guard !isEpisodeSidebarPresented else { return }
+            isEpisodeSidebarPresented = true
+            chromeVisibility.keepVisible()
         }
     }
 

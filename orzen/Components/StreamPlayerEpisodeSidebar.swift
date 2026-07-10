@@ -162,8 +162,8 @@ struct StreamPlayerEpisodeSidebar: View {
                     .padding(.vertical, 6)
                     .padding(.horizontal, 6)
                 }
-                .seasonSelectorScrollClippingDisabled()
                 .frame(width: viewportWidth, height: Self.seasonSelectorHeight, alignment: .leading)
+                .clipShape(Rectangle())
                 .onChange(of: viewModel.selectedSeason) { _, season in
                     scrollToSelectedSeasonButton(season, with: scrollProxy)
                 }

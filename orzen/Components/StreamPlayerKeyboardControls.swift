@@ -5,7 +5,7 @@ struct StreamPlayerKeyboardControls: View {
     let onBack: () -> Void
     let onPlayPause: () -> Void
     let onFullscreen: () -> Void
-    let onEpisodeSidebarToggle: () -> Void
+    let onEpisodeSidebarOpen: () -> Void
     let onMute: () -> Void
     let onSeekBackward: () -> Void
     let onSeekForward: () -> Void
@@ -48,7 +48,7 @@ struct StreamPlayerKeyboardControls: View {
             .frame(width: 0, height: 0)
             .opacity(0)
 
-            Button(action: onEpisodeSidebarToggle) {
+            Button(action: onEpisodeSidebarOpen) {
                 EmptyView()
             }
             .keyboardShortcut("s", modifiers: [])

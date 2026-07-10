@@ -56,7 +56,6 @@ struct iPhoneRootShell: View {
                 .frame(width: 0, height: 0)
         }
         .background(Color.black.ignoresSafeArea())
-        .preferredColorScheme(.dark)
     }
 
     private static func configureTabBarAppearance() {

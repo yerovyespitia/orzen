@@ -12,7 +12,6 @@ struct StreamPlayerChrome: View {
     let isFullscreen: Bool
     let audioTracks: [PlayerMediaTrack]
     let subtitleTracks: [PlayerMediaTrack]
-    let canPlayNextEpisode: Bool
     let canShowEpisodeSidebar: Bool
     let isEpisodeSidebarPresented: Bool
     let onBack: () -> Void
@@ -23,21 +22,22 @@ struct StreamPlayerChrome: View {
     let onTimelineInteractionChange: (Bool) -> Void
     let onVolumeChange: (Double) -> Void
     let onMute: () -> Void
-    let onNextEpisode: () -> Void
     let onAudioTrackSelect: (PlayerMediaTrack) -> Void
     let onSubtitleTrackSelect: (PlayerMediaTrack) -> Void
-    let onEpisodeSidebarToggle: () -> Void
+    let onEpisodeSidebarOpen: () -> Void
     let onFullscreen: () -> Void
-    @State private var hoveredCircularButton: String?
+    @Environment(\.colorScheme) private var colorScheme
     @State private var timelinePreviewTime: Double?
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            Spacer(minLength: 0)
+        ZStack {
+            VStack(spacing: 0) {
+                header
+                Spacer(minLength: 0)
+                controls
+            }
+
             centerPlayButton
-            Spacer(minLength: 0)
-            controls
         }
         .padding(.horizontal, horizontalPadding)
         .padding(.top, 22)
@@ -69,13 +69,22 @@ struct StreamPlayerChrome: View {
             }
 
             Spacer(minLength: 0)
+
+            #if os(iOS)
+            PlayerIconButton(
+                systemName: "list.bullet",
+                help: canShowEpisodeSidebar ? "Episodes" : "Episodes are available for series",
+                isEnabled: canShowEpisodeSidebar,
+                usesGlassBackground: true,
+                action: onEpisodeSidebarOpen
+            )
+            #endif
         }
     }
 
     @ViewBuilder
     private var backButton: some View {
-        let hoverID = "player-back"
-        circularButton(hoverID: hoverID, help: "Back", action: onBack) {
+        circularButton(help: "Back", action: onBack) {
             backIcon
         }
     }
@@ -84,11 +93,20 @@ struct StreamPlayerChrome: View {
         Image(systemName: "chevron.left")
             .font(.system(size: 16, weight: .semibold))
             .foregroundColor(.white.opacity(0.92))
-            .frame(width: 34, height: 34)
+            .frame(width: 44, height: 44)
     }
 
     @ViewBuilder
     private var centerPlayButton: some View {
+        #if os(iOS)
+        if #available(iOS 26, *) {
+            GlassEffectContainer(spacing: 34) {
+                centerTransportButtons
+            }
+        } else {
+            centerTransportButtons
+        }
+        #else
         if #available(macOS 26, *) {
             GlassEffectContainer(spacing: 34) {
                 centerTransportButtons
@@ -96,6 +114,7 @@ struct StreamPlayerChrome: View {
         } else {
             centerTransportButtons
         }
+        #endif
     }
 
     private var centerTransportButtons: some View {
@@ -154,14 +173,6 @@ struct StreamPlayerChrome: View {
                     action: onPlayPause
                 )
 
-                if canPlayNextEpisode {
-                    PlayerIconButton(
-                        systemName: "forward.end.fill",
-                        help: "Next episode",
-                        action: onNextEpisode
-                    )
-                }
-
                 PlayerIconButton(
                     systemName: isMuted || volume == 0 ? "speaker.slash.fill" : "speaker.wave.2.fill",
                     help: isMuted ? "Unmute" : "Mute",
@@ -207,7 +218,7 @@ struct StreamPlayerChrome: View {
                     systemName: "sidebar.right",
                     help: canShowEpisodeSidebar ? "Episodes" : "Episodes are available for series",
                     isEnabled: canShowEpisodeSidebar,
-                    action: onEpisodeSidebarToggle
+                    action: onEpisodeSidebarOpen
                 )
 
                 PlayerIconButton(
@@ -220,7 +231,13 @@ struct StreamPlayerChrome: View {
     }
 
     private var mobileControls: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                Spacer(minLength: 0)
+
+                mobileTrackOptions
+            }
+
             PlayerFlatSlider(
                 value: Binding(
                     get: { displayedTimelineTime },
@@ -231,45 +248,13 @@ struct StreamPlayerChrome: View {
                 expandsWhileInteracting: true,
                 onInteractionChange: handleTimelineInteraction
             )
-            .offset(y: 12)
 
-            HStack(spacing: 14) {
+            HStack {
                 Text(formatTime(displayedTimelineTime))
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundColor(.white.opacity(0.86))
 
                 Spacer(minLength: 0)
-
-                if canPlayNextEpisode {
-                    PlayerIconButton(
-                        systemName: "forward.end.fill",
-                        help: "Next episode",
-                        action: onNextEpisode
-                    )
-                }
-
-                PlayerTrackMenu(
-                    systemName: "captions.bubble",
-                    help: "Subtitles",
-                    emptyTitle: "No subtitles",
-                    tracks: subtitleTracks,
-                    onSelect: onSubtitleTrackSelect
-                )
-
-                PlayerTrackMenu(
-                    systemName: "waveform",
-                    help: "Audio",
-                    emptyTitle: "No audio tracks",
-                    tracks: audioTracks,
-                    onSelect: onAudioTrackSelect
-                )
-
-                PlayerIconButton(
-                    systemName: "sidebar.right",
-                    help: canShowEpisodeSidebar ? "Episodes" : "Episodes are available for series",
-                    isEnabled: canShowEpisodeSidebar,
-                    action: onEpisodeSidebarToggle
-                )
 
                 Text(formatTime(duration))
                     .font(.caption.monospacedDigit().weight(.semibold))
@@ -278,29 +263,86 @@ struct StreamPlayerChrome: View {
         }
     }
 
+    @ViewBuilder
+    private var mobileTrackOptions: some View {
+        #if os(iOS)
+        if #available(iOS 26, *) {
+            GlassEffectContainer(spacing: 10) {
+                mobileTrackButtons
+            }
+            .glassEffect(interactiveGlass, in: Capsule())
+        } else {
+            mobileTrackButtons
+                .padding(.horizontal, 4)
+                .background(.black.opacity(0.28), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(.white.opacity(0.16), lineWidth: 1)
+                }
+        }
+        #else
+        mobileTrackButtons
+        #endif
+    }
+
+    private var mobileTrackButtons: some View {
+        HStack(spacing: 10) {
+            PlayerTrackMenu(
+                systemName: "captions.bubble",
+                help: "Subtitles",
+                emptyTitle: "No subtitles",
+                tracks: subtitleTracks,
+                size: 46,
+                onSelect: onSubtitleTrackSelect
+            )
+
+            PlayerTrackMenu(
+                systemName: "waveform",
+                help: "Audio",
+                emptyTitle: "No audio tracks",
+                tracks: audioTracks,
+                size: 46,
+                onSelect: onAudioTrackSelect
+            )
+        }
+    }
+
     private var chromeGradient: some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                colors: [.black.opacity(0.86), .black.opacity(0.48), .clear],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 180)
+        ZStack {
+            Color.black.opacity(0.18)
 
-            Spacer()
+            VStack(spacing: 0) {
+                LinearGradient(
+                    colors: [.black.opacity(0.86), .black.opacity(0.48), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 180)
 
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.62), .black.opacity(0.92)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 220)
+                Spacer()
+
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.62), .black.opacity(0.92)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 220)
+            }
         }
         .allowsHitTesting(false)
     }
 
     private var fullscreenIconName: String {
         isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
+    }
+
+    @available(iOS 26, macOS 26, *)
+    private var interactiveGlass: Glass {
+        if colorScheme == .light {
+            return .regular.tint(.white.opacity(0.42)).interactive()
+        }
+
+        return .regular.interactive()
     }
 
     private var horizontalPadding: CGFloat {
@@ -349,66 +391,27 @@ struct StreamPlayerChrome: View {
         isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
-        let hoverID = "transport-\(systemName)-\(size.buttonSize)"
-
-        return circularButton(hoverID: hoverID, help: help, isEnabled: isEnabled, action: action) {
+        return circularButton(help: help, isEnabled: isEnabled, action: action) {
             centerTransportIcon(systemName: systemName, size: size, isLoading: isLoading)
         }
     }
 
     @ViewBuilder
     private func circularButton<Icon: View>(
-        hoverID: String,
         help: String,
         isEnabled: Bool = true,
         action: @escaping () -> Void,
         @ViewBuilder icon: () -> Icon
     ) -> some View {
-        if #available(macOS 26, *) {
-            Button(action: action) {
-                icon()
-                    .background(circularButtonBackground(hoverID: hoverID))
-                    .glassEffect(.regular.interactive(), in: Circle())
-            }
-            .buttonStyle(.plain)
-            .contentShape(Circle())
-            #if os(macOS)
-            .onHover { hovering in
-                hoveredCircularButton = hovering ? hoverID : nil
-            }
-            #endif
-            .animation(.easeInOut(duration: 0.12), value: hoveredCircularButton)
-            .help(help)
-            .accessibilityLabel(help)
-            .disabled(!isEnabled)
-        } else {
-            Button(action: action) {
-                icon()
-                    .background(circularButtonBackground(hoverID: hoverID))
-            }
-            .buttonStyle(.plain)
-            .contentShape(Circle())
-            #if os(macOS)
-            .onHover { hovering in
-                hoveredCircularButton = hovering ? hoverID : nil
-            }
-            #endif
-            .animation(.easeInOut(duration: 0.12), value: hoveredCircularButton)
-            .help(help)
-            .accessibilityLabel(help)
-            .disabled(!isEnabled)
+        Button(action: action) {
+            icon()
+                .modifier(PlayerLiquidGlassCircleSurface(isActive: true))
         }
-    }
-
-    private func circularButtonBackground(hoverID: String) -> some View {
-        let isHovered = hoveredCircularButton == hoverID
-
-        return Circle()
-            .fill(Color.white.opacity(isHovered ? 0.16 : 0.08))
-            .overlay(
-                Circle()
-                    .stroke(Color.white.opacity(isHovered ? 0.14 : 0.06), lineWidth: 1)
-            )
+        .buttonStyle(.plain)
+        .contentShape(Circle())
+        .help(help)
+        .accessibilityLabel(help)
+        .disabled(!isEnabled)
     }
 
     @ViewBuilder

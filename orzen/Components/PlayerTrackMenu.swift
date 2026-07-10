@@ -5,6 +5,8 @@ struct PlayerTrackMenu: View, Equatable {
     let help: String
     let emptyTitle: String
     let tracks: [PlayerMediaTrack]
+    var usesGlassBackground = false
+    var size: CGFloat?
     let onSelect: (PlayerMediaTrack) -> Void
 
     static func == (lhs: PlayerTrackMenu, rhs: PlayerTrackMenu) -> Bool {
@@ -12,6 +14,8 @@ struct PlayerTrackMenu: View, Equatable {
             && lhs.help == rhs.help
             && lhs.emptyTitle == rhs.emptyTitle
             && lhs.tracks == rhs.tracks
+            && lhs.usesGlassBackground == rhs.usesGlassBackground
+            && lhs.size == rhs.size
     }
 
     var body: some View {
@@ -27,9 +31,20 @@ struct PlayerTrackMenu: View, Equatable {
             }
         } label: {
             Image(systemName: systemName)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: iconSize, weight: .semibold))
                 .foregroundColor(.white.opacity(tracks.isEmpty ? 0.55 : 0.92))
                 .frame(width: buttonSize, height: buttonSize)
+                .background {
+                    if usesGlassBackground {
+                        Circle()
+                            .fill(.black.opacity(0.28))
+                            .overlay {
+                                Circle()
+                                    .stroke(.white.opacity(0.16), lineWidth: 1)
+                            }
+                    }
+                }
+                .modifier(PlayerTrackMenuGlassSurface(isActive: usesGlassBackground))
         }
         #if os(macOS)
         .menuStyle(.borderlessButton)
@@ -41,11 +56,19 @@ struct PlayerTrackMenu: View, Equatable {
     }
 
     private var buttonSize: CGFloat {
+        if let size {
+            return size
+        }
+
         #if os(iOS)
-        return 34
+        return usesGlassBackground ? 44 : 34
         #else
         return 28
         #endif
+    }
+
+    private var iconSize: CGFloat {
+        buttonSize >= 44 ? 17 : 14
     }
 
     @ViewBuilder
@@ -135,5 +158,32 @@ struct PlayerTrackMenu: View, Equatable {
         }
 
         return String(track.title[separatorRange.upperBound...])
+    }
+}
+
+private struct PlayerTrackMenuGlassSurface: ViewModifier {
+    let isActive: Bool
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isActive {
+            #if os(iOS)
+            if #available(iOS 26, *) {
+                content.glassEffect(.regular.interactive(), in: Circle())
+            } else {
+                content
+            }
+            #elseif os(macOS)
+            if #available(macOS 26, *) {
+                content.glassEffect(.regular.interactive(), in: Circle())
+            } else {
+                content
+            }
+            #else
+            content
+            #endif
+        } else {
+            content
+        }
     }
 }
