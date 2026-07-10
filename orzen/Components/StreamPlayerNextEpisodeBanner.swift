@@ -12,6 +12,12 @@ struct StreamPlayerNextEpisodeBanner: View {
             HStack(spacing: 12) {
                 icon
 
+                #if os(iOS)
+                Text("Next episode")
+                    .font(.callout.weight(.semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                #else
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Next episode")
                         .font(.caption.weight(.bold))
@@ -23,14 +29,15 @@ struct StreamPlayerNextEpisodeBanner: View {
                         .lineLimit(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                #endif
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.white.opacity(0.74))
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .frame(width: 300, alignment: .leading)
+            .padding(.vertical, bannerVerticalPadding)
+            .frame(width: bannerWidth, alignment: .leading)
             .nextEpisodeBannerBackground(isHovered: isHovered, shape: shape)
             .shadow(color: .black.opacity(0.32), radius: 18, x: 0, y: 10)
         }
@@ -63,6 +70,22 @@ struct StreamPlayerNextEpisodeBanner: View {
 
     private var shape: RoundedRectangle {
         RoundedRectangle(cornerRadius: 14, style: .continuous)
+    }
+
+    private var bannerWidth: CGFloat {
+        #if os(iOS)
+        200
+        #else
+        300
+        #endif
+    }
+
+    private var bannerVerticalPadding: CGFloat {
+        #if os(iOS)
+        10
+        #else
+        12
+        #endif
     }
 }
 

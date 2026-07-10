@@ -72,10 +72,14 @@ private extension View {
 extension View {
     @ViewBuilder
     func seasonSelectorScrollClippingDisabled() -> some View {
-        if #available(iOS 17.0, macOS 14.0, *) {
-            self.scrollClipDisabled()
-        } else {
+        #if os(macOS)
+            if #available(macOS 14.0, *) {
+                self.scrollClipDisabled()
+            } else {
+                self
+            }
+        #else
             self
-        }
+        #endif
     }
 }
