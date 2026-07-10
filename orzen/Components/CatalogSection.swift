@@ -120,7 +120,6 @@ private struct WatchingCard: View {
     var showsDroppedContextAction = false
     var onViewDetails: (() -> Void)?
 
-    @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
     @ObservedObject private var progressStore = PlaybackProgressStore.shared
     @State private var isHovered = false
 
@@ -145,8 +144,8 @@ private struct WatchingCard: View {
                     .lineLimit(2)
                     .shadow(radius: 4)
 
-                if let nextEpisodeLabel {
-                    Text(nextEpisodeLabel)
+                if let watchingEpisodeLabel {
+                    Text(watchingEpisodeLabel)
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.78))
                         .lineLimit(1)
@@ -222,9 +221,9 @@ private struct WatchingCard: View {
         progressStore.progressFraction(for: item)
     }
 
-    private var nextEpisodeLabel: String? {
+    private var watchingEpisodeLabel: String? {
         guard item.cinemetaType == .series,
-              let episode = episodeWatchStore.nextUnwatchedEpisode(for: item) else {
+              let episode = progressStore.entry(for: item)?.episode else {
             return nil
         }
 
