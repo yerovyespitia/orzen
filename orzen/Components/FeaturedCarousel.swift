@@ -82,7 +82,10 @@ struct FeaturedCarousel: View {
         .navigationDestination(item: $detailRoute) { route in
             InfoView(item: route.item)
         }
-        .onAppear(perform: updateBannerArtwork)
+        .onAppear {
+            updateBannerArtwork()
+            prefetchBannerArtwork()
+        }
         .onChange(of: selectedItemID) { _, _ in
             updateBannerArtwork()
         }
@@ -129,6 +132,13 @@ struct FeaturedCarousel: View {
 
     private func updateBannerArtwork() {
         HomeBannerArtworkStore.shared.artwork = selectedItem.map(FeaturedBannerArtwork.init)
+    }
+
+    private func prefetchBannerArtwork() {
+        for item in items.prefix(6) {
+            guard let imageURL = item.homeBannerBackgroundURL ?? item.posterURL else { continue }
+            RemoteImagePrefetcher.prefetch(url: imageURL, fallbackURL: item.backgroundURL)
+        }
     }
     
     private func moveSelection(by offset: Int) {

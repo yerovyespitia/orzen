@@ -13,8 +13,21 @@ private typealias OrzenPlatformImage = UIImage
 
 struct CachedRemoteImage<Content: View, Placeholder: View>: View {
     let url: URL
+    let fallbackURL: URL?
     let content: (Image) -> Content
     let placeholder: (Bool) -> Placeholder
+
+    init(
+        url: URL,
+        fallbackURL: URL? = nil,
+        @ViewBuilder content: @escaping (Image) -> Content,
+        @ViewBuilder placeholder: @escaping (Bool) -> Placeholder
+    ) {
+        self.url = url
+        self.fallbackURL = fallbackURL
+        self.content = content
+        self.placeholder = placeholder
+    }
     
     @StateObject private var loader = CachedRemoteImageLoader()
     
@@ -27,12 +40,17 @@ struct CachedRemoteImage<Content: View, Placeholder: View>: View {
             }
         }
         .onAppear {
-            loader.load(url)
+            loader.load(url, fallbackURL: fallbackURL)
         }
-        .onChange(of: url) { _, newURL in
-            loader.load(newURL)
+        .onChange(of: ImageRequest(url: url, fallbackURL: fallbackURL)) { _, request in
+            loader.load(request.url, fallbackURL: request.fallbackURL)
         }
     }
+}
+
+private struct ImageRequest: Equatable {
+    let url: URL
+    let fallbackURL: URL?
 }
 
 @MainActor
@@ -47,65 +65,119 @@ private final class CachedRemoteImageLoader: ObservableObject {
     @Published private(set) var image: OrzenPlatformImage?
     @Published private(set) var isLoading = true
     
-    private var currentURL: URL?
+    private var currentRequest: ImageRequest?
+    private var requestID = UUID()
     private var loadTask: Task<Void, Never>?
     
-    func load(_ url: URL) {
-        if currentURL != url {
+    func load(_ url: URL, fallbackURL: URL? = nil) {
+        let request = ImageRequest(url: url, fallbackURL: fallbackURL)
+
+        if currentRequest != request {
             loadTask?.cancel()
-            currentURL = url
+            loadTask = nil
+            currentRequest = request
+            requestID = UUID()
             image = nil
             isLoading = true
         }
-        
-        if let cachedImage = Self.cache.object(forKey: url as NSURL) {
-            image = cachedImage
-            isLoading = false
-            return
-        }
-        
-        guard loadTask == nil else { return }
-        
-        loadTask = Task {
-            defer {
-                Task { @MainActor in
-                    self.loadTask = nil
-                }
-            }
-            
-            do {
-                let (data, response) = try await URLSession.shared.data(from: url)
-                guard !Task.isCancelled,
-                      let httpResponse = response as? HTTPURLResponse,
-                      (200..<300).contains(httpResponse.statusCode),
-                      let loadedImage = OrzenPlatformImage(data: data) else {
-                    await MainActor.run {
-                        guard self.currentURL == url else { return }
-                        self.isLoading = false
-                    }
-                    return
-                }
-                
-                await MainActor.run {
-                    Self.cache.setObject(loadedImage, forKey: url as NSURL, cost: data.count)
-                    if self.currentURL == url {
-                        self.image = loadedImage
-                        self.isLoading = false
-                    }
-                }
-            } catch where !Task.isCancelled {
-                await MainActor.run {
-                    guard self.currentURL == url else { return }
-                    self.isLoading = false
-                }
-            } catch {
+
+        for candidateURL in Self.candidateURLs(for: request) {
+            if let cachedImage = Self.cache.object(forKey: candidateURL as NSURL) {
+                image = cachedImage
+                isLoading = false
                 return
             }
         }
+        
+        guard loadTask == nil else { return }
+
+        let activeRequestID = requestID
+        loadTask = Task {
+            defer {
+                Task { @MainActor in
+                    guard self.requestID == activeRequestID else { return }
+                    self.loadTask = nil
+                }
+            }
+
+            for candidateURL in Self.candidateURLs(for: request) {
+                do {
+                    let (data, response) = try await URLSession.shared.data(from: candidateURL)
+                    guard !Task.isCancelled,
+                          let httpResponse = response as? HTTPURLResponse,
+                          (200..<300).contains(httpResponse.statusCode),
+                          let loadedImage = OrzenPlatformImage(data: data) else {
+                        continue
+                    }
+
+                    await MainActor.run {
+                        guard self.requestID == activeRequestID else { return }
+                        Self.cache.setObject(loadedImage, forKey: candidateURL as NSURL, cost: data.count)
+                        self.image = loadedImage
+                        self.isLoading = false
+                    }
+                    return
+                } catch where Task.isCancelled {
+                    return
+                } catch {
+                    continue
+                }
+            }
+
+            await MainActor.run {
+                guard self.requestID == activeRequestID else { return }
+                self.isLoading = false
+            }
+        }
+    }
+
+    static func prefetch(url: URL, fallbackURL: URL? = nil) {
+        let request = ImageRequest(url: url, fallbackURL: fallbackURL)
+
+        guard !candidateURLs(for: request).contains(where: { cache.object(forKey: $0 as NSURL) != nil }) else {
+            return
+        }
+
+        Task {
+            for candidateURL in candidateURLs(for: request) {
+                do {
+                    let (data, response) = try await URLSession.shared.data(from: candidateURL)
+                    guard !Task.isCancelled,
+                          let httpResponse = response as? HTTPURLResponse,
+                          (200..<300).contains(httpResponse.statusCode),
+                          let image = OrzenPlatformImage(data: data) else {
+                        continue
+                    }
+
+                    cache.setObject(image, forKey: candidateURL as NSURL, cost: data.count)
+                    return
+                } catch where Task.isCancelled {
+                    return
+                } catch {
+                    continue
+                }
+            }
+        }
+    }
+
+    private static func candidateURLs(for request: ImageRequest) -> [URL] {
+        [request.url, request.fallbackURL]
+            .compactMap { $0 }
+            .reduce(into: []) { urls, url in
+                guard !urls.contains(url) else { return }
+                urls.append(url)
+            }
     }
     
     deinit {
         loadTask?.cancel()
+    }
+}
+
+enum RemoteImagePrefetcher {
+    @MainActor
+    static func prefetch(url: URL, fallbackURL: URL? = nil) {
+        CachedRemoteImageLoader.prefetch(url: url, fallbackURL: fallbackURL)
     }
 }
 

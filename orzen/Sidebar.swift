@@ -91,12 +91,14 @@ struct FeaturedBannerArtwork: Equatable {
     let imageName: String?
     let posterURL: URL?
     let backgroundURL: URL?
+    let fallbackBackgroundURL: URL?
 
     init(item: CatalogItem) {
         self.id = item.id
         self.imageName = item.imageName
         self.posterURL = item.posterURL
-        self.backgroundURL = item.backgroundURL
+        self.backgroundURL = item.homeBannerBackgroundURL
+        self.fallbackBackgroundURL = item.backgroundURL
     }
 }
 
@@ -252,7 +254,7 @@ private struct RootFeaturedBanner: View {
     @ViewBuilder
     private func bannerImage(width: CGFloat, height: CGFloat) -> some View {
         if let backgroundURL = artwork.backgroundURL ?? artwork.posterURL {
-            CachedRemoteImage(url: backgroundURL) { image in
+            CachedRemoteImage(url: backgroundURL, fallbackURL: artwork.fallbackBackgroundURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)

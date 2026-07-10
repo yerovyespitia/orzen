@@ -17,6 +17,21 @@ struct CatalogItem: Identifiable, Codable, Sendable {
         year?.trimmingCharacters(in: CharacterSet(charactersIn: "-–— "))
     }
 
+    var homeBannerBackgroundURL: URL? {
+        guard let backgroundURL,
+              backgroundURL.host == "images.metahub.space",
+              var components = URLComponents(url: backgroundURL, resolvingAgainstBaseURL: false) else {
+            return backgroundURL
+        }
+
+        components.path = components.path.replacingOccurrences(
+            of: "/background/medium/",
+            with: "/background/large/"
+        )
+
+        return components.url ?? backgroundURL
+    }
+
     init(
         id: String = UUID().uuidString,
         title: String,

@@ -56,8 +56,8 @@ struct FeaturedCarouselPage: View {
 
     @ViewBuilder
     private func bannerImage(width: CGFloat, height: CGFloat) -> some View {
-        if let backgroundURL = item.backgroundURL ?? item.posterURL {
-            CachedRemoteImage(url: backgroundURL) { image in
+        if let backgroundURL = item.homeBannerBackgroundURL ?? item.posterURL {
+            CachedRemoteImage(url: backgroundURL, fallbackURL: item.backgroundURL) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fill)
