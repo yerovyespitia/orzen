@@ -5,6 +5,12 @@ struct ExternalSubtitleCue: Identifiable, Sendable {
     let startTime: Double
     let endTime: Double
     let text: String
+    let placement: Placement
+
+    enum Placement: Sendable {
+        case dialogue
+        case contextual
+    }
 }
 
 enum ExternalSubtitleResolver {
@@ -50,7 +56,7 @@ enum ExternalSubtitleResolver {
         return parseCues(from: content)
     }
 
-    private static func parseCues(from content: String) -> [ExternalSubtitleCue] {
+    static func parseCues(from content: String) -> [ExternalSubtitleCue] {
         let normalizedContent = content
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
@@ -65,12 +71,26 @@ enum ExternalSubtitleResolver {
                 id: index,
                 startTime: cue.startTime,
                 endTime: cue.endTime,
-                text: cue.text
+                text: cue.text,
+                placement: cue.placement
             )
         }
     }
 
-    private static func parseCue(from block: String) -> (startTime: Double, endTime: Double, text: String)? {
+    static func preferredText(in cues: [ExternalSubtitleCue], at time: Double) -> String? {
+        let activeCues = cues.filter { time >= $0.startTime && time <= $0.endTime }
+        let dialogueCues = activeCues.filter { $0.placement == .dialogue }
+        let preferredCues = dialogueCues.isEmpty ? activeCues : dialogueCues
+        let text = preferredCues
+            .map(\.text)
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? nil : text
+    }
+
+    private static func parseCue(
+        from block: String
+    ) -> (startTime: Double, endTime: Double, text: String, placement: ExternalSubtitleCue.Placement)? {
         let lines = block
             .split(separator: "\n", omittingEmptySubsequences: false)
             .map(String.init)
@@ -91,7 +111,12 @@ enum ExternalSubtitleResolver {
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !text.isEmpty else { return nil }
-        return (startTime, endTime, text)
+        return (
+            startTime,
+            endTime,
+            text,
+            cuePlacement(timeLine: lines[timeLineIndex], textLines: Array(lines.dropFirst(timeLineIndex + 1)))
+        )
     }
 
     private static func parseTimestamp(_ value: String) -> Double? {
@@ -114,8 +139,53 @@ enum ExternalSubtitleResolver {
     private static func cleanSubtitleText(_ line: String) -> String {
         line
             .replacingOccurrences(of: #"<[^>]+>"#, with: "", options: .regularExpression)
-            .replacingOccurrences(of: "{\\an8}", with: "")
+            .replacingOccurrences(of: #"\{\\[^}]+\}"#, with: "", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func cuePlacement(
+        timeLine: String,
+        textLines: [String]
+    ) -> ExternalSubtitleCue.Placement {
+        let rawText = textLines.joined(separator: "\n")
+
+        if let alignment = firstIntegerMatch(in: rawText, pattern: #"\\an([1-9])"#) {
+            return alignment <= 3 ? .dialogue : .contextual
+        }
+
+        if rawText.range(of: #"\\pos\("#, options: .regularExpression) != nil {
+            return .contextual
+        }
+
+        guard let linePosition = firstDoubleMatch(
+            in: timeLine,
+            pattern: #"(?:^|\s)line:([0-9]+(?:\.[0-9]+)?)%"#
+        ) else {
+            return .dialogue
+        }
+
+        return linePosition >= 65 ? .dialogue : .contextual
+    }
+
+    private static func firstIntegerMatch(in value: String, pattern: String) -> Int? {
+        firstMatch(in: value, pattern: pattern).flatMap(Int.init)
+    }
+
+    private static func firstDoubleMatch(in value: String, pattern: String) -> Double? {
+        firstMatch(in: value, pattern: pattern).flatMap(Double.init)
+    }
+
+    private static func firstMatch(in value: String, pattern: String) -> String? {
+        guard let expression = try? NSRegularExpression(pattern: pattern),
+              let match = expression.firstMatch(
+                in: value,
+                range: NSRange(value.startIndex..., in: value)
+              ),
+              match.numberOfRanges > 1,
+              let range = Range(match.range(at: 1), in: value) else {
+            return nil
+        }
+        return String(value[range])
     }
 
     private static func uniqueSubtitles(from subtitles: [ExternalSubtitleTrack]) -> [ExternalSubtitleTrack] {

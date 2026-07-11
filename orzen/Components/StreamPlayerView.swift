@@ -552,9 +552,10 @@ struct StreamPlayerView: View {
             return nil
         }
 
-        return externalSubtitleCues.first {
-            currentTime >= $0.startTime && currentTime <= $0.endTime
-        }?.text
+        return ExternalSubtitleResolver.preferredText(
+            in: externalSubtitleCues,
+            at: currentTime
+        )
     }
 
     private var playbackErrorMessage: String? {
