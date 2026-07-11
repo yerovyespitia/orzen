@@ -590,7 +590,7 @@ struct StreamPlayerView: View {
     }
 
     private var isChromePresented: Bool {
-        chromeVisibility.isVisible || isPaused || playbackErrorMessage != nil
+        chromeVisibility.isVisible || playbackErrorMessage != nil
     }
 
     private var shouldAutoHideChrome: Bool {
@@ -678,7 +678,7 @@ struct StreamPlayerView: View {
     }
 
     private func handlePlayerTap() {
-        guard shouldAutoHideChrome else {
+        guard playbackErrorMessage == nil, !isEpisodeSidebarPresented, !isAdjustingTimeline else {
             chromeVisibility.keepVisible()
             return
         }
@@ -687,7 +687,9 @@ struct StreamPlayerView: View {
             chromeVisibility.hide()
         } else {
             chromeVisibility.reveal()
-            scheduleChromeHideIfNeeded()
+            if shouldAutoHideChrome {
+                scheduleChromeHideIfNeeded()
+            }
         }
     }
 
