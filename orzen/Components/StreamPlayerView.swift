@@ -792,14 +792,6 @@ struct StreamPlayerView: View {
             return
         }
 
-        #if os(iOS)
-        if let nativePlaybackError = request.source.nativePlaybackError {
-            activePlaybackEngine = .native
-            playbackObserver.errorMessage = nativePlaybackError
-            return
-        }
-        #endif
-
         guard let playbackURL = request.source.playbackURL else {
             playbackObserver.errorMessage = "This source does not expose a direct video URL. The native player can only open direct HTTP or HTTPS video streams returned by the addon."
             return

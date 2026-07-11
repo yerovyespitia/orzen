@@ -182,9 +182,9 @@ struct SourceRow: View {
     #if os(iOS)
     private func shouldShowCompatibilityDetail(for compatibility: NativePlaybackCompatibility) -> Bool {
         switch compatibility {
-        case .unknown, .unsupported:
+        case .unknown:
             return true
-        case .supported, .likely:
+        case .supported, .likely, .unsupported:
             return false
         }
     }

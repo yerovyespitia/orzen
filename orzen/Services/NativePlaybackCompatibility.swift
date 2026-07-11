@@ -38,7 +38,7 @@ enum NativePlaybackCompatibility: Sendable {
         case .unknown:
             return nil
         case .unsupported:
-            return "Unavailable"
+            return nil
         }
     }
 
