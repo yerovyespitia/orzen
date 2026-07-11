@@ -31,6 +31,7 @@ struct PlayerMediaTrack: Identifiable, Hashable, Sendable {
     var isSelected: Bool
     let isOff: Bool
     var externalSubtitleID: String? = nil
+    var compatibilityWarning: String? = nil
 }
 
 enum PlayerTrackLanguageName {

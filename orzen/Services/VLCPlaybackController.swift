@@ -210,8 +210,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
               !availableTracks.contains(where: \.isSelected) else { return }
 
         if automaticAudioSelectionAttempts >= 6 {
-            let codecName = availableTracks[0].codecName()
-            errorMessage = "This source's \(codecName) audio cannot be decoded by VLC on iOS. Choose a source with AAC, AC3, E-AC3, or MP3 audio."
+            // Keep the video running while testing sources whose audio codec
+            // is not available in the current iOS VLCKit build.
             return
         }
 
@@ -227,8 +227,11 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         // default and giving single-track files a usable audio selection.
         automaticAudioSelectionAttempts += 1
         lastAutomaticAudioSelectionAttempt = now
-        player.selectTrack(at: 0, type: .audio)
-        availableTracks[0].isSelectedExclusively = true
+        let preferredIndex = availableTracks.firstIndex {
+            audioCompatibilityWarning(for: $0) == nil
+        } ?? 0
+        player.selectTrack(at: preferredIndex, type: .audio)
+        availableTracks[preferredIndex].isSelectedExclusively = true
     }
 
     private func tracks(
@@ -260,12 +263,28 @@ final class VLCPlaybackController: NSObject, ObservableObject {
                     language: track.language,
                     kind: kind,
                     isSelected: track.isSelected,
-                    isOff: false
+                    isOff: false,
+                    compatibilityWarning: kind == .audio ? audioCompatibilityWarning(for: track) : nil
                 )
             }
         )
 
         return tracks
+    }
+
+    private func audioCompatibilityWarning(for track: VLCMediaPlayer.Track) -> String? {
+        let codecName = track.codecName().lowercased()
+        let trackName = track.trackName.lowercased()
+        let description = track.trackDescription?.lowercased() ?? ""
+        let codecDetails = [codecName, trackName, description].joined(separator: " ")
+
+        guard codecDetails.contains("truehd")
+                || codecDetails.contains("true hd")
+                || codecDetails.contains("mlpa") else {
+            return nil
+        }
+
+        return "Dolby TrueHD is not supported by the current iOS VLCKit decoder."
     }
 
     private func normalizedTrackTitle(_ title: String?, fallback: String) -> String {

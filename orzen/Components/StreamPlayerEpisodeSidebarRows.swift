@@ -205,7 +205,7 @@ struct StreamPlayerEpisodeSidebarSourceRow: View {
     private var sourceIconName: String {
         #if os(iOS)
         switch NativePlaybackCompatibilityResolver.compatibility(for: source) {
-        case .unsupported:
+        case .unsupported, .warning:
             return "exclamationmark.triangle.fill"
         case .unknown:
             return "questionmark.circle.fill"

@@ -132,7 +132,7 @@ struct SourceRow: View {
     private var sourceIconName: String {
         #if os(iOS)
         switch NativePlaybackCompatibilityResolver.compatibility(for: source) {
-        case .unsupported:
+        case .unsupported, .warning:
             return "exclamationmark.triangle.fill"
         case .unknown:
             return "questionmark.circle.fill"
@@ -184,7 +184,7 @@ struct SourceRow: View {
         switch compatibility {
         case .unknown:
             return true
-        case .supported, .likely, .unsupported:
+        case .supported, .likely, .warning, .unsupported:
             return false
         }
     }
@@ -193,7 +193,7 @@ struct SourceRow: View {
         switch compatibility {
         case .supported, .likely:
             return .black.opacity(0.84)
-        case .unknown:
+        case .unknown, .warning:
             return .white.opacity(0.84)
         case .unsupported:
             return .white.opacity(0.76)
@@ -204,7 +204,7 @@ struct SourceRow: View {
         switch compatibility {
         case .supported, .likely:
             return .white.opacity(0.86)
-        case .unknown:
+        case .unknown, .warning:
             return .white.opacity(0.1)
         case .unsupported:
             return .white.opacity(0.065)
@@ -215,7 +215,7 @@ struct SourceRow: View {
         switch compatibility {
         case .supported, .likely:
             return .white.opacity(0.18)
-        case .unknown:
+        case .unknown, .warning:
             return .white.opacity(0.16)
         case .unsupported:
             return .white.opacity(0.11)

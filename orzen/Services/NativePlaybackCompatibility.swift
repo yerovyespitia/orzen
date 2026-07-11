@@ -5,11 +5,12 @@ enum NativePlaybackCompatibility: Sendable {
     case supported
     case likely
     case unknown
+    case warning(String)
     case unsupported(String)
 
     var canAttemptPlayback: Bool {
         switch self {
-        case .supported, .likely, .unknown:
+        case .supported, .likely, .unknown, .warning:
             return true
         case .unsupported:
             return false
@@ -18,7 +19,7 @@ enum NativePlaybackCompatibility: Sendable {
 
     var sortPriority: Int {
         switch self {
-        case .supported:
+        case .supported, .warning:
             return 0
         case .likely:
             return 1
@@ -37,6 +38,8 @@ enum NativePlaybackCompatibility: Sendable {
             return nil
         case .unknown:
             return nil
+        case .warning:
+            return "Possible format issues"
         case .unsupported:
             return nil
         }
@@ -50,6 +53,8 @@ enum NativePlaybackCompatibility: Sendable {
             return "This source uses a container iOS may handle, but playback still depends on compatible video and audio codecs."
         case .unknown:
             return "Orzen cannot identify this stream format before opening it. iOS will verify it before playback."
+        case .warning(let reason):
+            return reason
         case .unsupported(let reason):
             return reason
         }
@@ -79,7 +84,7 @@ enum NativePlaybackCompatibilityResolver {
             .lowercased()
 
         if sourceDescription.contains("truehd") || sourceDescription.contains("true hd") || sourceDescription.contains("mlpa") {
-            return .unsupported("This source uses Dolby TrueHD audio, which the iOS build of VLCKit cannot decode. Choose an AAC, AC3, E-AC3, or MP3 source instead.")
+            return .warning("This source may contain Dolby TrueHD audio that VLCKit cannot decode on iOS. Other audio tracks in the same source may still work.")
         }
 
         return .supported

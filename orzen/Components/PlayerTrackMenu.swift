@@ -140,12 +140,18 @@ struct PlayerTrackMenu: View, Equatable {
         Button {
             onSelect(track)
         } label: {
-            if track.isSelected {
+            if track.compatibilityWarning != nil {
+                Label(
+                    track.isSelected ? "\(title) (Selected)" : title,
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+            } else if track.isSelected {
                 Label(title, systemImage: "checkmark")
             } else {
                 Text(title)
             }
         }
+        .help(track.compatibilityWarning ?? title)
     }
 
     private func addonName(for track: PlayerMediaTrack) -> String? {
