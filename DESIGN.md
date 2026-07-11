@@ -22,6 +22,13 @@ pre-iOS-26 fallback. Do not add a manual black fill behind a control that also
 receives native glass: it muddies the material and makes that control look
 different from the rest.
 
+Addon settings close actions use a clear interactive glass surface so the
+button stays visually light over a sheet:
+
+```swift
+.glassEffect(.clear.interactive(), in: Circle())
+```
+
 ### Several independent glass buttons
 
 When nearby controls should remain visually separate but blend and animate as

@@ -311,7 +311,6 @@ struct AddonSettingsCloseButton: View {
         if #available(macOS 26, *) {
             Button(action: action) {
                 icon
-                    .background(buttonBackground)
                     .glassEffect(.clear.interactive(), in: Circle())
             }
             .buttonStyle(.plain)
@@ -349,7 +348,7 @@ struct AddonSettingsCloseButton: View {
         #if os(iOS)
         return 18
         #else
-        return 12
+        return 18
         #endif
     }
 
@@ -357,7 +356,7 @@ struct AddonSettingsCloseButton: View {
         #if os(iOS)
         return 44
         #else
-        return 28
+        return 44
         #endif
     }
 
