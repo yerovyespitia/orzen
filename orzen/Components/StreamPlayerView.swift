@@ -25,6 +25,7 @@ struct StreamPlayerView: View {
     @State private var selectedExternalSubtitleID: String?
     @State private var externalSubtitleCues: [ExternalSubtitleCue] = []
     @State private var loadingExternalSubtitleID: String?
+    @State private var subtitleDelay: Double = 0
     @State private var nativeTimeObserver: Any?
     @State private var isPreparingNativePlayback = false
     @State private var isResolvingNativeFallback = false
@@ -94,6 +95,7 @@ struct StreamPlayerView: View {
         .onAppear {
             pendingResumePosition = progressStore.resumePosition(for: request)
             pendingTrackSelections = request.initialTrackSelections ?? progressStore.trackSelections(for: request)
+            subtitleDelay = progressStore.subtitleDelay(for: request)
             progressStore.beginPlayback(for: request)
             startPlaybackIfPossible()
             refreshFullscreenState()
@@ -265,6 +267,8 @@ struct StreamPlayerView: View {
             isFullscreen: isFullscreen,
             audioTracks: audioTracks,
             subtitleTracks: subtitleTracks,
+            subtitleDelay: subtitleDelay,
+            canAdjustSubtitleDelay: selectedExternalSubtitleID != nil,
             canShowEpisodeSidebar: canShowEpisodeSidebar,
             isEpisodeSidebarPresented: isEpisodeSidebarPresented,
             onBack: handleBack,
@@ -281,6 +285,7 @@ struct StreamPlayerView: View {
             onMute: toggleMute,
             onAudioTrackSelect: selectAudioTrack(_:),
             onSubtitleTrackSelect: selectSubtitleTrack(_:),
+            onSubtitleDelayChange: setSubtitleDelay(_:),
             onEpisodeSidebarOpen: showEpisodeSidebar,
             onFullscreen: toggleFullscreen,
             onBackgroundTap: handlePlayerTap
@@ -554,8 +559,15 @@ struct StreamPlayerView: View {
 
         return ExternalSubtitleResolver.preferredText(
             in: externalSubtitleCues,
-            at: currentTime
+            at: currentTime - subtitleDelay
         )
+    }
+
+    private func setSubtitleDelay(_ delay: Double) {
+        guard selectedExternalSubtitleID != nil else { return }
+        subtitleDelay = min(max(delay, -10), 10)
+        saveCurrentProgress(force: true)
+        chromeVisibility.keepVisible()
     }
 
     private var playbackErrorMessage: String? {
@@ -1003,6 +1015,7 @@ struct StreamPlayerView: View {
             position: currentTime,
             duration: duration,
             trackSelections: trackSelections ?? currentTrackSelections,
+            subtitleDelay: subtitleDelay,
             force: force
         )
         lastSavedProgressPosition = currentTime
@@ -1109,7 +1122,8 @@ struct StreamPlayerView: View {
             episode: episode,
             source: source,
             subtitle: item.title,
-            trackSelections: trackSelections
+            trackSelections: trackSelections,
+            subtitleDelay: subtitleDelay
         )
 
         guard prefetchedSource(for: episode) == nil else { return }
@@ -1122,7 +1136,8 @@ struct StreamPlayerView: View {
                     episode: episode,
                     source: refreshedSource,
                     subtitle: item.title,
-                    trackSelections: trackSelections
+                    trackSelections: trackSelections,
+                    subtitleDelay: subtitleDelay
                 )
             }
         }

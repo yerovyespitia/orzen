@@ -11,6 +11,7 @@ struct PlaybackProgressEntry: Codable, Identifiable {
     var position: Double
     var duration: Double
     var trackSelections: PlaybackTrackSelections?
+    var subtitleDelay: Double?
     var updatedAt: Date
 
     var id: String {
@@ -98,6 +99,15 @@ final class PlaybackProgressStore: ObservableObject {
         return entry.trackSelections
     }
 
+    func subtitleDelay(for request: StreamPlaybackRequest) -> Double {
+        guard let entry = entry(contentID: request.contentID, contentType: request.contentType),
+              sourcesMatch(entry.source, request.source) else {
+            return 0
+        }
+
+        return entry.subtitleDelay ?? 0
+    }
+
     func beginPlayback(for request: StreamPlaybackRequest) {
         if let entry = entry(contentID: request.contentID, contentType: request.contentType),
            sourcesMatch(entry.source, request.source) {
@@ -106,6 +116,7 @@ final class PlaybackProgressStore: ObservableObject {
                 position: entry.position,
                 duration: entry.duration,
                 trackSelections: entry.trackSelections,
+                subtitleDelay: entry.subtitleDelay,
                 force: true
             )
             return
@@ -117,7 +128,8 @@ final class PlaybackProgressStore: ObservableObject {
         episode: CatalogEpisode,
         source: StreamSource,
         subtitle: String,
-        trackSelections: PlaybackTrackSelections? = nil
+        trackSelections: PlaybackTrackSelections? = nil,
+        subtitleDelay: Double? = nil
     ) {
         saveEntry(
             PlaybackProgressEntry(
@@ -131,6 +143,7 @@ final class PlaybackProgressStore: ObservableObject {
                 position: 0,
                 duration: 0,
                 trackSelections: trackSelections,
+                subtitleDelay: subtitleDelay,
                 updatedAt: Date()
             )
         )
@@ -141,6 +154,7 @@ final class PlaybackProgressStore: ObservableObject {
         position: Double,
         duration: Double,
         trackSelections: PlaybackTrackSelections? = nil,
+        subtitleDelay: Double? = nil,
         force: Bool = false
     ) {
         guard let item = request.item,
@@ -170,6 +184,7 @@ final class PlaybackProgressStore: ObservableObject {
                 position: position,
                 duration: duration,
                 trackSelections: trackSelections ?? existingTrackSelections(for: request),
+                subtitleDelay: subtitleDelay ?? existingSubtitleDelay(for: request),
                 updatedAt: Date()
             )
         )
@@ -218,12 +233,14 @@ final class PlaybackProgressStore: ObservableObject {
         }
 
         let pendingTrackSelections = trackSelections ?? currentEntry.trackSelections
+        let pendingSubtitleDelay = currentEntry.subtitleDelay
         savePendingProgress(
             for: item,
             episode: nextEpisode,
             source: currentEntry.source,
             subtitle: item.title,
-            trackSelections: pendingTrackSelections
+            trackSelections: pendingTrackSelections,
+            subtitleDelay: pendingSubtitleDelay
         )
 
         guard let refreshedSource = await StreamSourceResolver.firstSource(
@@ -239,7 +256,8 @@ final class PlaybackProgressStore: ObservableObject {
             episode: nextEpisode,
             source: refreshedSource,
             subtitle: item.title,
-            trackSelections: pendingTrackSelections
+            trackSelections: pendingTrackSelections,
+            subtitleDelay: pendingSubtitleDelay
         )
     }
 
@@ -296,6 +314,10 @@ final class PlaybackProgressStore: ObservableObject {
 
     private func existingTrackSelections(for request: StreamPlaybackRequest) -> PlaybackTrackSelections? {
         entry(contentID: request.contentID, contentType: request.contentType)?.trackSelections
+    }
+
+    private func existingSubtitleDelay(for request: StreamPlaybackRequest) -> Double? {
+        entry(contentID: request.contentID, contentType: request.contentType)?.subtitleDelay
     }
 
     private func load() {

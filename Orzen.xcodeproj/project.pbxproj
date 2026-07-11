@@ -73,6 +73,7 @@
 		6DAA101A2E10000000B5D7A1 /* PlayerFlatSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */; };
 		6DAA101B2E10000000B5D7A1 /* PlayerIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201B2E10000000B5D7A1 /* PlayerIconButton.swift */; };
 		6DAA101C2E10000000B5D7A1 /* PlayerTrackMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */; };
+		6D5E10102E20000000B5D7A1 /* PlayerSettingsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */; };
 		6DAA101D2E19010000B5D7A1 /* ExpandableDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */; };
 		6DBEEF022E04A00000B5D7A1 /* ProfileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBEEF012E04A00000B5D7A1 /* ProfileSelectionView.swift */; };
 		6DC0DE012E09000000B5D7A1 /* CinemetaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC0DE002E09000000B5D7A1 /* CinemetaClient.swift */; };
@@ -156,6 +157,7 @@
 		6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerFlatSlider.swift; sourceTree = "<group>"; };
 		6DAA201B2E10000000B5D7A1 /* PlayerIconButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerIconButton.swift; sourceTree = "<group>"; };
 		6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerTrackMenu.swift; sourceTree = "<group>"; };
+		6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerSettingsMenu.swift; sourceTree = "<group>"; };
 		6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpandableDescriptionText.swift; sourceTree = "<group>"; };
 		6DBEEF012E04A00000B5D7A1 /* ProfileSelectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileSelectionView.swift; sourceTree = "<group>"; };
 		6DC0DE002E09000000B5D7A1 /* CinemetaClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CinemetaClient.swift; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 				6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */,
 				6DAA201B2E10000000B5D7A1 /* PlayerIconButton.swift */,
 				6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */,
+				6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */,
 				6DAA20122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift */,
 				6DAA200B2E04000000B5D7A1 /* SeasonButton.swift */,
 				6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */,
@@ -536,6 +539,7 @@
 				6DAA101A2E10000000B5D7A1 /* PlayerFlatSlider.swift in Sources */,
 				6DAA101B2E10000000B5D7A1 /* PlayerIconButton.swift in Sources */,
 				6DAA101C2E10000000B5D7A1 /* PlayerTrackMenu.swift in Sources */,
+				6D5E10102E20000000B5D7A1 /* PlayerSettingsMenu.swift in Sources */,
 				6DAA10152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift in Sources */,
 				6DAA10192E10000000B5D7A1 /* StreamPlayerNextEpisodeBanner.swift in Sources */,
 				6DF00D022E0A00000B5D7A1 /* StreamPlayerEpisodeSidebar.swift in Sources */,

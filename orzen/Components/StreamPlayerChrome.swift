@@ -12,6 +12,8 @@ struct StreamPlayerChrome: View {
     let isFullscreen: Bool
     let audioTracks: [PlayerMediaTrack]
     let subtitleTracks: [PlayerMediaTrack]
+    let subtitleDelay: Double
+    let canAdjustSubtitleDelay: Bool
     let canShowEpisodeSidebar: Bool
     let isEpisodeSidebarPresented: Bool
     let onBack: () -> Void
@@ -24,6 +26,7 @@ struct StreamPlayerChrome: View {
     let onMute: () -> Void
     let onAudioTrackSelect: (PlayerMediaTrack) -> Void
     let onSubtitleTrackSelect: (PlayerMediaTrack) -> Void
+    let onSubtitleDelayChange: (Double) -> Void
     let onEpisodeSidebarOpen: () -> Void
     let onFullscreen: () -> Void
     let onBackgroundTap: () -> Void
@@ -309,6 +312,12 @@ struct StreamPlayerChrome: View {
                 tracks: audioTracks,
                 size: 46,
                 onSelect: onAudioTrackSelect
+            )
+
+            PlayerSettingsMenu(
+                subtitleDelay: subtitleDelay,
+                canAdjustSubtitleDelay: canAdjustSubtitleDelay,
+                onSubtitleDelayChange: onSubtitleDelayChange
             )
         }
     }
