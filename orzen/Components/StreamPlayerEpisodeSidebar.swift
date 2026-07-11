@@ -465,7 +465,7 @@ struct SidebarGlassButtonModifier<S: Shape>: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(macOS 26, *) {
-            content.glassEffect(.regular.interactive(), in: shape)
+            content.glassEffect(.clear.interactive(), in: shape)
         } else {
             content
         }

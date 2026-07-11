@@ -94,7 +94,7 @@ private extension View {
     func nextEpisodeBannerBackground(isHovered: Bool, shape: RoundedRectangle) -> some View {
         if #available(macOS 26, *) {
             self
-                .glassEffect(.regular.tint(Color.white.opacity(isHovered ? 0.08 : 0.02)).interactive(), in: shape)
+                .glassEffect(.clear.interactive(), in: shape)
                 .overlay {
                     shape.stroke(Color.white.opacity(isHovered ? 0.18 : 0.04), lineWidth: 1)
                 }

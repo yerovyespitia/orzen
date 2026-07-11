@@ -50,7 +50,7 @@ private struct SourceFilterButton: View {
                 } else {
                     label
                         .background(filterButtonBackground)
-                        .glassEffect(.regular.tint(.white.opacity(0.03)).interactive(), in: Capsule())
+                        .glassEffect(.clear.interactive(), in: Capsule())
                         .selectedSourceFilterHighlight(isSelected: isSelected, isHovered: isHovered)
                 }
             }

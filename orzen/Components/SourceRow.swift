@@ -242,7 +242,7 @@ private extension View {
 
         if #available(macOS 26, *) {
             self
-                .glassEffect(.regular.tint(Color.white.opacity(0.02)), in: shape)
+                .glassEffect(.clear, in: shape)
                 .overlay {
                     shape.stroke(Color.white.opacity(0.04), lineWidth: 1)
                 }

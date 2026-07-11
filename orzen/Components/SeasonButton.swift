@@ -16,7 +16,7 @@ struct SeasonButton: View {
                 } else {
                     label
                         .background(filterButtonBackground)
-                        .glassEffect(.regular.tint(.white.opacity(0.03)).interactive(), in: Capsule())
+                        .glassEffect(.clear.interactive(), in: Capsule())
                         .selectedSeasonHighlight(isSelected: isSelected, isHovered: isHovered)
                 }
             }

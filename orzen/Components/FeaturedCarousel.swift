@@ -252,7 +252,7 @@ struct FeaturedCarousel: View {
             Button(action: action) {
                 carouselButtonIcon(systemImage, isEnabled: isEnabled)
                     .background(carouselButtonBackground(systemImage: systemImage, isEnabled: isEnabled))
-                    .glassEffect(isEnabled ? .regular.interactive() : .regular, in: Circle())
+                    .glassEffect(isEnabled ? .clear.interactive() : .clear, in: Circle())
             }
             .buttonStyle(.plain)
             .disabled(!isEnabled)

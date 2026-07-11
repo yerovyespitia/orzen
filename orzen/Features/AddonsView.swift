@@ -328,7 +328,7 @@ private struct AddonActionButton: View {
             Button(action: action) {
                 icon
                     .background(buttonBackground)
-                    .glassEffect(isEnabled ? .regular.interactive() : .regular, in: Circle())
+                    .glassEffect(isEnabled ? .clear.interactive() : .clear, in: Circle())
             }
             .buttonStyle(.plain)
             .contentShape(Circle())

@@ -169,13 +169,13 @@ private struct PlayerTrackMenuGlassSurface: ViewModifier {
         if isActive {
             #if os(iOS)
             if #available(iOS 26, *) {
-                content.glassEffect(.regular.interactive(), in: Circle())
+                content.glassEffect(.clear.interactive(), in: Circle())
             } else {
                 content
             }
             #elseif os(macOS)
             if #available(macOS 26, *) {
-                content.glassEffect(.regular.interactive(), in: Circle())
+                content.glassEffect(.clear.interactive(), in: Circle())
             } else {
                 content
             }

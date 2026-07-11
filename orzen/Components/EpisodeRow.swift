@@ -221,9 +221,10 @@ private extension View {
     func rowBackground(isSelected: Bool) -> some View {
         let shape = EpisodeRowStyle.cardShape
 
-        if #available(macOS 26, *) {
+        #if os(iOS)
+        if #available(iOS 26, *) {
             self
-                .glassEffect(.regular.tint(Color.white.opacity(isSelected ? 0.05 : 0.02)), in: shape)
+                .glassEffect(.clear, in: shape)
                 .overlay {
                     shape.stroke(isSelected ? Color.white.opacity(0.18) : Color.white.opacity(0.04), lineWidth: 1)
                 }
@@ -234,5 +235,26 @@ private extension View {
                     shape.stroke(isSelected ? Color.white.opacity(0.18) : Color.white.opacity(0.04), lineWidth: 1)
                 }
         }
+        #elseif os(macOS)
+        if #available(macOS 26, *) {
+            self
+                .glassEffect(.clear, in: shape)
+                .overlay {
+                    shape.stroke(isSelected ? Color.white.opacity(0.18) : Color.white.opacity(0.04), lineWidth: 1)
+                }
+        } else {
+            self
+                .background(Color.white.opacity(isSelected ? 0.1 : 0.045), in: shape)
+                .overlay {
+                    shape.stroke(isSelected ? Color.white.opacity(0.18) : Color.white.opacity(0.04), lineWidth: 1)
+                }
+        }
+        #else
+        self
+            .background(Color.white.opacity(isSelected ? 0.1 : 0.045), in: shape)
+            .overlay {
+                shape.stroke(isSelected ? Color.white.opacity(0.18) : Color.white.opacity(0.04), lineWidth: 1)
+            }
+        #endif
     }
 }

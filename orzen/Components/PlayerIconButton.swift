@@ -33,7 +33,6 @@ struct PlayerIconButton: View {
 
 struct PlayerLiquidGlassCircleSurface: ViewModifier {
     let isActive: Bool
-    @Environment(\.colorScheme) private var colorScheme
 
     @ViewBuilder
     func body(content: Content) -> some View {
@@ -72,10 +71,6 @@ struct PlayerLiquidGlassCircleSurface: ViewModifier {
 
     @available(iOS 26, macOS 26, *)
     private var interactiveGlass: Glass {
-        if colorScheme == .light {
-            return .regular.tint(.white.opacity(0.42)).interactive()
-        }
-
-        return .regular.interactive()
+        .clear.interactive()
     }
 }

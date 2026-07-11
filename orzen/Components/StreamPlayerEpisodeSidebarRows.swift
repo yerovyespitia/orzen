@@ -253,14 +253,12 @@ private extension View {
         isHovered: Bool,
         shape: RoundedRectangle
     ) -> some View {
-        let baseTint = isSelected ? 0.05 : 0.02
-        let hoverTint = isSelected ? 0.08 : 0.045
-        let tint = isHovered ? hoverTint : baseTint
         let strokeOpacity = isSelected ? 0.18 : (isHovered ? 0.08 : 0.04)
 
-        if #available(macOS 26, *) {
+        #if os(iOS)
+        if #available(iOS 26, *) {
             self
-                .glassEffect(.regular.tint(Color.white.opacity(tint)), in: shape)
+                .glassEffect(.clear, in: shape)
                 .overlay {
                     shape.stroke(Color.white.opacity(strokeOpacity), lineWidth: 1)
                 }
@@ -271,5 +269,26 @@ private extension View {
                     shape.stroke(Color.white.opacity(strokeOpacity), lineWidth: 1)
                 }
         }
+        #elseif os(macOS)
+        if #available(macOS 26, *) {
+            self
+                .glassEffect(.clear, in: shape)
+                .overlay {
+                    shape.stroke(Color.white.opacity(strokeOpacity), lineWidth: 1)
+                }
+        } else {
+            self
+                .background(Color.white.opacity(isSelected ? 0.1 : (isHovered ? 0.065 : 0.045)), in: shape)
+                .overlay {
+                    shape.stroke(Color.white.opacity(strokeOpacity), lineWidth: 1)
+                }
+        }
+        #else
+        self
+            .background(Color.white.opacity(isSelected ? 0.1 : (isHovered ? 0.065 : 0.045)), in: shape)
+            .overlay {
+                shape.stroke(Color.white.opacity(strokeOpacity), lineWidth: 1)
+            }
+        #endif
     }
 }

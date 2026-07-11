@@ -13,6 +13,7 @@ struct OrzenApp: App {
         #if os(macOS)
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
                 .frame(minWidth: 1280, minHeight: 780)
                 .task {
                     await LaunchCatalogPrefetcher.prefetchInitialCatalogs()
@@ -26,6 +27,7 @@ struct OrzenApp: App {
         #else
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
                 .task {
                     await LaunchCatalogPrefetcher.prefetchInitialCatalogs()
                 }

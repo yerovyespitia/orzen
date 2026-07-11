@@ -199,7 +199,7 @@ struct InfoHeroView: View {
             if #available(macOS 26, *) {
                 actionIcon(systemImage: systemImage, isSelected: isSelected)
                     .background(actionBackground(isSelected: isSelected, isHovered: isHovered))
-                    .glassEffect(.regular.interactive(), in: Circle())
+                    .glassEffect(.clear.interactive(), in: Circle())
             } else {
                 actionIcon(systemImage: systemImage, isSelected: isSelected)
                     .background(actionBackground(isSelected: isSelected, isHovered: isHovered))

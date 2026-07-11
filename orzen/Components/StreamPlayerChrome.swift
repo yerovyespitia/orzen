@@ -27,7 +27,6 @@ struct StreamPlayerChrome: View {
     let onEpisodeSidebarOpen: () -> Void
     let onFullscreen: () -> Void
     let onBackgroundTap: () -> Void
-    @Environment(\.colorScheme) private var colorScheme
     @State private var timelinePreviewTime: Double?
 
     var body: some View {
@@ -345,11 +344,7 @@ struct StreamPlayerChrome: View {
 
     @available(iOS 26, macOS 26, *)
     private var interactiveGlass: Glass {
-        if colorScheme == .light {
-            return .regular.tint(.white.opacity(0.42)).interactive()
-        }
-
-        return .regular.interactive()
+        .clear.interactive()
     }
 
     private var horizontalPadding: CGFloat {
@@ -398,7 +393,11 @@ struct StreamPlayerChrome: View {
         isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
-        return circularButton(help: help, isEnabled: isEnabled, action: action) {
+        return circularButton(
+            help: help,
+            isEnabled: isEnabled,
+            action: action
+        ) {
             centerTransportIcon(systemName: systemName, size: size, isLoading: isLoading)
         }
     }

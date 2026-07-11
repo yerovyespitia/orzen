@@ -83,7 +83,7 @@ private struct ProfileCircleButton: View {
             Text(profile.emoji)
                 .font(.system(size: 66))
                 .frame(width: 184, height: 184)
-                .glassEffect(.regular.interactive(), in: Circle())
+                .glassEffect(.clear.interactive(), in: Circle())
         } else {
             Text(profile.emoji)
                 .font(.system(size: 66))

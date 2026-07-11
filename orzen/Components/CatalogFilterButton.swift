@@ -16,7 +16,7 @@ struct FilterButton: View {
                 } else {
                     label
                         .background(filterBackground)
-                        .glassEffect(.regular.tint(.white.opacity(0.03)).interactive(), in: Capsule())
+                        .glassEffect(.clear.interactive(), in: Capsule())
                         .filterHighlight(isSelected: isSelected, isHovered: isHovered)
                 }
             }

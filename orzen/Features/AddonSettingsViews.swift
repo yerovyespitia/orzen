@@ -37,10 +37,10 @@ struct AddonManifestEditorView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(addon.name)
                     .font(.title2.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
 
                 Text("Manifest URL")
-                    .foregroundStyle(.white.opacity(0.62))
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -64,8 +64,8 @@ struct AddonManifestEditorView: View {
                 TextField("https://example.com/manifest.json", text: $manifestURLString)
                     .textFieldStyle(.plain)
                     .font(.body)
-                    .foregroundStyle(.white)
-                    .tint(.white)
+                    .foregroundStyle(.primary)
+                    .tint(.primary)
                     .autocorrectionDisabled()
                     #if os(iOS)
                     .textInputAutocapitalization(.never)
@@ -81,14 +81,14 @@ struct AddonManifestEditorView: View {
             if let validationMessage {
                 Text(validationMessage)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.68))
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             if let saveErrorMessage {
                 Text(saveErrorMessage)
                     .font(.caption)
-                    .foregroundStyle(.white.opacity(0.68))
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -118,23 +118,23 @@ struct AddonManifestEditorView: View {
     }
 
     private var inputBackground: some ShapeStyle {
-        Color.white.opacity(0.075)
+        Color.primary.opacity(0.06)
     }
 
     private var inputStrokeColor: Color {
-        Color.white.opacity(0.12)
+        Color.primary.opacity(0.1)
     }
 
     private var saveButtonForeground: Color {
-        validatedManifestURL == nil || isSaving ? .white.opacity(0.34) : .black.opacity(0.86)
+        validatedManifestURL == nil || isSaving ? .secondary.opacity(0.7) : .white
     }
 
     private var saveButtonBackground: Color {
-        validatedManifestURL == nil || isSaving ? .white.opacity(0.08) : .white.opacity(0.9)
+        validatedManifestURL == nil || isSaving ? .primary.opacity(0.08) : .primary
     }
 
     private var saveButtonStroke: Color {
-        validatedManifestURL == nil || isSaving ? .white.opacity(0.08) : .white.opacity(0.18)
+        Color.primary.opacity(validatedManifestURL == nil || isSaving ? 0.08 : 0.16)
     }
 
     private var trimmedManifestURLString: String {
@@ -296,7 +296,7 @@ struct AddonSettingsCloseButton: View {
             Button(action: action) {
                 icon
                     .background(buttonBackground)
-                    .glassEffect(.regular.interactive(), in: Circle())
+                    .glassEffect(.clear.interactive(), in: Circle())
             }
             .buttonStyle(.plain)
             .contentShape(Circle())

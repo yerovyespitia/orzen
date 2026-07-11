@@ -272,7 +272,7 @@ struct InfoView: View {
             if #available(macOS 26, *) {
                 sourcesBackIcon
                     .background(sourcesBackBackground)
-                    .glassEffect(.regular.interactive(), in: Circle())
+                    .glassEffect(.clear.interactive(), in: Circle())
             } else {
                 sourcesBackIcon
                     .background(sourcesBackBackground)
