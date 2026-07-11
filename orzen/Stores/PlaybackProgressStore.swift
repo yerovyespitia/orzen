@@ -172,6 +172,14 @@ final class PlaybackProgressStore: ObservableObject {
 
         guard force || position >= Self.minimumResumePosition else { return }
 
+        if request.contentType == .series,
+           position >= Self.minimumResumePosition,
+           let episode = request.episode,
+           EpisodeWatchStore.shared.isWatched(episode) {
+            EpisodeWatchStore.shared.markUnwatched(episode, in: item)
+            CollectionStore.shared.setWatched(item, isWatched: false)
+        }
+
         saveEntry(
             PlaybackProgressEntry(
                 contentID: request.contentID,

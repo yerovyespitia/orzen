@@ -106,6 +106,20 @@ final class EpisodeWatchStore: ObservableObject {
         save()
     }
 
+    func markUnwatched(_ episode: CatalogEpisode, in item: CatalogItem) {
+        watchedEpisodeIDs.remove(episode.id)
+
+        guard var progress = seriesProgress[item.id] else {
+            save()
+            return
+        }
+
+        progress.watchedEpisodeIDs.removeAll { $0 == episode.id }
+        progress.updatedAt = Date()
+        seriesProgress[item.id] = progress
+        save()
+    }
+
     func registerSeries(_ item: CatalogItem, episodes: [CatalogEpisode]) {
         guard item.cinemetaType == .series, !episodes.isEmpty else { return }
 
