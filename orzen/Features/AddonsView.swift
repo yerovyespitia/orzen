@@ -79,7 +79,8 @@ struct AddonsView: View {
             AddonActionButton(
                 systemName: "plus",
                 isEnabled: true,
-                help: "Add addon"
+                help: "Add addon",
+                buttonSize: 44
             ) {
                 isAddingAddon = true
             }
@@ -319,9 +320,24 @@ private struct AddonActionButton: View {
     let systemName: String
     let isEnabled: Bool
     let help: String
+    let buttonSize: CGFloat
     let action: () -> Void
 
     @State private var isHovered = false
+
+    init(
+        systemName: String,
+        isEnabled: Bool,
+        help: String,
+        buttonSize: CGFloat = 32,
+        action: @escaping () -> Void
+    ) {
+        self.systemName = systemName
+        self.isEnabled = isEnabled
+        self.help = help
+        self.buttonSize = buttonSize
+        self.action = action
+    }
 
     var body: some View {
         if #available(macOS 26, *) {
@@ -360,7 +376,7 @@ private struct AddonActionButton: View {
         Image(systemName: systemName)
             .font(.system(size: 18, weight: .semibold))
             .foregroundColor(.white.opacity(isEnabled ? 0.86 : 0.28))
-            .frame(width: 32, height: 32)
+            .frame(width: buttonSize, height: buttonSize)
     }
 
     private var buttonBackground: some View {

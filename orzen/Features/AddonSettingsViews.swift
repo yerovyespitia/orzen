@@ -126,11 +126,27 @@ struct AddonManifestEditorView: View {
     }
 
     private var saveButtonForeground: Color {
-        validatedManifestURL == nil || isSaving ? .secondary.opacity(0.7) : .white
+        guard validatedManifestURL != nil, !isSaving else {
+            return .secondary.opacity(0.7)
+        }
+
+        #if os(macOS)
+        return .black.opacity(0.82)
+        #else
+        return .white
+        #endif
     }
 
     private var saveButtonBackground: Color {
-        validatedManifestURL == nil || isSaving ? .primary.opacity(0.08) : .primary
+        guard validatedManifestURL != nil, !isSaving else {
+            return .primary.opacity(0.08)
+        }
+
+        #if os(macOS)
+        return .white.opacity(0.88)
+        #else
+        return .primary
+        #endif
     }
 
     private var saveButtonStroke: Color {

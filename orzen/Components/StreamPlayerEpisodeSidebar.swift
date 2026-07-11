@@ -358,8 +358,8 @@ struct StreamPlayerEpisodeSidebar: View {
         help: String,
         action: @escaping () -> Void
     ) -> some View {
-        let buttonSize: CGFloat = id == .close ? 44 : 30
-        let iconSize: CGFloat = id == .close ? 16 : 13
+        let buttonSize: CGFloat = 44
+        let iconSize: CGFloat = 16
 
         Button(action: action) {
             Image(systemName: systemName)
