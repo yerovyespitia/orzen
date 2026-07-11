@@ -12,7 +12,7 @@ struct PlayerSettingsMenu: View {
             isPresented.toggle()
         } label: {
             Image(systemName: "gearshape")
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: iconSize, weight: .semibold))
                 .foregroundColor(.white.opacity(0.92))
                 .frame(width: 46, height: 46)
         }
@@ -28,6 +28,14 @@ struct PlayerSettingsMenu: View {
     private let delayStep = 0.5
     private let minimumDelay = -10.0
     private let maximumDelay = 10.0
+
+    private var iconSize: CGFloat {
+        #if os(iOS)
+        return 20
+        #else
+        return 17
+        #endif
+    }
 
     private var formattedDelay: String {
         String(format: "%+.1f s", subtitleDelay)

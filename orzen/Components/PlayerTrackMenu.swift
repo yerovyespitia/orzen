@@ -68,7 +68,13 @@ struct PlayerTrackMenu: View, Equatable {
     }
 
     private var iconSize: CGFloat {
-        buttonSize >= 44 ? 17 : 14
+        #if os(iOS)
+        if buttonSize >= 44 {
+            return 20
+        }
+        #endif
+
+        return buttonSize >= 44 ? 17 : 14
     }
 
     @ViewBuilder
