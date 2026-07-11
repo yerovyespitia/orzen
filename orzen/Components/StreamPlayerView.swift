@@ -327,19 +327,19 @@ struct StreamPlayerView: View {
                 Spacer(minLength: 0)
 
                 HStack {
+                    Spacer(minLength: 0)
+
                     StreamPlayerNextEpisodeBanner(
                         episodeTitle: nextEpisode.playbackTitle,
                         isLoading: isLoadingNextEpisode,
                         action: playNextEpisode
                     )
-                    .padding(.leading, 28)
+                    .padding(.trailing, 28)
                     .padding(.bottom, nextEpisodeBannerBottomPadding)
-
-                    Spacer(minLength: 0)
                 }
             }
-            .transition(.opacity.combined(with: .move(edge: .leading)))
-            .zIndex(3.5)
+            .transition(.opacity.combined(with: .move(edge: .trailing)))
+            .zIndex(4)
             .animation(.easeInOut(duration: 0.22), value: isChromePresented)
         }
     }
@@ -664,7 +664,11 @@ struct StreamPlayerView: View {
     }
 
     private var nextEpisodeBannerBottomPadding: CGFloat {
-        isChromePresented ? 92 : 28
+        #if os(iOS)
+        return isChromePresented ? 128 : 28
+        #else
+        return isChromePresented ? 92 : 28
+        #endif
     }
 
     private var appWillTerminateNotification: Notification.Name {
