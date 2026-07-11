@@ -14,7 +14,7 @@ struct PlayerSettingsMenu: View {
             Image(systemName: "gearshape")
                 .font(.system(size: iconSize, weight: .semibold))
                 .foregroundColor(.white.opacity(0.92))
-                .frame(width: 46, height: 46)
+                .frame(width: buttonSize, height: buttonSize)
         }
         .buttonStyle(.plain)
         .help(helpText)
@@ -33,7 +33,15 @@ struct PlayerSettingsMenu: View {
         #if os(iOS)
         return 20
         #else
-        return 17
+        return 14
+        #endif
+    }
+
+    private var buttonSize: CGFloat {
+        #if os(iOS)
+        return 46
+        #else
+        return 28
         #endif
     }
 

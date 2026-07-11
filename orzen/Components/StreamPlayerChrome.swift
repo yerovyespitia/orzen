@@ -224,10 +224,16 @@ struct StreamPlayerChrome: View {
                 .equatable()
 
                 PlayerIconButton(
-                    systemName: "sidebar.right",
+                    systemName: "list.bullet",
                     help: canShowEpisodeSidebar ? "Episodes" : "Episodes are available for series",
                     isEnabled: canShowEpisodeSidebar,
                     action: onEpisodeSidebarOpen
+                )
+
+                PlayerSettingsMenu(
+                    subtitleDelay: subtitleDelay,
+                    canAdjustSubtitleDelay: canAdjustSubtitleDelay,
+                    onSubtitleDelayChange: onSubtitleDelayChange
                 )
 
                 PlayerIconButton(
