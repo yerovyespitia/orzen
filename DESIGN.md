@@ -13,7 +13,7 @@ must match the visible hit target.
 ```swift
 Image(systemName: "list.bullet")
     .frame(width: 44, height: 44)
-    .glassEffect(.regular.interactive(), in: Circle())
+    .glassEffect(.clear.interactive(), in: Circle())
 ```
 
 For Orzen player controls, use `PlayerIconButton` with
@@ -36,9 +36,9 @@ a group, place the individually glassed controls inside a `GlassEffectContainer`
 
 ```swift
 GlassEffectContainer(spacing: 34) {
-    rewindButton.glassEffect(.regular.interactive(), in: Circle())
-    playPauseButton.glassEffect(.regular.interactive(), in: Circle())
-    forwardButton.glassEffect(.regular.interactive(), in: Circle())
+    rewindButton.glassEffect(.clear.interactive(), in: Circle())
+    playPauseButton.glassEffect(.clear.interactive(), in: Circle())
+    forwardButton.glassEffect(.clear.interactive(), in: Circle())
 }
 ```
 
@@ -58,7 +58,7 @@ GlassEffectContainer(spacing: 10) {
         audioMenu
     }
 }
-.glassEffect(.regular.interactive(), in: Capsule())
+.glassEffect(.clear.interactive(), in: Capsule())
 ```
 
 The child actions retain separate accessibility labels and tap areas. They must
