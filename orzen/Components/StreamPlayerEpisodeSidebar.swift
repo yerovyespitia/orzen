@@ -279,7 +279,11 @@ struct StreamPlayerEpisodeSidebar: View {
                     LazyVStack(spacing: 10) {
                         ForEach(viewModel.visibleSources) { source in
                             Button {
-                                viewModel.playSource(source, initialTrackSelections: currentTrackSelections)
+                                viewModel.playSource(
+                                    source,
+                                    initialTrackSelections: currentTrackSelections,
+                                    attemptedSourceIDs: [currentSourceID]
+                                )
                                 onClose()
                             } label: {
                                 StreamPlayerEpisodeSidebarSourceRow(

@@ -197,18 +197,18 @@ private final class StreamPlayerPresentationController: UIViewController {
 
         if let playerController {
             guard playerController.requestID != request.id else {
-                playerController.rootView = StreamPlayerView(request: request, onBack: onBack)
+                playerController.rootView = StreamPlayerRequestView(request: request, onBack: onBack)
                 return
             }
 
-            playerController.rootView = StreamPlayerView(request: request, onBack: onBack)
+            playerController.rootView = StreamPlayerRequestView(request: request, onBack: onBack)
             playerController.requestID = request.id
             return
         }
 
         let playerController = StreamPlayerHostingController(
             requestID: request.id,
-            rootView: StreamPlayerView(request: request, onBack: onBack)
+            rootView: StreamPlayerRequestView(request: request, onBack: onBack)
         )
         playerController.modalPresentationStyle = .fullScreen
         playerController.modalTransitionStyle = .crossDissolve
@@ -233,10 +233,20 @@ private final class StreamPlayerPresentationController: UIViewController {
     }
 }
 
-private final class StreamPlayerHostingController: UIHostingController<StreamPlayerView> {
+private struct StreamPlayerRequestView: View {
+    let request: StreamPlaybackRequest
+    let onBack: () -> Void
+
+    var body: some View {
+        StreamPlayerView(request: request, onBack: onBack)
+            .id(request.id)
+    }
+}
+
+private final class StreamPlayerHostingController: UIHostingController<StreamPlayerRequestView> {
     var requestID: StreamPlaybackRequest.ID
 
-    init(requestID: StreamPlaybackRequest.ID, rootView: StreamPlayerView) {
+    init(requestID: StreamPlaybackRequest.ID, rootView: StreamPlayerRequestView) {
         self.requestID = requestID
         super.init(rootView: rootView)
         modalPresentationCapturesStatusBarAppearance = true

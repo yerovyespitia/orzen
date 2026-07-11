@@ -131,7 +131,11 @@ final class InfoViewModel: ObservableObject {
         sourceRequestID = nil
     }
 
-    func playSource(_ source: StreamSource, initialTrackSelections: PlaybackTrackSelections? = nil) {
+    func playSource(
+        _ source: StreamSource,
+        initialTrackSelections: PlaybackTrackSelections? = nil,
+        attemptedSourceIDs: Set<StreamSource.ID> = []
+    ) {
         guard let type = item.cinemetaType else { return }
 
         playbackStore.request = StreamPlaybackRequest(
@@ -142,7 +146,8 @@ final class InfoViewModel: ObservableObject {
             contentType: type,
             item: item,
             episode: selectedEpisode,
-            initialTrackSelections: initialTrackSelections
+            initialTrackSelections: initialTrackSelections,
+            attemptedSourceIDs: attemptedSourceIDs
         )
     }
 
