@@ -1,112 +1,142 @@
 # Orzen
 
-Orzen is a local-first media server experience for the Apple ecosystem. It is
-designed as a native place to browse movies, series, collections, search
-catalogs, manage media-related addons, and play streams from a polished desktop
-interface.
-
-The project currently focuses on macOS and uses remote catalog metadata from
-Cinemeta/Stremio to populate movie and series shelves while keeping local
-fallback content available when the network catalog cannot be reached.
+Orzen is a native, local-first media hub for macOS and iPhone. It brings
+catalog discovery, personal collections, Stremio-compatible addons, subtitles,
+and stream playback into a cinematic SwiftUI interface built for Apple
+platforms.
 
 ![Orzen home screen](docs/images/orzen-home.png)
 
-## What Orzen Does
+## Highlights
 
-- Presents a native media library interface for movies and TV series.
-- Loads popular, new, featured, and genre-based catalogs from Cinemeta.
-- Provides dedicated views for Home, Search, Series, Movies, Collections, and
-  Addons.
-- Resolves stream sources and subtitles from Stremio-compatible addons.
-- Plays direct HTTP/HTTPS streams with native AVFoundation playback, with
-  `libmpv` support for MKV, HEVC/x265, and other formats that need a broader
-  playback engine.
-- Tracks playback progress, resume positions, media track selections, and next
-  episode flow for series.
-- Supports local collections such as Favorites, Watchlist, Watching, Watched,
-  and Dropped.
-- Caches catalog and detail responses in memory during the app session.
-- Displays poster and backdrop artwork through reusable SwiftUI components.
-- Keeps a local fallback catalog so the interface remains usable offline or when
-  remote metadata is unavailable.
+- Browse featured, popular, new, genre, movie, and series catalogs powered by
+  Cinemeta.
+- Search movies and series, open rich title details, and explore seasons and
+  episodes.
+- Keep a personal library with Watchlist, Watching, Watched, Dropped, and
+  Favorites collections.
+- Install and configure Stremio-compatible addons from their manifest URLs to
+  resolve streams and subtitles.
+- Resume films and episodes, remember audio and subtitle selections, and move
+  through a series with next-episode support.
+- Play compatible direct HTTP/HTTPS streams with the native player; macOS can
+  also use VLC or libmpv for broader format compatibility.
+- Keep browsing usable during network failures with local fallback content and
+  cached Cinemeta catalog data.
 
-## Apple Ecosystem Focus
+## Platforms
 
-Orzen is being built as an Apple-native media hub. The current Xcode target is a
-macOS application, making it suitable for:
+Orzen is a universal SwiftUI project with dedicated layouts and playback flows
+for the Apple platforms it currently targets:
 
-- MacBook Air and MacBook Pro
-- iMac
-- Mac mini
-- Mac Studio
-- Mac Pro
+| Platform | Minimum version | Experience |
+| --- | --- | --- |
+| macOS | 14.2 | Full desktop interface with sidebar navigation and native, VLC, and libmpv playback options. |
+| iPhone | iOS 17 | Touch-first layout with native AVFoundation playback for compatible direct streams. |
 
-Current minimum supported operating system:
+The macOS app uses a hidden-title-bar window with a minimum size of 1280 × 780.
+On iPhone, the player can present in landscape while the rest of the app stays
+portrait-oriented.
 
-- macOS 14.2 or later
+## Features
 
-Because the app is written with SwiftUI, the project has a strong foundation for
-future Apple platform expansion, such as iPadOS or tvOS, but those targets are
-not enabled in the project yet.
+### Discover
 
-## Tech Stack
+- Home shelves for featured titles, in-progress viewing, watchlist items, and
+  curated movie and series sections.
+- Dedicated Movies and Series catalog screens with filters.
+- Search across remote Cinemeta results and locally available fallback items.
+- Artwork-led title pages with metadata, descriptions, seasons, episodes, and
+  available sources.
 
-- Swift
-- SwiftUI
-- Xcode project format
-- Foundation networking with `URLSession`
-- Swift concurrency with `async` / `await`
-- In-memory actor-based catalog caches
-- UserDefaults and Keychain-backed local stores
-- Cinemeta/Stremio metadata API
-- Stremio-compatible stream and subtitle addons
-- AVFoundation native playback
-- `libmpv` playback through a Swift/C bridge
-- SF Symbols for native Apple iconography
+### Organize
 
-## Project Structure
+- Add titles to Favorites, Watchlist, Watched, or Dropped.
+- Automatically maintain the Watching row from saved playback progress.
+- Persist collections, watch history, resume positions, and track preferences
+  locally on the device.
+
+### Addons and playback
+
+- Validate, install, enable, disable, and configure Stremio-compatible addon
+  manifests.
+- Collect stream sources and external subtitles from enabled addons.
+- Select the source, audio track, subtitle track, and subtitle preferences.
+- Use AVFoundation for direct playback; use VLC or libmpv on macOS when a
+  stream needs a broader playback engine.
+- Save progress and continue from the previous position; completed episodes can
+  advance to the next one.
+
+## Architecture
+
+The project is organized around focused SwiftUI views and reusable domain
+services:
 
 ```text
 orzen/
-  OrzenApp.swift              App entry point and macOS window configuration
-  ContentView.swift           Main navigation routing
-  Sidebar.swift               Sidebar navigation and shared layout constants
-  Components/                 Reusable catalog, info, playback, and control UI
-  Features/                   Home, movies, series, search, addons, and collections screens
-  Models/                     Catalog and playback domain models
-  Services/                   Cinemeta, Stremio, subtitle, source, and playback services
-  Stores/                     App state, caches, collections, addons, and playback progress
-  Support/                    C/OpenGL support code for MPV integration
-  Assets.xcassets/            App icons, accent color, and visual assets
-  Orzen-Bridging-Header.h     C bridge declarations used by Swift
-  Orzen.entitlements          macOS app sandbox and entitlement configuration
+├── Components/       Reusable catalog, title-detail, playback, and control UI
+├── Features/         Home, search, movies, series, collections, and addons
+├── Models/           Catalog, stream, subtitle, and playback domain models
+├── Services/         Cinemeta, Stremio, subtitle, source, and player services
+├── Stores/           Observable app state, caches, collections, and progress
+├── Support/          Platform support and the libmpv OpenGL bridge
+├── Assets.xcassets/  App icons, accent color, and visual assets
+├── ContentView.swift App-level navigation routing
+├── Sidebar.swift     Desktop shell and shared layout metrics
+└── OrzenApp.swift    App entry point and platform window configuration
 ```
+
+## Technology
+
+- Swift and SwiftUI
+- Swift concurrency (`async` / `await`) and actor-based caches
+- `URLSession`, `UserDefaults`, and Keychain-backed local storage
+- Cinemeta catalog metadata
+- Stremio-compatible manifests, stream sources, and subtitles
+- AVFoundation, VLCKit, and libmpv-based playback integrations
+- SF Symbols and native Apple platform APIs
 
 ## Requirements
 
-- macOS 14.2 or later
 - Xcode with SwiftUI support
-- Internet access for live Cinemeta catalog metadata
-- Homebrew `mpv` installed locally for its `libmpv` playback library:
+- macOS 14.2 or later to run the desktop target
+- iOS 17 or later to run the iPhone target
+- Internet access for live Cinemeta metadata and addon-provided sources
+- CocoaPods, for the VLC integration:
 
-```sh
-brew install mpv
-```
+  ```sh
+  gem install cocoapods
+  pod install
+  ```
 
-The Xcode project currently expects Homebrew headers and libraries under
+- Optional, on macOS: Homebrew `mpv` when building with libmpv support:
+
+  ```sh
+  brew install mpv
+  ```
+
+The Xcode configuration expects the Homebrew libmpv headers and libraries at
 `/opt/homebrew/include` and `/opt/homebrew/lib`.
 
-## Development
+## Run locally
 
-1. Open `Orzen.xcodeproj` in Xcode.
-2. Select the `Orzen` scheme.
-3. Choose a macOS run destination.
-4. Build and run the app.
+1. Install the CocoaPods dependencies from the repository root:
 
-The app uses `URLSession` to fetch catalog data at runtime. If remote content
-cannot be loaded, Orzen falls back to local placeholder catalog items so the UI
-can still be developed and tested.
+   ```sh
+   pod install
+   ```
 
-Playback-related data, collections, and local addon configuration are stored on
-the Mac with UserDefaults, with private addon data mirrored through Keychain
-storage.
+2. Open [Orzen.xcworkspace](Orzen.xcworkspace) in Xcode.
+3. Select the `Orzen` scheme and a macOS or iPhone run destination.
+4. Build and run.
+
+Orzen fetches catalog content at runtime. If a request cannot complete, the app
+uses its cached data when available and otherwise shows local fallback catalog
+items so the interface remains testable offline.
+
+## Data and privacy
+
+Catalog responses are cached in memory and on disk. Collections, playback
+progress, track selections, and addon configuration are stored locally;
+private addon data is mirrored through Keychain storage. Orzen does not bundle
+or host media—stream availability comes from the addons configured by the user.
