@@ -22,6 +22,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     private var timer: Timer?
     private var lastVolume: Double = 100
     private var currentMedia: VLCMedia?
+    private var automaticAudioSelectionAttempts = 0
+    private var lastAutomaticAudioSelectionAttempt: Date?
 
     var isAvailable: Bool { true }
 
@@ -47,6 +49,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         didReachEnd = false
         isStarting = true
         isPaused = false
+        automaticAudioSelectionAttempts = 0
+        lastAutomaticAudioSelectionAttempt = nil
 
         guard let media = VLCMedia(url: url) else {
             errorMessage = "VLC could not open this stream URL."
@@ -78,6 +82,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         duration = 0
         audioTracks = []
         subtitleTracks = []
+        automaticAudioSelectionAttempts = 0
+        lastAutomaticAudioSelectionAttempt = nil
     }
 
     func togglePlayPause() {
@@ -124,8 +130,11 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     func selectAudioTrack(_ track: PlayerMediaTrack) {
-        guard let index = trackIndex(from: track.id) else { return }
+        guard let index = trackIndex(from: track.id),
+              player.audioTracks.indices.contains(index) else { return }
         player.selectTrack(at: index, type: .audio)
+        player.audioTracks[index].isSelectedExclusively = true
+        automaticAudioSelectionAttempts = 10
         refreshTracks()
     }
 
@@ -170,6 +179,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     private func refreshTracks() {
+        ensureAudioTrackIsSelected()
+
         let refreshedAudioTracks = tracks(
             vlcTracks: player.audioTracks,
             kind: .audio,
@@ -190,6 +201,34 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         if subtitleTracks != refreshedSubtitleTracks {
             subtitleTracks = refreshedSubtitleTracks
         }
+    }
+
+    private func ensureAudioTrackIsSelected() {
+        let availableTracks = player.audioTracks
+        guard player.isPlaying,
+              !availableTracks.isEmpty,
+              !availableTracks.contains(where: \.isSelected) else { return }
+
+        if automaticAudioSelectionAttempts >= 6 {
+            let codecName = availableTracks[0].codecName()
+            errorMessage = "This source's \(codecName) audio cannot be decoded by VLC on iOS. Choose a source with AAC, AC3, E-AC3, or MP3 audio."
+            return
+        }
+
+        let now = Date()
+        if let lastAutomaticAudioSelectionAttempt,
+           now.timeIntervalSince(lastAutomaticAudioSelectionAttempt) < 0.5 {
+            return
+        }
+
+        // Some containers expose their audio track after playback starts without
+        // selecting it. VLCKit then renders video normally but remains silent.
+        // Explicitly choose the first audible track, matching VLC's desktop
+        // default and giving single-track files a usable audio selection.
+        automaticAudioSelectionAttempts += 1
+        lastAutomaticAudioSelectionAttempt = now
+        player.selectTrack(at: 0, type: .audio)
+        availableTracks[0].isSelectedExclusively = true
     }
 
     private func tracks(
@@ -218,7 +257,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
                 return PlayerMediaTrack(
                     id: "\(prefix)-\(offset)",
                     title: normalizedTrackTitle(track.trackName, fallback: "\(kind.defaultTitle) \(offset + 1)"),
-                    language: nil,
+                    language: track.language,
                     kind: kind,
                     isSelected: track.isSelected,
                     isOff: false

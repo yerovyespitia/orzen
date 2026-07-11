@@ -792,6 +792,14 @@ struct StreamPlayerView: View {
             return
         }
 
+        #if os(iOS)
+        if let nativePlaybackError = request.source.nativePlaybackError {
+            activePlaybackEngine = .native
+            playbackObserver.errorMessage = nativePlaybackError
+            return
+        }
+        #endif
+
         guard let playbackURL = request.source.playbackURL else {
             playbackObserver.errorMessage = "This source does not expose a direct video URL. The native player can only open direct HTTP or HTTPS video streams returned by the addon."
             return
@@ -883,6 +891,10 @@ struct StreamPlayerView: View {
 
     private func startNativeFallbackAfterRuntimeErrorIfPossible() {
         #if os(iOS)
+        if vlcController.errorMessage?.contains("audio cannot be decoded") == true {
+            return
+        }
+
         guard !isPreparingNativePlayback,
               !isResolvingNativeFallback,
               activePlaybackEngine == .vlc || (activePlaybackEngine == .native && player != nil) else {

@@ -72,6 +72,16 @@ enum NativePlaybackCompatibilityResolver {
             return .unsupported("This source uses \(playbackURL.scheme ?? "an unsupported") links. Orzen needs a direct HTTP or HTTPS media stream.")
         }
 
+        let sourceDescription = ([source.title, source.description]
+            + source.metadata
+            + source.compatibilityHints)
+            .joined(separator: " ")
+            .lowercased()
+
+        if sourceDescription.contains("truehd") || sourceDescription.contains("true hd") || sourceDescription.contains("mlpa") {
+            return .unsupported("This source uses Dolby TrueHD audio, which the iOS build of VLCKit cannot decode. Choose an AAC, AC3, E-AC3, or MP3 source instead.")
+        }
+
         return .supported
     }
 
