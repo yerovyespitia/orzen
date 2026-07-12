@@ -306,8 +306,11 @@ struct StreamPlayerEpisodeSidebar: View {
 
     @ViewBuilder
     private var sourceFilter: some View {
-        if viewModel.hasSpanishSources {
-            SourceFilterPicker(selection: $viewModel.selectedSourceFilter)
+        if !viewModel.sourceFilterCategories.isEmpty {
+            SourceFilterPicker(
+                selection: $viewModel.selectedSourceFilter,
+                categories: viewModel.sourceFilterCategories
+            )
         }
     }
 

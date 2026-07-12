@@ -98,9 +98,36 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
-enum StreamSourceCategory: String, Codable, Hashable, Sendable {
-    case general
-    case spanish
+struct StreamSourceCategory: Codable, Hashable, Sendable {
+    let rawValue: String
+
+    init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    static let general = StreamSourceCategory(rawValue: "general")
+    static let spanish = StreamSourceCategory.language("spanish")
+
+    static func language(_ value: String) -> StreamSourceCategory {
+        StreamSourceCategory(rawValue: "language:\(value)")
+    }
+
+    var filterTitle: String? {
+        guard rawValue.hasPrefix("language:") else { return nil }
+        let value = String(rawValue.dropFirst("language:".count))
+        return value.replacingOccurrences(of: "-", with: " ").capitalized
+    }
+
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+        // Migrate the category written by older versions of Orzen.
+        rawValue = value == "spanish" ? "language:spanish" : value
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 enum StreamPlaybackEngine: Sendable {

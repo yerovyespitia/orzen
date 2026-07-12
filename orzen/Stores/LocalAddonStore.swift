@@ -78,8 +78,13 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         name = try container.decode(String.self, forKey: .name)
         description = try container.decode(String.self, forKey: .description)
         resources = try container.decodeIfPresent(Set<Resource>.self, forKey: .resources) ?? [.stream]
-        sourceCategory = try container.decodeIfPresent(StreamSourceCategory.self, forKey: .sourceCategory)
-            ?? Self.inferredSourceCategory(name: name, description: description, manifestURL: manifestURL)
+        // Re-evaluate persisted addons so their filter always reflects the current
+        // configuration URL, including addons saved by older app versions.
+        sourceCategory = Self.inferredSourceCategory(
+            name: name,
+            description: description,
+            manifestURL: manifestURL
+        )
         supportedTypes = try container.decodeIfPresent([String].self, forKey: .supportedTypes) ?? []
         idPrefixes = try container.decodeIfPresent([String].self, forKey: .idPrefixes)
         resourceCapabilities = try container.decodeIfPresent(
@@ -155,17 +160,26 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
         description: String,
         manifestURL: URL
     ) -> StreamSourceCategory {
-        let searchableText = [name, description, manifestURL.absoluteString]
-            .joined(separator: " ")
+        guard let decodedURL = manifestURL.absoluteString.removingPercentEncoding else {
+            return .general
+        }
+
+        let pattern = #"(?:^|[|/?&;,])language=([^|/?&;,]+)"#
+        guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = expression.firstMatch(
+                in: decodedURL,
+                range: NSRange(decodedURL.startIndex..., in: decodedURL)
+              ),
+              let valueRange = Range(match.range(at: 1), in: decodedURL) else {
+            return .general
+        }
+
+        let language = decodedURL[valueRange]
+            .trimmingCharacters(in: .whitespacesAndNewlines)
             .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
             .lowercased()
 
-        let spanishSignals = ["latino", "spanish", "espanol", "castellano"]
-        if spanishSignals.contains(where: searchableText.contains) {
-            return .spanish
-        }
-
-        return .general
+        return language.isEmpty ? .general : .language(language)
     }
 }
 

@@ -45,16 +45,19 @@ final class InfoViewModel: ObservableObject {
         return detail.episodes.first { $0.id == selectedEpisodeID }
     }
 
-    var hasSpanishSources: Bool {
-        sources.contains { $0.sourceCategory == .spanish }
+    var sourceFilterCategories: [StreamSourceCategory] {
+        Set(sources.compactMap { source in
+            source.sourceCategory.filterTitle == nil ? nil : source.sourceCategory
+        })
+        .sorted { ($0.filterTitle ?? $0.rawValue) < ($1.filterTitle ?? $1.rawValue) }
     }
 
     var visibleSources: [StreamSource] {
         switch selectedSourceFilter {
         case .all:
             return sources
-        case .spanish:
-            return sources.filter { $0.sourceCategory == .spanish }
+        case .category(let category):
+            return sources.filter { $0.sourceCategory == category }
         }
     }
 
@@ -217,7 +220,8 @@ final class InfoViewModel: ObservableObject {
 
         guard sourceRequestID == id else { return }
         sources = loadedSources
-        if !hasSpanishSources {
+        if case .category(let selectedCategory) = selectedSourceFilter,
+           !sourceFilterCategories.contains(selectedCategory) {
             selectedSourceFilter = .all
         }
         if loadedSources.isEmpty {

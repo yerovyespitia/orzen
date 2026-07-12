@@ -1,25 +1,30 @@
 import SwiftUI
 
-enum SourceFilter: CaseIterable, Hashable {
+enum SourceFilter: Hashable {
     case all
-    case spanish
+    case category(StreamSourceCategory)
 
     var title: String {
         switch self {
         case .all:
             return "All"
-        case .spanish:
-            return "Español"
+        case .category(let category):
+            return category.filterTitle ?? category.rawValue.capitalized
         }
     }
 }
 
 struct SourceFilterPicker: View {
     @Binding var selection: SourceFilter
+    let categories: [StreamSourceCategory]
+
+    private var filters: [SourceFilter] {
+        [.all] + categories.map(SourceFilter.category)
+    }
 
     var body: some View {
         HStack(spacing: 10) {
-            ForEach(SourceFilter.allCases, id: \.self) { filter in
+            ForEach(filters, id: \.self) { filter in
                 SourceFilterButton(
                     title: filter.title,
                     isSelected: selection == filter,
