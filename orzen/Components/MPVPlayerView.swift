@@ -257,6 +257,11 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
         selectTrack(track, property: "sid")
     }
 
+    func setSubtitleDelay(_ delay: Double) {
+        guard let mpv else { return }
+        command(arguments: ["set", "sub-delay", String(delay)], handle: mpv)
+    }
+
     func refreshPlaybackState() {
         guard let mpv else { return }
         let didReachEnd = boolProperty("eof-reached", handle: mpv) ?? false
@@ -326,6 +331,7 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
                     reportMPVError(prefix: "mpv could not load this source", status: status)
                 } else {
                     controller?.markRunning()
+                    setSubtitleDelay(controller?.subtitleDelay ?? 0)
                     addPendingExternalSubtitles()
                     refreshPlaybackState()
                     startStateRefreshTimer()
@@ -512,6 +518,9 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
             let language = stringProperty("track-list/\(index)/lang", handle: handle)
             let title = stringProperty("track-list/\(index)/title", handle: handle)
             let selected = boolProperty("track-list/\(index)/selected", handle: handle) ?? false
+            let externalSubtitleID = type == .subtitle
+                ? externalSubtitles.first(where: { "\($0.addonName): \($0.title)" == title })?.id
+                : nil
 
             tracks.append(
                 PlayerMediaTrack(
@@ -520,7 +529,8 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
                     language: language,
                     kind: type,
                     isSelected: selected,
-                    isOff: false
+                    isOff: false,
+                    externalSubtitleID: externalSubtitleID
                 )
             )
         }

@@ -566,6 +566,9 @@ struct StreamPlayerView: View {
     private func setSubtitleDelay(_ delay: Double) {
         guard selectedExternalSubtitleID != nil else { return }
         subtitleDelay = min(max(delay, -10), 10)
+        if activePlaybackEngine == .mpv {
+            mpvController.setSubtitleDelay(subtitleDelay)
+        }
         saveCurrentProgress(force: true)
         chromeVisibility.keepVisible()
     }
@@ -1367,6 +1370,13 @@ struct StreamPlayerView: View {
         performPlayerAction {
             switch activePlaybackEngine {
             case .mpv:
+                if let externalSubtitleID = track.externalSubtitleID {
+                    selectedExternalSubtitleID = externalSubtitleID
+                    mpvController.setSubtitleDelay(subtitleDelay)
+                } else {
+                    clearExternalSubtitleSelection()
+                    mpvController.setSubtitleDelay(0)
+                }
                 mpvController.selectSubtitleTrack(track)
             case .vlc:
                 #if os(iOS)

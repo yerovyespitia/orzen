@@ -15,6 +15,7 @@ final class MPVPlaybackController: ObservableObject {
     @Published var didReachEnd = false
     @Published var audioTracks: [PlayerMediaTrack] = []
     @Published var subtitleTracks: [PlayerMediaTrack] = []
+    private(set) var subtitleDelay: Double = 0
 
     private weak var playerView: MPVOpenGLPlayerView?
 
@@ -96,6 +97,11 @@ final class MPVPlaybackController: ObservableObject {
         playerView?.selectSubtitleTrack(track)
     }
 
+    func setSubtitleDelay(_ delay: Double) {
+        subtitleDelay = delay
+        playerView?.setSubtitleDelay(delay)
+    }
+
     func refreshPlaybackState() {
         playerView?.refreshPlaybackState()
     }
@@ -131,6 +137,7 @@ final class MPVPlaybackController: ObservableObject {
     func toggleMute() {}
     func selectAudioTrack(_ track: PlayerMediaTrack) {}
     func selectSubtitleTrack(_ track: PlayerMediaTrack) {}
+    func setSubtitleDelay(_ delay: Double) {}
     func refreshPlaybackState() {}
 }
 #endif
