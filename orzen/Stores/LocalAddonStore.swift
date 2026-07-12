@@ -201,15 +201,6 @@ final class LocalAddonStore: ObservableObject {
     private static let keychainAccount = "privateAddons"
     private static let bundledAddons: [LocalAddon] = [
         LocalAddon(
-            id: UUID(uuidString: "E9D21D2D-9D6E-48D5-A4ED-4E2B08BE31FD")!,
-            manifestURL: URL(string: "https://torrentio.strem.fun/manifest.json")!,
-            name: "Torrentio",
-            description: "Default Torrentio stream source.",
-            resources: [.stream],
-            sourceCategory: .general,
-            isRemovable: true
-        ),
-        LocalAddon(
             id: UUID(uuidString: "D17FB11D-07D2-4EBA-A6A4-67D7BB705B33")!,
             manifestURL: URL(string: "https://opensubtitles-v3.strem.io/manifest.json")!,
             name: "OpenSubtitles v3",
