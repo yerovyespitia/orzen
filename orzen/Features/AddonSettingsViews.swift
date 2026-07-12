@@ -308,18 +308,33 @@ struct AddonSettingsCloseButton: View {
     @State private var isHovered = false
 
     var body: some View {
-        Button(action: action) {
-            icon
-                .modifier(PlayerLiquidGlassCircleSurface(isActive: true))
-                .contentShape(Circle())
+        if #available(macOS 26, *) {
+            Button(action: action) {
+                icon
+                    .glassEffect(.clear.interactive(), in: Circle())
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                isHovered = hovering
+            }
+            .animation(.easeInOut(duration: 0.12), value: isHovered)
+            .help("Close")
+            .accessibilityLabel("Close")
+        } else {
+            Button(action: action) {
+                icon
+                    .background(buttonBackground)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .onHover { hovering in
+                isHovered = hovering
+            }
+            .animation(.easeInOut(duration: 0.12), value: isHovered)
+            .help("Close")
+            .accessibilityLabel("Close")
         }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
-        }
-        .animation(.easeInOut(duration: 0.12), value: isHovered)
-        .help("Close")
-        .accessibilityLabel("Close")
     }
 
     private var icon: some View {
@@ -345,6 +360,14 @@ struct AddonSettingsCloseButton: View {
         #endif
     }
 
+    private var buttonBackground: some View {
+        Circle()
+            .fill(Color.primary.opacity(isHovered ? 0.12 : 0.08))
+            .overlay(
+                Circle()
+                    .stroke(Color.primary.opacity(isHovered ? 0.12 : 0.06), lineWidth: 1)
+            )
+    }
 }
 
 private struct SubtitleLanguageRow: View {
