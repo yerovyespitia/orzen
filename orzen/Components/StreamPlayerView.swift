@@ -312,7 +312,7 @@ struct StreamPlayerView: View {
                     .padding(.vertical, 8)
                     .background(Color.black.opacity(0.42), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .padding(.horizontal, 28)
-                    .padding(.bottom, isChromePresented ? 69 : 16)
+                    .padding(.bottom, isChromePresented ? 64 : 16)
             }
             .allowsHitTesting(false)
             .zIndex(2.5)

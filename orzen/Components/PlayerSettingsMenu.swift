@@ -124,7 +124,7 @@ struct PlayerSettingsMenu: View {
                 }
 
                 let tenths = Double((value.translation.width / pointsPerTenth).rounded())
-                let adjustedDelay = initialDelay + (tenths / 10)
+                let adjustedDelay = initialDelay - (tenths / 10)
                 let clampedDelay = min(max(adjustedDelay, minimumDelay), maximumDelay)
                 onSubtitleDelayChange(clampedDelay)
             }
