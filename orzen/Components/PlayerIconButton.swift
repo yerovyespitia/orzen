@@ -14,9 +14,9 @@ struct PlayerIconButton: View {
                 .foregroundColor(.white.opacity(isEnabled ? 0.92 : 0.38))
                 .frame(width: buttonSize, height: buttonSize)
                 .modifier(PlayerLiquidGlassCircleSurface(isActive: usesGlassBackground))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .contentShape(Circle())
         .help(help)
         .accessibilityLabel(help)
         .disabled(!isEnabled)

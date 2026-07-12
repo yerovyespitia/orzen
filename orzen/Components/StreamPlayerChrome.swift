@@ -427,9 +427,9 @@ struct StreamPlayerChrome: View {
         Button(action: action) {
             icon()
                 .modifier(PlayerLiquidGlassCircleSurface(isActive: true))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .contentShape(Circle())
         .help(help)
         .accessibilityLabel(help)
         .disabled(!isEnabled)
