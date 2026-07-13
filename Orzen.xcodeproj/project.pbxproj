@@ -692,6 +692,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				"GENERATE_INFOPLIST_FILE[sdk=iphone*]" = NO;
 				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
 					"$(inherited)",
 					/opt/homebrew/include,
@@ -699,6 +700,7 @@
 				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads[sdk=iphone*]" = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
+				"INFOPLIST_FILE[sdk=iphone*]" = orzen/Info-iOS.plist;
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations[sdk=iphone*]" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -746,6 +748,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				"GENERATE_INFOPLIST_FILE[sdk=iphone*]" = NO;
 				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
 					"$(inherited)",
 					/opt/homebrew/include,
@@ -753,6 +756,7 @@
 				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads[sdk=iphone*]" = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
+				"INFOPLIST_FILE[sdk=iphone*]" = orzen/Info-iOS.plist;
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations[sdk=iphone*]" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

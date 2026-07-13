@@ -222,7 +222,10 @@ struct StreamPlayerView: View {
         }
         #else
         if activePlaybackEngine == .vlc {
-            VLCPlayerView(controller: vlcController)
+            VLCPlayerView(
+                controller: vlcController,
+                pictureInPictureSubtitleText: currentExternalSubtitleText
+            )
                 .background(Color.black)
                 .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
@@ -801,6 +804,7 @@ struct StreamPlayerView: View {
         }
 
         #if os(iOS)
+        IOSMediaPlaybackSession.activate()
         startVLCPlayback(with: playbackURL)
         #else
         guard request.source.preferredPlaybackEngine == .native else {
@@ -863,19 +867,12 @@ struct StreamPlayerView: View {
 
     private func handleNativeValidationFailure(_ message: String) {
         #if os(iOS)
-        Task {
-            guard let fallbackRequest = await fallbackPlaybackRequestAfterNativeFailure() else {
-                await MainActor.run {
-                    activePlaybackEngine = .native
-                    playbackObserver.errorMessage = message
-                    chromeVisibility.keepVisible()
-                }
-                return
-            }
-
-            await MainActor.run {
-                StreamPlaybackStore.shared.request = fallbackRequest
-            }
+        if let playbackURL = request.source.playbackURL, vlcController.isAvailable {
+            startVLCPlayback(with: playbackURL)
+        } else {
+            activePlaybackEngine = .native
+            playbackObserver.errorMessage = message
+            chromeVisibility.keepVisible()
         }
         #else
         activePlaybackEngine = .native
@@ -1441,11 +1438,11 @@ struct StreamPlayerView: View {
         externalSubtitleCues = []
 
         Task {
-            let cues = (try? await ExternalSubtitleResolver.loadCues(from: subtitle)) ?? []
+            let loadedSubtitle = try? await ExternalSubtitleResolver.loadSubtitle(from: subtitle)
 
             await MainActor.run {
                 guard loadingExternalSubtitleID == subtitle.id else { return }
-                externalSubtitleCues = cues
+                externalSubtitleCues = loadedSubtitle?.cues ?? []
                 loadingExternalSubtitleID = nil
             }
         }

@@ -1,5 +1,6 @@
 import SwiftUI
 #if os(iOS)
+import AVFoundation
 import UIKit
 #endif
 
@@ -40,9 +41,36 @@ struct OrzenApp: App {
 final class OrzenAppDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        IOSMediaPlaybackSession.configure()
+
+        return true
+    }
+
+    func application(
+        _ application: UIApplication,
         supportedInterfaceOrientationsFor window: UIWindow?
     ) -> UIInterfaceOrientationMask {
         AppOrientationController.shared.supportedOrientations
+    }
+}
+
+enum IOSMediaPlaybackSession {
+    static func configure() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+        } catch {
+            print("Failed to configure the media playback audio session: \(error.localizedDescription)")
+        }
+    }
+
+    static func activate() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to activate the media playback audio session: \(error.localizedDescription)")
+        }
     }
 }
 

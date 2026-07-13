@@ -130,7 +130,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     func selectAudioTrack(_ track: PlayerMediaTrack) {
-        guard let index = trackIndex(from: track.id),
+        guard let index = trackIndex(from: track.id, prefix: "vlc-audio", in: player.audioTracks),
               player.audioTracks.indices.contains(index) else { return }
         player.selectTrack(at: index, type: .audio)
         player.audioTracks[index].isSelectedExclusively = true
@@ -145,7 +145,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
             return
         }
 
-        guard let index = trackIndex(from: track.id) else { return }
+        guard let index = trackIndex(from: track.id, prefix: "vlc-subtitle", in: player.textTracks) else { return }
         player.deselectAllTextTracks()
         player.selectTrack(at: index, type: .text)
         refreshTracks()
@@ -175,12 +175,12 @@ final class VLCPlaybackController: NSObject, ObservableObject {
             didReachEnd = true
         }
 
-        refreshTracks()
+        if ensureAudioTrackIsSelected() {
+            refreshTracks()
+        }
     }
 
     private func refreshTracks() {
-        ensureAudioTrackIsSelected()
-
         let refreshedAudioTracks = tracks(
             vlcTracks: player.audioTracks,
             kind: .audio,
@@ -203,22 +203,22 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         }
     }
 
-    private func ensureAudioTrackIsSelected() {
+    private func ensureAudioTrackIsSelected() -> Bool {
         let availableTracks = player.audioTracks
         guard player.isPlaying,
               !availableTracks.isEmpty,
-              !availableTracks.contains(where: \.isSelected) else { return }
+              !availableTracks.contains(where: \.isSelected) else { return false }
 
         if automaticAudioSelectionAttempts >= 6 {
             // Keep the video running while testing sources whose audio codec
             // is not available in the current iOS VLCKit build.
-            return
+            return false
         }
 
         let now = Date()
         if let lastAutomaticAudioSelectionAttempt,
            now.timeIntervalSince(lastAutomaticAudioSelectionAttempt) < 0.5 {
-            return
+            return false
         }
 
         // Some containers expose their audio track after playback starts without
@@ -232,6 +232,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         } ?? 0
         player.selectTrack(at: preferredIndex, type: .audio)
         availableTracks[preferredIndex].isSelectedExclusively = true
+        return true
     }
 
     private func tracks(
@@ -258,7 +259,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         tracks.append(
             contentsOf: vlcTracks.enumerated().map { offset, track in
                 return PlayerMediaTrack(
-                    id: "\(prefix)-\(offset)",
+                    id: "\(prefix)-\(track.trackId)",
                     title: normalizedTrackTitle(track.trackName, fallback: "\(kind.defaultTitle) \(offset + 1)"),
                     language: track.language,
                     kind: kind,
@@ -295,8 +296,12 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         return title
     }
 
-    private func trackIndex(from id: String) -> Int? {
-        Int(id.split(separator: "-").last ?? "")
+    private func trackIndex(
+        from id: String,
+        prefix: String,
+        in tracks: [VLCMediaPlayer.Track]
+    ) -> Int? {
+        tracks.firstIndex { id == "\(prefix)-\($0.trackId)" }
     }
 
     private func seconds(from time: VLCTime?) -> Double {
@@ -341,15 +346,47 @@ extension VLCPlaybackController: VLCMediaPlayerDelegate {
             case .playing:
                 isPaused = false
                 isStarting = false
+                refreshTracks()
             default:
                 break
             }
         }
     }
 
-    nonisolated func mediaPlayerTimeChanged(_ aNotification: Notification) {
+    nonisolated func mediaPlayerTrackAdded(
+        _ trackId: String,
+        with trackType: VLCMedia.TrackType
+    ) {
         Task { @MainActor in
-            refreshPlaybackState()
+            refreshTracks()
+        }
+    }
+
+    nonisolated func mediaPlayerTrackRemoved(
+        _ trackId: String,
+        with trackType: VLCMedia.TrackType
+    ) {
+        Task { @MainActor in
+            refreshTracks()
+        }
+    }
+
+    nonisolated func mediaPlayerTrackUpdated(
+        _ trackId: String,
+        with trackType: VLCMedia.TrackType
+    ) {
+        Task { @MainActor in
+            refreshTracks()
+        }
+    }
+
+    nonisolated func mediaPlayerTrackSelected(
+        _ trackType: VLCMedia.TrackType,
+        selectedId: String,
+        unselectedId: String
+    ) {
+        Task { @MainActor in
+            refreshTracks()
         }
     }
 }

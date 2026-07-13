@@ -83,6 +83,14 @@ enum NativePlaybackCompatibilityResolver {
             .joined(separator: " ")
             .lowercased()
 
+        if let compatibility = compatibility(forExtension: playbackURL.pathExtension.lowercased()) {
+            return compatibility
+        }
+
+        if let compatibility = compatibility(forText: sourceDescription) {
+            return compatibility
+        }
+
         if sourceDescription.contains("truehd") || sourceDescription.contains("true hd") || sourceDescription.contains("mlpa") {
             return .warning("This source may contain Dolby TrueHD audio that VLCKit cannot decode on iOS. Other audio tracks in the same source may still work.")
         }

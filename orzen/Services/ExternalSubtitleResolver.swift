@@ -13,6 +13,11 @@ struct ExternalSubtitleCue: Identifiable, Sendable {
     }
 }
 
+struct LoadedExternalSubtitle: Sendable {
+    let cues: [ExternalSubtitleCue]
+    let localFileURL: URL
+}
+
 enum ExternalSubtitleResolver {
     static func fetchSubtitles(
         from addons: [LocalAddon],
@@ -41,19 +46,51 @@ enum ExternalSubtitleResolver {
     }
 
     static func loadCues(from subtitle: ExternalSubtitleTrack) async throws -> [ExternalSubtitleCue] {
-        let (data, response) = try await URLSession.shared.data(from: subtitle.url)
+        try await loadSubtitle(from: subtitle).cues
+    }
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200..<300).contains(httpResponse.statusCode) else {
-            throw URLError(.badServerResponse)
-        }
+    static func loadSubtitle(from subtitle: ExternalSubtitleTrack) async throws -> LoadedExternalSubtitle {
+        let localFileURL = try await loadSubtitleFile(from: subtitle)
+        let data = try Data(contentsOf: localFileURL)
 
         guard let content = String(data: data, encoding: .utf8)
             ?? String(data: data, encoding: .isoLatin1) else {
             throw URLError(.cannotDecodeContentData)
         }
 
-        return parseCues(from: content)
+        return LoadedExternalSubtitle(cues: parseCues(from: content), localFileURL: localFileURL)
+    }
+
+    static func loadSubtitleFile(from subtitle: ExternalSubtitleTrack) async throws -> URL {
+        let localFileURL = cachedFileURL(for: subtitle)
+        guard !FileManager.default.fileExists(atPath: localFileURL.path) else {
+            return localFileURL
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: subtitle.url)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200..<300).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+        try data.write(to: localFileURL, options: .atomic)
+        return localFileURL
+    }
+
+    private static func cachedFileURL(for subtitle: ExternalSubtitleTrack) -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("OrzenSubtitles", isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let supportedExtension = ["srt", "vtt", "ass", "ssa", "sub"]
+            .contains(subtitle.url.pathExtension.lowercased())
+            ? subtitle.url.pathExtension.lowercased()
+            : "srt"
+        let cacheKey = subtitle.id
+            .unicodeScalars
+            .map { CharacterSet.alphanumerics.contains($0) ? Character(String($0)) : "_" }
+        return directory
+            .appendingPathComponent(String(cacheKey))
+            .appendingPathExtension(supportedExtension)
     }
 
     static func parseCues(from content: String) -> [ExternalSubtitleCue] {
