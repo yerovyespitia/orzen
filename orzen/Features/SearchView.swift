@@ -35,6 +35,9 @@ struct SearchView: View {
             }
             .task(id: searchTextValue) {
                 let currentQuery = searchTextValue
+                let trimmedQuery = currentQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                guard searchStore.completedQuery != trimmedQuery else { return }
 
                 do {
                     try await Task.sleep(for: .milliseconds(450))
