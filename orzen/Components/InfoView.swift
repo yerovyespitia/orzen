@@ -189,6 +189,23 @@ struct InfoView: View {
                                         systemImage: episodeWatchStore.isWatched(episode) ? "eye.slash.fill" : "eye.fill"
                                     )
                                 }
+
+                                Button {
+                                    episodeWatchStore.markEpisodesBeforeWatched(
+                                        episode,
+                                        in: item,
+                                        episodes: viewModel.detail.episodes
+                                    )
+                                    viewModel.syncSeriesCollectionState()
+                                } label: {
+                                    Label("Mark Previous Episodes as Watched", systemImage: "eye.fill")
+                                }
+                                .disabled(
+                                    !episodeWatchStore.hasEpisodes(
+                                        before: episode,
+                                        in: viewModel.detail.episodes
+                                    )
+                                )
                             }
                         }
                     }

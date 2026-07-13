@@ -166,6 +166,36 @@ final class EpisodeWatchStore: ObservableObject {
         save()
     }
 
+    func hasEpisodes(before episode: CatalogEpisode, in episodes: [CatalogEpisode]) -> Bool {
+        episodes.contains { isEpisode($0, before: episode) }
+    }
+
+    func markEpisodesBeforeWatched(
+        _ episode: CatalogEpisode,
+        in item: CatalogItem,
+        episodes: [CatalogEpisode]
+    ) {
+        let previousEpisodeIDs = uniqueEpisodeIDs(
+            from: episodes.filter { isEpisode($0, before: episode) }
+        )
+        guard !previousEpisodeIDs.isEmpty else { return }
+
+        registerSeries(item, episodes: episodes)
+        watchedEpisodeIDs.formUnion(previousEpisodeIDs)
+
+        guard var progress = seriesProgress[item.id] else {
+            save()
+            return
+        }
+
+        progress.watchedEpisodeIDs = Array(
+            Set(progress.watchedEpisodeIDs).union(previousEpisodeIDs)
+        )
+        progress.updatedAt = Date()
+        seriesProgress[item.id] = progress
+        save()
+    }
+
     func clearWatched(_ item: CatalogItem, episodes: [CatalogEpisode]) {
         registerSeries(item, episodes: episodes)
         let episodeIDs = uniqueEpisodeIDs(from: episodes)
@@ -207,6 +237,22 @@ final class EpisodeWatchStore: ObservableObject {
 
     private func uniqueEpisodeIDs(from episodes: [CatalogEpisode]) -> [CatalogEpisode.ID] {
         Array(Set(episodes.map(\.id))).sorted()
+    }
+
+    private func isEpisode(_ candidate: CatalogEpisode, before episode: CatalogEpisode) -> Bool {
+        let candidateSeason = candidate.season ?? 1
+        let selectedSeason = episode.season ?? 1
+
+        if candidateSeason != selectedSeason {
+            return candidateSeason < selectedSeason
+        }
+
+        guard let candidateNumber = candidate.episode,
+              let selectedNumber = episode.episode else {
+            return false
+        }
+
+        return candidateNumber < selectedNumber
     }
 
     private func load() {
