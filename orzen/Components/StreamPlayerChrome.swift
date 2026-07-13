@@ -253,27 +253,31 @@ struct StreamPlayerChrome: View {
                 mobileTrackOptions
             }
 
-            PlayerFlatSlider(
-                value: Binding(
-                    get: { displayedTimelineTime },
-                    set: { timelinePreviewTime = $0 }
-                ),
-                in: 0...max(duration, 1),
-                accessibilityLabel: "Playback position",
-                expandsWhileInteracting: true,
-                onInteractionChange: handleTimelineInteraction
-            )
+            VStack(spacing: 5) {
+                PlayerFlatSlider(
+                    value: Binding(
+                        get: { displayedTimelineTime },
+                        set: { timelinePreviewTime = $0 }
+                    ),
+                    in: 0...max(duration, 1),
+                    accessibilityLabel: "Playback position",
+                    expandsWhileInteracting: true,
+                    onInteractionChange: handleTimelineInteraction
+                )
 
-            HStack {
-                Text(formatTime(displayedTimelineTime))
-                    .font(.caption.monospacedDigit().weight(.semibold))
-                    .foregroundColor(.white.opacity(0.86))
+                HStack {
+                    Text(formatTime(displayedTimelineTime))
+                        .font(.caption.monospacedDigit().weight(.semibold))
+                        .foregroundColor(.white.opacity(0.86))
 
-                Spacer(minLength: 0)
+                    Spacer(minLength: 0)
 
-                Text(formatTime(duration))
-                    .font(.caption.monospacedDigit().weight(.semibold))
-                    .foregroundColor(.white.opacity(0.58))
+                    Text(formatTime(duration))
+                        .font(.caption.monospacedDigit().weight(.semibold))
+                        .foregroundColor(.white.opacity(0.58))
+                }
+                // Compensate for the slider's 44-point touch target around its visible track.
+                .padding(.top, -18)
             }
         }
     }
@@ -372,7 +376,7 @@ struct StreamPlayerChrome: View {
 
     private var bottomPadding: CGFloat {
         #if os(iOS)
-        return 8
+        return 24
         #else
         return 18
         #endif
