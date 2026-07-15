@@ -225,7 +225,6 @@ struct SubtitleAddonSettingsView: View {
         VStack(alignment: .leading, spacing: 22) {
             header
             languageList
-            Spacer(minLength: 0)
         }
         .padding(settingsPadding)
         .frame(width: settingsWidth)
@@ -257,24 +256,35 @@ struct SubtitleAddonSettingsView: View {
     }
 
     private var languageList: some View {
-        VStack(spacing: 0) {
-            ForEach(SubtitlePreferencesStore.availableLanguages) { option in
-                SubtitleLanguageRow(
-                    option: option,
-                    isSelected: Binding(
-                        get: {
-                            preferences.isSelected(option)
-                        },
-                        set: { isSelected in
-                            preferences.setSelected(isSelected, for: option)
-                        }
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(SubtitlePreferencesStore.availableLanguages) { option in
+                    SubtitleLanguageRow(
+                        option: option,
+                        isSelected: Binding(
+                            get: {
+                                preferences.isSelected(option)
+                            },
+                            set: { isSelected in
+                                preferences.setSelected(isSelected, for: option)
+                            }
+                        )
                     )
-                )
+                }
             }
         }
         .frame(maxWidth: .infinity)
+        .frame(height: languageListHeight)
         .background(Color.white.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var languageListHeight: CGFloat? {
+        #if os(iOS)
+        return CGFloat(SubtitlePreferencesStore.availableLanguages.count) * 54
+        #else
+        return nil
+        #endif
     }
 
     private var settingsPadding: CGFloat {
@@ -295,7 +305,7 @@ struct SubtitleAddonSettingsView: View {
 
     private var presentationDetents: Set<PresentationDetent> {
         #if os(iOS)
-        return [.height(330)]
+        return [.height(550)]
         #else
         return [.height(300)]
         #endif

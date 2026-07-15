@@ -13,7 +13,12 @@ final class SubtitlePreferencesStore: ObservableObject {
     static let availableLanguages: [SubtitleLanguageOption] = [
         SubtitleLanguageOption(id: "eng", title: "English", languageCodes: ["eng", "en"]),
         SubtitleLanguageOption(id: "spa", title: "Spanish", languageCodes: ["spa", "es", "spl", "es-419", "es-mx"]),
-        SubtitleLanguageOption(id: "ita", title: "Italian", languageCodes: ["ita", "it"])
+        SubtitleLanguageOption(id: "ita", title: "Italian", languageCodes: ["ita", "it"]),
+        SubtitleLanguageOption(id: "fra", title: "French", languageCodes: ["fra", "fre", "fr"]),
+        SubtitleLanguageOption(id: "deu", title: "German", languageCodes: ["deu", "ger", "de"]),
+        SubtitleLanguageOption(id: "por", title: "Portuguese", languageCodes: ["por", "pob", "pt", "pt-br", "pt-pt"]),
+        SubtitleLanguageOption(id: "rus", title: "Russian", languageCodes: ["rus", "ru"]),
+        SubtitleLanguageOption(id: "ara", title: "Arabic", languageCodes: ["ara", "ar"])
     ]
 
     private static let selectedLanguageIDsKey = "OrzenSubtitleSelectedLanguageIDs"
