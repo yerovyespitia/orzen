@@ -185,30 +185,26 @@ private final class StreamPlayerPresentationController: UIViewController {
     }
 
     func update(request: StreamPlaybackRequest?, coordinator: StreamPlayerPresenter.Coordinator) {
-        guard let request else {
+        guard request != nil else {
             dismissPlayerIfNeeded()
             return
         }
 
-        let onBack = { [weak self, weak coordinator] in
-            self?.dismissPlayerIfNeeded()
+        let onBack: () -> Void = { [weak coordinator] in
             coordinator?.closePlayer()
         }
 
-        if let playerController {
-            guard playerController.requestID != request.id else {
-                playerController.rootView = StreamPlayerRequestView(request: request, onBack: onBack)
-                return
-            }
-
-            playerController.rootView = StreamPlayerRequestView(request: request, onBack: onBack)
-            playerController.requestID = request.id
+        guard playerController == nil else {
             return
         }
 
         let playerController = StreamPlayerHostingController(
-            requestID: request.id,
-            rootView: StreamPlayerRequestView(request: request, onBack: onBack)
+            rootView: StreamPlayerContainerView(
+                onBack: onBack,
+                onRequestCleared: { [weak self] in
+                    self?.dismissPlayerIfNeeded()
+                }
+            )
         )
         playerController.modalPresentationStyle = .fullScreen
         playerController.modalTransitionStyle = .crossDissolve
@@ -233,21 +229,31 @@ private final class StreamPlayerPresentationController: UIViewController {
     }
 }
 
-private struct StreamPlayerRequestView: View {
-    let request: StreamPlaybackRequest
+private struct StreamPlayerContainerView: View {
+    @ObservedObject private var playbackStore = StreamPlaybackStore.shared
+
     let onBack: () -> Void
+    let onRequestCleared: () -> Void
 
     var body: some View {
-        StreamPlayerView(request: request, onBack: onBack)
-            .id(request.id)
+        Group {
+            if let request = playbackStore.request {
+                StreamPlayerView(request: request, onBack: onBack)
+                    .id(request.id)
+            } else {
+                Color.black.ignoresSafeArea()
+            }
+        }
+        .onChange(of: playbackStore.request?.id) { _, requestID in
+            if requestID == nil {
+                onRequestCleared()
+            }
+        }
     }
 }
 
-private final class StreamPlayerHostingController: UIHostingController<StreamPlayerRequestView> {
-    var requestID: StreamPlaybackRequest.ID
-
-    init(requestID: StreamPlaybackRequest.ID, rootView: StreamPlayerRequestView) {
-        self.requestID = requestID
+private final class StreamPlayerHostingController: UIHostingController<StreamPlayerContainerView> {
+    override init(rootView: StreamPlayerContainerView) {
         super.init(rootView: rootView)
         modalPresentationCapturesStatusBarAppearance = true
     }
