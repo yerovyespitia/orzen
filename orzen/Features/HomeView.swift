@@ -99,6 +99,27 @@ struct HomeView: View {
 
     private func refreshedPlaybackRequest(for entry: PlaybackProgressEntry) async -> StreamPlaybackRequest {
         let storedRequest = entry.playbackRequest
+        if entry.contentType == .series,
+           let refreshedSource = await StreamSourceResolver.continuingSource(
+               after: entry.source,
+               preferredTitle: entry.resolvedPreferredSourceTitle,
+               from: addonStore.streamAddons,
+               type: .series,
+               id: entry.contentID
+           ) {
+            return StreamPlaybackRequest(
+                source: refreshedSource,
+                title: storedRequest.title,
+                subtitle: storedRequest.subtitle,
+                contentID: storedRequest.contentID,
+                contentType: storedRequest.contentType,
+                item: storedRequest.item,
+                episode: storedRequest.episode,
+                preferredSourceTitle: storedRequest.preferredSourceTitle,
+                initialTrackSelections: storedRequest.initialTrackSelections
+            )
+        }
+
         let matchingAddons = addonStore.streamAddons.filter {
             $0.name == entry.source.addonName && $0.sourceCategory == entry.source.sourceCategory
         }
@@ -119,27 +140,10 @@ struct HomeView: View {
                     contentType: storedRequest.contentType,
                     item: storedRequest.item,
                     episode: storedRequest.episode,
+                    preferredSourceTitle: storedRequest.preferredSourceTitle,
                     initialTrackSelections: storedRequest.initialTrackSelections
                 )
             }
-        }
-
-        if entry.contentType == .series,
-           let refreshedSource = await StreamSourceResolver.firstSource(
-            from: addonStore.streamAddons,
-            type: .series,
-            id: entry.contentID
-           ) {
-            return StreamPlaybackRequest(
-                source: refreshedSource,
-                title: storedRequest.title,
-                subtitle: storedRequest.subtitle,
-                contentID: storedRequest.contentID,
-                contentType: storedRequest.contentType,
-                item: storedRequest.item,
-                episode: storedRequest.episode,
-                initialTrackSelections: storedRequest.initialTrackSelections
-            )
         }
 
         return storedRequest

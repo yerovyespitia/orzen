@@ -86,14 +86,12 @@ struct StreamPlayerEpisodeSidebar: View {
                 )
             }
 
-            #if os(macOS)
             chromeButton(
                 id: .close,
                 systemName: "xmark",
                 help: "Close episodes",
                 action: onClose
             )
-            #endif
         }
     }
 

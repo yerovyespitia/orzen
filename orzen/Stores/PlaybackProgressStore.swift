@@ -6,6 +6,7 @@ struct PlaybackProgressEntry: Codable, Identifiable {
     let item: CatalogItem
     let episode: CatalogEpisode?
     let source: StreamSource
+    let preferredSourceTitle: String?
     let title: String
     let subtitle: String
     var position: Double
@@ -32,8 +33,13 @@ struct PlaybackProgressEntry: Codable, Identifiable {
             contentType: contentType,
             item: item,
             episode: episode,
+            preferredSourceTitle: resolvedPreferredSourceTitle,
             initialTrackSelections: trackSelections
         )
+    }
+
+    var resolvedPreferredSourceTitle: String {
+        preferredSourceTitle ?? source.title
     }
 
     static func key(contentID: String, contentType: CinemetaType) -> String {
@@ -127,6 +133,7 @@ final class PlaybackProgressStore: ObservableObject {
         for item: CatalogItem,
         episode: CatalogEpisode,
         source: StreamSource,
+        preferredSourceTitle: String? = nil,
         subtitle: String,
         trackSelections: PlaybackTrackSelections? = nil,
         subtitleDelay: Double? = nil
@@ -138,6 +145,7 @@ final class PlaybackProgressStore: ObservableObject {
                 item: item,
                 episode: episode,
                 source: source,
+                preferredSourceTitle: preferredSourceTitle ?? source.title,
                 title: episode.playbackTitle,
                 subtitle: subtitle,
                 position: 0,
@@ -187,6 +195,7 @@ final class PlaybackProgressStore: ObservableObject {
                 item: item,
                 episode: request.episode,
                 source: request.source,
+                preferredSourceTitle: request.preferredSourceTitle,
                 title: request.title,
                 subtitle: request.subtitle,
                 position: position,
@@ -246,12 +255,15 @@ final class PlaybackProgressStore: ObservableObject {
             for: item,
             episode: nextEpisode,
             source: currentEntry.source,
+            preferredSourceTitle: currentEntry.resolvedPreferredSourceTitle,
             subtitle: item.title,
             trackSelections: pendingTrackSelections,
             subtitleDelay: pendingSubtitleDelay
         )
 
-        guard let refreshedSource = await StreamSourceResolver.firstSource(
+        guard let refreshedSource = await StreamSourceResolver.continuingSource(
+            after: currentEntry.source,
+            preferredTitle: currentEntry.resolvedPreferredSourceTitle,
             from: LocalAddonStore.shared.streamAddons,
             type: .series,
             id: nextEpisode.id
@@ -263,6 +275,7 @@ final class PlaybackProgressStore: ObservableObject {
             for: item,
             episode: nextEpisode,
             source: refreshedSource,
+            preferredSourceTitle: currentEntry.resolvedPreferredSourceTitle,
             subtitle: item.title,
             trackSelections: pendingTrackSelections,
             subtitleDelay: pendingSubtitleDelay

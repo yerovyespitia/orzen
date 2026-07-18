@@ -80,13 +80,15 @@ struct StreamPlayerChrome: View {
             Spacer(minLength: 0)
 
             #if os(iOS)
-            PlayerIconButton(
-                systemName: "list.bullet",
-                help: canShowEpisodeSidebar ? "Episodes" : "Episodes are available for series",
-                isEnabled: canShowEpisodeSidebar,
-                usesGlassBackground: true,
-                action: onEpisodeSidebarOpen
-            )
+            if !isEpisodeSidebarPresented {
+                PlayerIconButton(
+                    systemName: "list.bullet",
+                    help: canShowEpisodeSidebar ? "Episodes" : "Episodes are available for series",
+                    isEnabled: canShowEpisodeSidebar,
+                    usesGlassBackground: true,
+                    action: onEpisodeSidebarOpen
+                )
+            }
             #endif
         }
     }

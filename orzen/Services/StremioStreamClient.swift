@@ -8,6 +8,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
     let metadata: [String]
     let compatibilityHints: [String]
     let sourceCategory: StreamSourceCategory
+    let addonSourceIndex: Int?
     let playbackURL: URL?
     let torrentInfoHash: String?
     let torrentFileIndex: Int?
@@ -20,6 +21,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         metadata: [String],
         compatibilityHints: [String] = [],
         sourceCategory: StreamSourceCategory,
+        addonSourceIndex: Int? = nil,
         playbackURL: URL?,
         torrentInfoHash: String? = nil,
         torrentFileIndex: Int? = nil
@@ -31,6 +33,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         self.metadata = metadata
         self.compatibilityHints = compatibilityHints
         self.sourceCategory = sourceCategory
+        self.addonSourceIndex = addonSourceIndex
         self.playbackURL = playbackURL
         self.torrentInfoHash = torrentInfoHash
         self.torrentFileIndex = torrentFileIndex
@@ -44,6 +47,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         case metadata
         case compatibilityHints
         case sourceCategory
+        case addonSourceIndex
         case playbackURL
         case torrentInfoHash
         case torrentFileIndex
@@ -58,6 +62,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         metadata = try container.decode([String].self, forKey: .metadata)
         compatibilityHints = try container.decodeIfPresent([String].self, forKey: .compatibilityHints) ?? []
         sourceCategory = try container.decode(StreamSourceCategory.self, forKey: .sourceCategory)
+        addonSourceIndex = try container.decodeIfPresent(Int.self, forKey: .addonSourceIndex)
         playbackURL = try container.decodeIfPresent(URL.self, forKey: .playbackURL)
         torrentInfoHash = try container.decodeIfPresent(String.self, forKey: .torrentInfoHash)
         torrentFileIndex = try container.decodeIfPresent(Int.self, forKey: .torrentFileIndex)
@@ -159,6 +164,7 @@ enum StremioStreamClient {
             stream.source(
                 addonName: addon.name,
                 fallbackID: "\(addon.id.uuidString)-\(index)",
+                addonSourceIndex: index,
                 sourceCategory: addon.sourceCategory
             )
         }
@@ -218,6 +224,7 @@ private struct StremioStream: Decodable {
     func source(
         addonName: String,
         fallbackID: String,
+        addonSourceIndex: Int,
         sourceCategory: StreamSourceCategory
     ) -> StreamSource? {
         guard let directPlaybackURL else { return nil }
@@ -240,6 +247,7 @@ private struct StremioStream: Decodable {
             metadata: metadata(addonName: addonName, titleLines: lines),
             compatibilityHints: compatibilityHints(titleLines: lines),
             sourceCategory: sourceCategory,
+            addonSourceIndex: addonSourceIndex,
             playbackURL: directPlaybackURL,
             torrentInfoHash: infoHash,
             torrentFileIndex: fileIdx

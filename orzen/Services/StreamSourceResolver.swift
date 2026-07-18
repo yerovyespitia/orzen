@@ -40,6 +40,34 @@ enum StreamSourceResolver {
         return nil
     }
 
+    static func continuingSource(
+        after source: StreamSource,
+        preferredTitle: String? = nil,
+        from addons: [LocalAddon],
+        type: CinemetaType,
+        id: String
+    ) async -> StreamSource? {
+        let matchingAddons = addons.filter {
+            $0.name == source.addonName && $0.sourceCategory == source.sourceCategory
+        }
+
+        for addon in matchingAddons {
+            let sources = sortedSourcesForCurrentPlatform(
+                await fetchSourcesWithTimeout(from: addon, type: type, id: id)
+            )
+
+            if let matchingBranch = matchingBranch(
+                for: source,
+                preferredTitle: preferredTitle,
+                in: sources
+            ) {
+                return matchingBranch
+            }
+        }
+
+        return await firstSource(from: addons, type: type, id: id)
+    }
+
     static func matchingSource(
         for storedSource: StreamSource,
         in sources: [StreamSource]
@@ -60,6 +88,30 @@ enum StreamSourceResolver {
         #else
         return matchedSource ?? sources.first
         #endif
+    }
+
+    private static func matchingBranch(
+        for storedSource: StreamSource,
+        preferredTitle: String?,
+        in sources: [StreamSource]
+    ) -> StreamSource? {
+        let sameAddonSources = sources.filter {
+            $0.addonName == storedSource.addonName
+                && $0.sourceCategory == storedSource.sourceCategory
+        }
+        let resolvedPreferredTitle = preferredTitle ?? storedSource.title
+        let matchedSource = sameAddonSources.first { $0.title == resolvedPreferredTitle }
+            ?? sameAddonSources.first {
+                $0.title.localizedCaseInsensitiveCompare(resolvedPreferredTitle) == .orderedSame
+            }
+            ?? sameAddonSources.first { $0.id == storedSource.id }
+            ?? sameAddonSources.first { $0.playbackURL == storedSource.playbackURL }
+            ?? sameAddonSources.first { $0.title == storedSource.title }
+            ?? storedSource.addonSourceIndex.flatMap { storedIndex in
+                sameAddonSources.first { $0.addonSourceIndex == storedIndex }
+            }
+
+        return matchedSource
     }
 
     private static func sortedSourcesForCurrentPlatform(_ sources: [StreamSource]) -> [StreamSource] {

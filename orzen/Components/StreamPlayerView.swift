@@ -80,7 +80,6 @@ struct StreamPlayerView: View {
             nextEpisodeBanner
             playerChrome
             episodeSidebar
-            episodeSidebarCloseButton
             startingOverlay
             errorOverlay
         }
@@ -188,7 +187,7 @@ struct StreamPlayerView: View {
             saveCurrentProgress(force: true)
         }
         .onDisappear {
-            saveCurrentProgress(force: true)
+            saveProgressOnDisappearIfNeeded()
             chromeVisibility.cancelAutoHide()
             cancelNativeStartupTimeout()
             player?.pause()
@@ -363,31 +362,6 @@ struct StreamPlayerView: View {
             }
             .zIndex(4)
         }
-    }
-
-    @ViewBuilder
-    private var episodeSidebarCloseButton: some View {
-        #if os(iOS)
-        if isEpisodeSidebarPresented {
-            VStack {
-                HStack {
-                    Spacer(minLength: 0)
-
-                    PlayerIconButton(
-                        systemName: "xmark",
-                        help: "Close episodes",
-                        usesGlassBackground: true,
-                        action: closeEpisodeSidebar
-                    )
-                }
-                .padding(.horizontal, 18)
-                .padding(.top, 22)
-
-                Spacer(minLength: 0)
-            }
-            .zIndex(5)
-        }
-        #endif
     }
 
     @ViewBuilder
@@ -1029,6 +1003,12 @@ struct StreamPlayerView: View {
         lastSavedProgressPosition = currentTime
     }
 
+    private func saveProgressOnDisappearIfNeeded() {
+        let activeRequestID = StreamPlaybackStore.shared.request?.id
+        guard activeRequestID == request.id else { return }
+        saveCurrentProgress(force: true)
+    }
+
     private func completeCurrentContent() {
         guard !hasCompletedCurrentContent,
               canCompleteCurrentPlayback else {
@@ -1129,6 +1109,7 @@ struct StreamPlayerView: View {
             for: item,
             episode: episode,
             source: source,
+            preferredSourceTitle: request.preferredSourceTitle,
             subtitle: item.title,
             trackSelections: trackSelections,
             subtitleDelay: subtitleDelay
@@ -1137,12 +1118,13 @@ struct StreamPlayerView: View {
         guard prefetchedSource(for: episode) == nil else { return }
 
         Task {
-            guard let refreshedSource = await firstSource(for: episode) else { return }
+            guard let refreshedSource = await nextSource(for: episode) else { return }
             await MainActor.run {
                 progressStore.savePendingProgress(
                     for: item,
                     episode: episode,
                     source: refreshedSource,
+                    preferredSourceTitle: request.preferredSourceTitle,
                     subtitle: item.title,
                     trackSelections: trackSelections,
                     subtitleDelay: subtitleDelay
@@ -1290,7 +1272,7 @@ struct StreamPlayerView: View {
             if let prefetchedSource = prefetchedSource(for: nextEpisode) {
                 source = prefetchedSource
             } else {
-                source = await firstSource(for: nextEpisode)
+                source = await nextSource(for: nextEpisode)
             }
 
             await MainActor.run {
@@ -1305,6 +1287,7 @@ struct StreamPlayerView: View {
                     contentType: .series,
                     item: item,
                     episode: nextEpisode,
+                    preferredSourceTitle: request.preferredSourceTitle,
                     initialTrackSelections: trackSelections
                 )
             }
@@ -1320,7 +1303,7 @@ struct StreamPlayerView: View {
 
         prefetchedNextEpisodeID = nextEpisode.id
         prefetchedNextSource = nil
-        let source = await firstSource(for: nextEpisode)
+        let source = await nextSource(for: nextEpisode)
         guard prefetchedNextEpisodeID == nextEpisode.id else { return }
         prefetchedNextSource = source
     }
@@ -1330,8 +1313,10 @@ struct StreamPlayerView: View {
         return prefetchedNextSource
     }
 
-    private func firstSource(for episode: CatalogEpisode) async -> StreamSource? {
-        await StreamSourceResolver.firstSource(
+    private func nextSource(for episode: CatalogEpisode) async -> StreamSource? {
+        await StreamSourceResolver.continuingSource(
+            after: request.source,
+            preferredTitle: request.preferredSourceTitle,
             from: addonStore.streamAddons,
             type: .series,
             id: episode.id
