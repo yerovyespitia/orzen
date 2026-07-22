@@ -8,6 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0000023000000000000001 /* StreamPlayerPolicies.swift */; };
+		7A2000013000000000000001 /* StreamPlayerView+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */; };
+		7A2000023000000000000001 /* StreamPlayerView+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */; };
+		7A2000033000000000000001 /* StreamPlayerView+Playback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100033000000000000001 /* StreamPlayerView+Playback.swift */; };
+		7A2000043000000000000001 /* StreamPlayerView+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100043000000000000001 /* StreamPlayerView+Progress.swift */; };
+		7A2000053000000000000001 /* StreamPlayerView+Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100053000000000000001 /* StreamPlayerView+Controls.swift */; };
+		7A2000063000000000000001 /* StreamPlayerView+Episodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */; };
+		7A2000073000000000000001 /* StreamPlayerView+Tracks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */; };
+		7A2000083000000000000001 /* StreamPlayerView+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100083000000000000001 /* StreamPlayerView+State.swift */; };
 		7A1000013000000000000001 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100013000000000000001 /* TestFixtures.swift */; };
 		7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */; };
 		7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */; };
@@ -110,6 +118,14 @@
 
 /* Begin PBXFileReference section */
 		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
+		7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Presentation.swift"; sourceTree = "<group>"; };
+		7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Navigation.swift"; sourceTree = "<group>"; };
+		7A2100033000000000000001 /* StreamPlayerView+Playback.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Playback.swift"; sourceTree = "<group>"; };
+		7A2100043000000000000001 /* StreamPlayerView+Progress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Progress.swift"; sourceTree = "<group>"; };
+		7A2100053000000000000001 /* StreamPlayerView+Controls.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Controls.swift"; sourceTree = "<group>"; };
+		7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Episodes.swift"; sourceTree = "<group>"; };
+		7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Tracks.swift"; sourceTree = "<group>"; };
+		7A2100083000000000000001 /* StreamPlayerView+State.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+State.swift"; sourceTree = "<group>"; };
 		7A1100013000000000000001 /* TestFixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
 		7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerProgressPolicyTests.swift; sourceTree = "<group>"; };
 		7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerTrackPolicyTests.swift; sourceTree = "<group>"; };
@@ -317,6 +333,14 @@
 				6DAA20162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift */,
 				6DAA20192E10000000B5D7A1 /* StreamPlayerNextEpisodeBanner.swift */,
 				6DAA200F2E04000000B5D7A1 /* StreamPlayerView.swift */,
+				7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */,
+				7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */,
+				7A2100033000000000000001 /* StreamPlayerView+Playback.swift */,
+				7A2100043000000000000001 /* StreamPlayerView+Progress.swift */,
+				7A2100053000000000000001 /* StreamPlayerView+Controls.swift */,
+				7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */,
+				7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */,
+				7A2100083000000000000001 /* StreamPlayerView+State.swift */,
 				6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */,
 				6D90552F2DCE548B0023DEAE /* FeaturedCarousel.swift */,
 				6D90553B2E1900000023DEAE /* FeaturedCarouselPage.swift */,
@@ -601,6 +625,14 @@
 				6D28720F2E08100100B5D7A1 /* PlaybackProgressStore.swift in Sources */,
 				6DC0DE052E09000000B5D7A1 /* InfoViewModel.swift in Sources */,
 				6DAA100F2E04000000B5D7A1 /* StreamPlayerView.swift in Sources */,
+				7A2000013000000000000001 /* StreamPlayerView+Presentation.swift in Sources */,
+				7A2000023000000000000001 /* StreamPlayerView+Navigation.swift in Sources */,
+				7A2000033000000000000001 /* StreamPlayerView+Playback.swift in Sources */,
+				7A2000043000000000000001 /* StreamPlayerView+Progress.swift in Sources */,
+				7A2000053000000000000001 /* StreamPlayerView+Controls.swift in Sources */,
+				7A2000063000000000000001 /* StreamPlayerView+Episodes.swift in Sources */,
+				7A2000073000000000000001 /* StreamPlayerView+Tracks.swift in Sources */,
+				7A2000083000000000000001 /* StreamPlayerView+State.swift in Sources */,
 				6D90552B2DCE3FCF0023DEAE /* CatalogItem.swift in Sources */,
 				6DC0DE072E09000000B5D7A1 /* PlayerMediaTrack.swift in Sources */,
 				6D938E892DD4C3240048DEB4 /* CollectionDetailView.swift in Sources */,
