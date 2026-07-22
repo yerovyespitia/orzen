@@ -248,7 +248,7 @@ struct FeaturedCarousel: View {
         isEnabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             Button(action: action) {
                 carouselButtonIcon(systemImage, isEnabled: isEnabled)
                     .background(carouselButtonBackground(systemImage: systemImage, isEnabled: isEnabled))
@@ -301,7 +301,7 @@ struct FeaturedCarousel: View {
     
     @ViewBuilder
     private func carouselControls(pageWidth: CGFloat) -> some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             GlassEffectContainer(spacing: 0) {
                 carouselControlsContent()
             }

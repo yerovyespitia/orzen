@@ -65,12 +65,15 @@ final class PlaybackProgressStore: ObservableObject {
 
     @Published private(set) var entries: [PlaybackProgressEntry] = []
 
+    private let userDefaults: UserDefaults
+
     private static let storageKey = "OrzenPlaybackProgressJSON"
     private static let minimumResumePosition: Double = 1
     private static let seriesCompletionRemainingSeconds: Double = 180
     private static let movieCompletionRemainingSeconds: Double = 420
 
-    private init() {
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
         load()
     }
 
@@ -342,7 +345,7 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: Self.storageKey),
+        guard let data = userDefaults.data(forKey: Self.storageKey),
               let storedEntries = try? JSONDecoder().decode([PlaybackProgressEntry].self, from: data) else {
             return
         }
@@ -352,6 +355,6 @@ final class PlaybackProgressStore: ObservableObject {
 
     private func save() {
         guard let data = try? JSONEncoder().encode(entries) else { return }
-        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        userDefaults.set(data, forKey: Self.storageKey)
     }
 }

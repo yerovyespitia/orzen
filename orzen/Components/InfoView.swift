@@ -286,7 +286,7 @@ struct InfoView: View {
         Button {
             performBackAction()
         } label: {
-            if #available(macOS 26, *) {
+            if #available(macOS 26, iOS 26, *) {
                 sourcesBackIcon
                     .background(sourcesBackBackground)
                     .glassEffect(.clear.interactive(), in: Circle())

@@ -118,7 +118,7 @@ struct StreamPlayerChrome: View {
             centerTransportButtons
         }
         #else
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             GlassEffectContainer(spacing: 34) {
                 centerTransportButtons
             }

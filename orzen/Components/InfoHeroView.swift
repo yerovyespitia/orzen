@@ -196,7 +196,7 @@ struct InfoHeroView: View {
         Button {
             withAnimation(.easeInOut(duration: 0.14), action)
         } label: {
-            if #available(macOS 26, *) {
+            if #available(macOS 26, iOS 26, *) {
                 actionIcon(systemImage: systemImage, isSelected: isSelected)
                     .background(actionBackground(isSelected: isSelected, isHovered: isHovered))
                     .glassEffect(.clear.interactive(), in: Circle())
@@ -304,7 +304,7 @@ struct InfoHeroView: View {
             detailPillContent
         }
         #else
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             GlassEffectContainer(spacing: 10) {
                 detailPillContent
             }
@@ -324,7 +324,7 @@ struct InfoHeroView: View {
 
     @ViewBuilder
     private func detailPill(_ detail: String) -> some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             detailPillText(detail)
                 .glassEffect(.regular.tint(Color.white.opacity(0.03)), in: Capsule())
         } else {

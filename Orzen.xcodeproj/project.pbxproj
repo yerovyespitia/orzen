@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0000023000000000000001 /* StreamPlayerPolicies.swift */; };
+		7A1000013000000000000001 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100013000000000000001 /* TestFixtures.swift */; };
+		7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */; };
+		7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */; };
+		7A1000043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */; };
+		7A1000053000000000000001 /* NativePlaybackCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */; };
+		7A1000063000000000000001 /* PlaybackProgressStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */; };
+		7A1000073000000000000001 /* EpisodeWatchStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */; };
+		7A1000083000000000000001 /* StreamSourceResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100083000000000000001 /* StreamSourceResolverTests.swift */; };
+		7A1000093000000000000001 /* ExternalSubtitleResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */; };
+		7A10000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */; };
 		1D15EBDE4FF105437CA47B4A /* libPods-Orzen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A02060550CF52A2BCE73A3F3 /* libPods-Orzen.a */; platformFilter = ios; };
 		6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */; };
 		6D1AD92B2E03A9A100BFF0DE /* MPVPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */; };
@@ -87,7 +98,29 @@
 		6DF00D042E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF00D032E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		7A1700013000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D90550D2DCE3D480023DEAE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6D9055142DCE3D480023DEAE;
+			remoteInfo = Orzen;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
+		7A1100013000000000000001 /* TestFixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
+		7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerProgressPolicyTests.swift; sourceTree = "<group>"; };
+		7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerTrackPolicyTests.swift; sourceTree = "<group>"; };
+		7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPlaybackPolicyTests.swift; sourceTree = "<group>"; };
+		7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlaybackCompatibilityTests.swift; sourceTree = "<group>"; };
+		7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackProgressStoreTests.swift; sourceTree = "<group>"; };
+		7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeWatchStoreTests.swift; sourceTree = "<group>"; };
+		7A1100083000000000000001 /* StreamSourceResolverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamSourceResolverTests.swift; sourceTree = "<group>"; };
+		7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleResolverTests.swift; sourceTree = "<group>"; };
+		7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerChromeVisibilityControllerTests.swift; sourceTree = "<group>"; };
+		7A1200013000000000000001 /* OrzenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OrzenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BA59AD1B3A942C798EE03E2 /* Pods-Orzen.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Orzen.release.xcconfig"; path = "Target Support Files/Pods-Orzen/Pods-Orzen.release.xcconfig"; sourceTree = "<group>"; };
 		6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
 		6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MPVPlayerView.swift; sourceTree = "<group>"; };
@@ -174,6 +207,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7A1300013000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6D9055122DCE3D480023DEAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -294,6 +334,7 @@
 				6D9055272DCE3FCF0023DEAE /* CatalogData.swift */,
 				6DAA20072E04000000B5D7A1 /* CinemetaCatalogPresets.swift */,
 				6DC0DE062E09000000B5D7A1 /* PlayerMediaTrack.swift */,
+				7A0000023000000000000001 /* StreamPlayerPolicies.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -302,6 +343,7 @@
 			isa = PBXGroup;
 			children = (
 				6D9055172DCE3D490023DEAE /* orzen */,
+				7A1600013000000000000001 /* OrzenTests */,
 				6D9055162DCE3D490023DEAE /* Products */,
 				FCC31DCBE4B5B896CBE109D3 /* Pods */,
 				FF6B521A2854F76669820417 /* Frameworks */,
@@ -312,6 +354,7 @@
 			isa = PBXGroup;
 			children = (
 				6D9055152DCE3D490023DEAE /* Orzen.app */,
+				7A1200013000000000000001 /* OrzenTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -345,6 +388,23 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		7A1600013000000000000001 /* OrzenTests */ = {
+			isa = PBXGroup;
+			children = (
+				7A1100013000000000000001 /* TestFixtures.swift */,
+				7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */,
+				7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */,
+				7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */,
+				7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */,
+				7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */,
+				7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */,
+				7A1100083000000000000001 /* StreamSourceResolverTests.swift */,
+				7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */,
+				7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */,
+			);
+			path = OrzenTests;
+			sourceTree = "<group>";
+		};
 		FCC31DCBE4B5B896CBE109D3 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -366,6 +426,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		7A1400013000000000000001 /* OrzenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7A1500033000000000000001 /* Build configuration list for PBXNativeTarget "OrzenTests" */;
+			buildPhases = (
+				7A1300033000000000000001 /* Sources */,
+				7A1300013000000000000001 /* Frameworks */,
+				7A1300023000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7A1700023000000000000001 /* PBXTargetDependency */,
+			);
+			name = OrzenTests;
+			productName = OrzenTests;
+			productReference = 7A1200013000000000000001 /* OrzenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		6D9055142DCE3D480023DEAE /* Orzen */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6D9055242DCE3D4D0023DEAE /* Build configuration list for PBXNativeTarget "Orzen" */;
@@ -398,6 +476,10 @@
 					6D9055142DCE3D480023DEAE = {
 						CreatedOnToolsVersion = 15.2;
 					};
+					7A1400013000000000000001 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = 6D9055142DCE3D480023DEAE;
+					};
 				};
 			};
 			buildConfigurationList = 6D9055102DCE3D480023DEAE /* Build configuration list for PBXProject "Orzen" */;
@@ -414,11 +496,19 @@
 			projectRoot = "";
 			targets = (
 				6D9055142DCE3D480023DEAE /* Orzen */,
+				7A1400013000000000000001 /* OrzenTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		7A1300023000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6D9055132DCE3D480023DEAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -473,10 +563,28 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7A1300033000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A1000013000000000000001 /* TestFixtures.swift in Sources */,
+				7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */,
+				7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */,
+				7A1000043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift in Sources */,
+				7A1000053000000000000001 /* NativePlaybackCompatibilityTests.swift in Sources */,
+				7A1000063000000000000001 /* PlaybackProgressStoreTests.swift in Sources */,
+				7A1000073000000000000001 /* EpisodeWatchStoreTests.swift in Sources */,
+				7A1000083000000000000001 /* StreamSourceResolverTests.swift in Sources */,
+				7A1000093000000000000001 /* ExternalSubtitleResolverTests.swift in Sources */,
+				7A10000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6D9055112DCE3D480023DEAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */,
 				6DAA10012E04000000B5D7A1 /* AddonsView.swift in Sources */,
 				6D5648112DD0F57D003D7144 /* SearchView.swift in Sources */,
 				6DAA10082E04000000B5D7A1 /* CinemetaCatalogStore.swift in Sources */,
@@ -557,7 +665,87 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		7A1700023000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6D9055142DCE3D480023DEAE /* Orzen */;
+			targetProxy = 7A1700013000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		7A1500013000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8F48B8WMY3;
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Pods/VLCKit",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/XCFrameworkIntermediates/VLCKit",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					/opt/homebrew/include,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				"TEST_HOST[sdk=iphone*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Orzen";
+				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Contents/MacOS/Orzen";
+			};
+			name = Debug;
+		};
+		7A1500023000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8F48B8WMY3;
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Pods/VLCKit",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/XCFrameworkIntermediates/VLCKit",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					/opt/homebrew/include,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				"TEST_HOST[sdk=iphone*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Orzen";
+				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Contents/MacOS/Orzen";
+			};
+			name = Release;
+		};
 		6D9055222DCE3D4D0023DEAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -698,6 +886,7 @@
 					/opt/homebrew/include,
 				);
 				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads[sdk=iphone*]" = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
 				"INFOPLIST_FILE[sdk=iphone*]" = orzen/Info-iOS.plist;
@@ -754,6 +943,7 @@
 					/opt/homebrew/include,
 				);
 				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads[sdk=iphone*]" = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
 				"INFOPLIST_FILE[sdk=iphone*]" = orzen/Info-iOS.plist;
@@ -791,6 +981,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7A1500033000000000000001 /* Build configuration list for PBXNativeTarget "OrzenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A1500013000000000000001 /* Debug */,
+				7A1500023000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		6D9055102DCE3D480023DEAE /* Build configuration list for PBXProject "Orzen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

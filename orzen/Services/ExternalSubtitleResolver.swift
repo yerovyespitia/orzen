@@ -7,7 +7,7 @@ struct ExternalSubtitleCue: Identifiable, Sendable {
     let text: String
     let placement: Placement
 
-    enum Placement: Sendable {
+    enum Placement: Equatable, Sendable {
         case dialogue
         case contextual
     }

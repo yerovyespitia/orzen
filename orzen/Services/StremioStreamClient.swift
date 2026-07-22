@@ -135,7 +135,7 @@ struct StreamSourceCategory: Codable, Hashable, Sendable {
     }
 }
 
-enum StreamPlaybackEngine: Sendable {
+enum StreamPlaybackEngine: Equatable, Sendable {
     case native
     case vlc
     case mpv

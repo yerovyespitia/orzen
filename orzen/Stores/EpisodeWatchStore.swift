@@ -7,10 +7,13 @@ final class EpisodeWatchStore: ObservableObject {
     @Published private(set) var watchedEpisodeIDs: Set<CatalogEpisode.ID> = []
     @Published private var seriesProgress: [CatalogItem.ID: WatchedSeriesProgress] = [:]
 
+    private let userDefaults: UserDefaults
+
     private static let storageKey = "OrzenWatchedEpisodeIDs"
     private static let seriesStorageKey = "OrzenWatchedSeriesProgressJSON"
 
-    private init() {
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
         load()
     }
 
@@ -256,10 +259,10 @@ final class EpisodeWatchStore: ObservableObject {
     }
 
     private func load() {
-        let ids = UserDefaults.standard.stringArray(forKey: Self.storageKey) ?? []
+        let ids = userDefaults.stringArray(forKey: Self.storageKey) ?? []
         watchedEpisodeIDs = Set(ids)
 
-        guard let data = UserDefaults.standard.data(forKey: Self.seriesStorageKey),
+        guard let data = userDefaults.data(forKey: Self.seriesStorageKey),
               let progress = try? JSONDecoder().decode([WatchedSeriesProgress].self, from: data) else {
             return
         }
@@ -269,10 +272,10 @@ final class EpisodeWatchStore: ObservableObject {
 
     private func save() {
         let ids = watchedEpisodeIDs.sorted()
-        UserDefaults.standard.set(ids, forKey: Self.storageKey)
+        userDefaults.set(ids, forKey: Self.storageKey)
 
         guard let data = try? JSONEncoder().encode(Array(seriesProgress.values)) else { return }
-        UserDefaults.standard.set(data, forKey: Self.seriesStorageKey)
+        userDefaults.set(data, forKey: Self.seriesStorageKey)
     }
 }
 

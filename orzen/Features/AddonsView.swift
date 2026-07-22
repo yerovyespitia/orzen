@@ -278,7 +278,7 @@ private struct AddonRow: View {
 
     @ViewBuilder
     private var actionButtons: some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             GlassEffectContainer(spacing: 4) {
                 actionButtonContent
             }
@@ -340,7 +340,7 @@ private struct AddonActionButton: View {
     }
 
     var body: some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             Button(action: action) {
                 icon
                     .background(buttonBackground)

@@ -46,7 +46,7 @@ private struct SourceFilterButton: View {
     @State private var isHovered = false
 
     var body: some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             Button(action: action) {
                 if isSelected {
                     label

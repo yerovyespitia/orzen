@@ -23,39 +23,85 @@ struct iPhoneRootShell: View {
 
     var body: some View {
         ZStack {
-            TabView(selection: selectedTabBinding) {
-                Tab("Home", systemImage: "house", value: RootTab.home) {
-                    HomeView(
-                        scrollToTopRequest: homeScrollToTopRequest,
-                        popToRootRequest: homePopToRootRequest
-                    )
-                }
-
-                Tab("Collections", systemImage: "square.stack", value: RootTab.collections) {
-                    CollectionsView(popToRootRequest: collectionsPopToRootRequest)
-                }
-
-                Tab("Addons", systemImage: "puzzlepiece.extension", value: RootTab.addons) {
-                    AddonsView(popToRootRequest: addonsPopToRootRequest)
-                }
-
-                Tab(value: RootTab.search, role: .search) {
-                    SearchView(
-                        scrollToTopRequest: searchScrollToTopRequest,
-                        popToRootRequest: searchPopToRootRequest,
-                        searchText: $searchText,
-                        showsSearchBar: false,
-                        systemSearchActivationRequest: searchActivationRequest
-                    )
-                }
+            if #available(iOS 26, *) {
+                modernTabView
+            } else {
+                legacyTabView
             }
-            .tabViewSearchActivation(.searchTabSelection)
-            .ignoresSafeArea(.container, edges: .top)
 
             StreamPlayerPresenter(request: $playbackStore.request)
                 .frame(width: 0, height: 0)
         }
         .background(Color.black.ignoresSafeArea())
+    }
+
+    @available(iOS 26, *)
+    private var modernTabView: some View {
+        TabView(selection: selectedTabBinding) {
+            Tab("Home", systemImage: "house", value: RootTab.home) {
+                homeView
+            }
+
+            Tab("Collections", systemImage: "square.stack", value: RootTab.collections) {
+                collectionsView
+            }
+
+            Tab("Addons", systemImage: "puzzlepiece.extension", value: RootTab.addons) {
+                addonsView
+            }
+
+            Tab(value: RootTab.search, role: .search) {
+                searchView(showsSearchBar: false)
+            }
+        }
+        .tabViewSearchActivation(.searchTabSelection)
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var legacyTabView: some View {
+        TabView(selection: selectedTabBinding) {
+            homeView
+                .tabItem { Label("Home", systemImage: "house") }
+                .tag(RootTab.home)
+
+            collectionsView
+                .tabItem { Label("Collections", systemImage: "square.stack") }
+                .tag(RootTab.collections)
+
+            addonsView
+                .tabItem { Label("Addons", systemImage: "puzzlepiece.extension") }
+                .tag(RootTab.addons)
+
+            searchView(showsSearchBar: true)
+                .tabItem { Label("Search", systemImage: "magnifyingglass") }
+                .tag(RootTab.search)
+        }
+        .ignoresSafeArea(.container, edges: .top)
+    }
+
+    private var homeView: some View {
+        HomeView(
+            scrollToTopRequest: homeScrollToTopRequest,
+            popToRootRequest: homePopToRootRequest
+        )
+    }
+
+    private var collectionsView: some View {
+        CollectionsView(popToRootRequest: collectionsPopToRootRequest)
+    }
+
+    private var addonsView: some View {
+        AddonsView(popToRootRequest: addonsPopToRootRequest)
+    }
+
+    private func searchView(showsSearchBar: Bool) -> some View {
+        SearchView(
+            scrollToTopRequest: searchScrollToTopRequest,
+            popToRootRequest: searchPopToRootRequest,
+            searchText: $searchText,
+            showsSearchBar: showsSearchBar,
+            systemSearchActivationRequest: searchActivationRequest
+        )
     }
 
     private static func configureTabBarAppearance() {

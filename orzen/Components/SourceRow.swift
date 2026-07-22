@@ -240,7 +240,7 @@ private extension View {
     func sourceRowBackground() -> some View {
         let shape = SourceRowStyle.cardShape
 
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             self
                 .glassEffect(.clear, in: shape)
                 .overlay {

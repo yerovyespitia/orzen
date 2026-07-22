@@ -1,7 +1,7 @@
 import AVFoundation
 import Foundation
 
-enum NativePlaybackCompatibility: Sendable {
+enum NativePlaybackCompatibility: Equatable, Sendable {
     case supported
     case likely
     case unknown

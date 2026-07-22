@@ -18,3 +18,9 @@
 
 - For behavior-preserving refactors, establish proportionate tests around the behavior being moved before making structural changes.
 - Keep platform-specific playback behavior explicit and verify both macOS and iOS code paths when the affected code is conditional by platform.
+- Before and after changing `StreamPlayerView`, run the shared `Orzen` scheme on both supported platforms. Keep Derived Data outside the repository:
+
+  ```sh
+  xcodebuild -project Orzen.xcodeproj -scheme Orzen -destination 'platform=macOS' -derivedDataPath /tmp/orzen-tests-derived CODE_SIGNING_ALLOWED=NO test
+  xcodebuild -workspace Orzen.xcworkspace -scheme Orzen -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/orzen-ios-tests-derived CODE_SIGNING_ALLOWED=NO test
+  ```

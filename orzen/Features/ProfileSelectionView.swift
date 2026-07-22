@@ -79,7 +79,7 @@ private struct ProfileCircleButton: View {
 
     @ViewBuilder
     private var profileAvatar: some View {
-        if #available(macOS 26.0, *) {
+        if #available(macOS 26.0, iOS 26.0, *) {
             Text(profile.emoji)
                 .font(.system(size: 66))
                 .frame(width: 184, height: 184)

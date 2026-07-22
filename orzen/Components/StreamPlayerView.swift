@@ -58,8 +58,6 @@ struct StreamPlayerView: View {
     #endif
 
     private let nativeStartupMinimumProgress = 1.0
-    private let minimumCompletableMovieDuration = 20 * 60.0
-    private let minimumCompletableEpisodeDuration = 5 * 60.0
     #if os(iOS)
     private let expandedVideoScale: CGFloat = 1.22
     #endif
@@ -767,29 +765,38 @@ struct StreamPlayerView: View {
     private func startPlaybackIfPossible() {
         guard player == nil, !isPreparingNativePlayback else { return }
 
-        if let playbackURLError = request.source.playbackURLError {
-            playbackObserver.errorMessage = playbackURLError
-            return
-        }
-
-        guard let playbackURL = request.source.playbackURL else {
-            playbackObserver.errorMessage = "This source does not expose a direct video URL. The native player can only open direct HTTP or HTTPS video streams returned by the addon."
-            return
-        }
-
         #if os(iOS)
-        IOSMediaPlaybackSession.activate()
-        startVLCPlayback(with: playbackURL)
+        let decision = StreamPlayerPlaybackPolicy.initialDecision(
+            for: request.source,
+            platform: .iOS,
+            isVLCAvailable: vlcController.isAvailable
+        )
         #else
-        guard request.source.preferredPlaybackEngine == .native else {
+        let decision = StreamPlayerPlaybackPolicy.initialDecision(
+            for: request.source,
+            platform: .macOS,
+            isVLCAvailable: false
+        )
+        #endif
+
+        switch decision {
+        case .failure(let message):
+            playbackObserver.errorMessage = message
+        case .play(_, with: .mpv):
             activePlaybackEngine = .mpv
             playbackObserver.stop()
             playbackObserver.errorMessage = nil
-            return
+        case .play(let playbackURL, with: .vlc):
+            #if os(iOS)
+            IOSMediaPlaybackSession.activate()
+            startVLCPlayback(with: playbackURL)
+            #endif
+        case .play(let playbackURL, with: .native):
+            #if os(iOS)
+            IOSMediaPlaybackSession.activate()
+            #endif
+            startNativePlayback(with: playbackURL)
         }
-
-        startNativePlayback(with: playbackURL)
-        #endif
     }
 
     #if os(iOS)
@@ -896,25 +903,21 @@ struct StreamPlayerView: View {
 
     private func fallbackPlaybackRequestAfterNativeFailure() async -> StreamPlaybackRequest? {
         #if os(iOS)
-        var attemptedSourceIDs = request.attemptedSourceIDs
-        attemptedSourceIDs.insert(request.source.id)
-
         let sources = await StreamSourceResolver.fetchAllSources(
             from: addonStore.streamAddons,
             type: request.contentType,
             id: request.contentID
         )
-        let candidates = sources.filter { source in
-            !attemptedSourceIDs.contains(source.id)
-                && NativePlaybackCompatibilityResolver.compatibility(for: source).canAttemptPlayback
-        }
-
-        guard let fallbackSource = NativePlaybackCompatibilityResolver.bestNativeSource(in: candidates) else {
+        guard let selection = StreamPlayerPlaybackPolicy.fallbackSelection(
+            currentSource: request.source,
+            previouslyAttemptedSourceIDs: request.attemptedSourceIDs,
+            candidates: sources
+        ) else {
             return nil
         }
 
         return StreamPlaybackRequest(
-            source: fallbackSource,
+            source: selection.source,
             title: request.title,
             subtitle: request.subtitle,
             contentID: request.contentID,
@@ -922,7 +925,7 @@ struct StreamPlayerView: View {
             item: request.item,
             episode: request.episode,
             initialTrackSelections: request.initialTrackSelections,
-            attemptedSourceIDs: attemptedSourceIDs
+            attemptedSourceIDs: selection.attemptedSourceIDs
         )
         #else
         return nil
@@ -945,52 +948,53 @@ struct StreamPlayerView: View {
     }
 
     private func applySavedProgressIfPossible() {
-        guard !hasAppliedSavedProgress,
-              let pendingResumePosition,
-              activePlaybackEngine != nil,
-              duration > 0,
-              pendingResumePosition < max(duration - 5, 0) else {
+        guard let resumePosition = StreamPlayerProgressPolicy.resumePositionToApply(
+            hasAppliedSavedProgress: hasAppliedSavedProgress,
+            pendingResumePosition: pendingResumePosition,
+            hasActivePlaybackEngine: activePlaybackEngine != nil,
+            duration: duration
+        ) else {
             return
         }
 
         hasAppliedSavedProgress = true
-        seek(to: pendingResumePosition)
+        seek(to: resumePosition)
     }
 
     private func saveCurrentProgress(
         force: Bool = false,
         trackSelections: PlaybackTrackSelections? = nil
     ) {
-        guard !hasCompletedCurrentContent,
-              activePlaybackEngine != nil,
-              playbackErrorMessage == nil,
-              currentTime.isFinite,
-              duration.isFinite else {
-            return
-        }
+        let action = StreamPlayerProgressPolicy.action(
+            hasCompletedCurrentContent: hasCompletedCurrentContent,
+            hasActivePlaybackEngine: activePlaybackEngine != nil,
+            hasPlaybackError: playbackErrorMessage != nil,
+            currentTime: currentTime,
+            duration: duration,
+            contentType: request.contentType,
+            progressStoreConsidersComplete: progressStore.isComplete(
+                position: currentTime,
+                duration: duration,
+                contentType: request.contentType
+            ),
+            pendingResumePosition: pendingResumePosition,
+            hasAppliedSavedProgress: hasAppliedSavedProgress,
+            lastSavedProgressPosition: lastSavedProgressPosition,
+            force: force
+        )
 
-        if progressStore.isComplete(position: currentTime, duration: duration, contentType: request.contentType),
-           canCompleteCurrentPlayback {
+        switch action {
+        case .complete:
             completeCurrentContent()
             return
-        }
-
-        if duration > 0, !canCompleteCurrentPlayback {
+        case .clear:
             clearCurrentPlaybackProgress()
             return
-        }
-
-        if hasReachedPlaybackEnd && !canCompleteCurrentPlayback {
+        case .ignore:
             return
+        case .save:
+            break
         }
-
-        if let pendingResumePosition,
-           !hasAppliedSavedProgress,
-           currentTime < pendingResumePosition {
-            return
-        }
-
-        guard force || abs(currentTime - lastSavedProgressPosition) >= 1 else { return }
 
         progressStore.saveProgress(
             for: request,
@@ -1070,24 +1074,17 @@ struct StreamPlayerView: View {
     }
 
     private var hasReachedPlaybackEnd: Bool {
-        guard currentTime.isFinite,
-              duration.isFinite,
-              duration > 0 else {
-            return false
-        }
-
-        return max(duration - currentTime, 0) <= 1.25
+        StreamPlayerProgressPolicy.hasReachedPlaybackEnd(
+            currentTime: currentTime,
+            duration: duration
+        )
     }
 
     private var canCompleteCurrentPlayback: Bool {
-        guard duration.isFinite else { return false }
-
-        switch request.contentType {
-        case .movie:
-            return duration >= minimumCompletableMovieDuration
-        case .series:
-            return duration >= minimumCompletableEpisodeDuration
-        }
+        StreamPlayerProgressPolicy.canComplete(
+            duration: duration,
+            contentType: request.contentType
+        )
     }
 
     private func clearCurrentPlaybackProgress() {
@@ -1651,31 +1648,19 @@ struct StreamPlayerView: View {
     }
 
     private func matchingTrack(for choice: PlaybackTrackChoice, in tracks: [PlayerMediaTrack]) -> PlayerMediaTrack? {
-        tracks.first { $0.id == choice.id }
-            ?? tracks.first {
-                $0.isOff == choice.isOff
-                    && $0.language == choice.language
-                    && $0.title == choice.title
-            }
+        StreamPlayerTrackPolicy.matchingTrack(for: choice, in: tracks)
     }
 
     private func externalSubtitleTrackID(for subtitle: ExternalSubtitleTrack) -> String {
-        "external-subtitle-\(subtitle.id)"
+        StreamPlayerTrackPolicy.externalSubtitleTrackID(for: subtitle)
     }
 
     private func selectedTrackChoice(from tracks: [PlayerMediaTrack], kind: PlayerMediaTrack.Kind) -> PlaybackTrackChoice? {
-        guard let track = tracks.first(where: { $0.kind == kind && $0.isSelected }) else { return nil }
-
-        return trackChoice(from: track)
+        StreamPlayerTrackPolicy.selectedTrackChoice(from: tracks, kind: kind)
     }
 
     private func trackChoice(from track: PlayerMediaTrack) -> PlaybackTrackChoice {
-        return PlaybackTrackChoice(
-            id: track.id,
-            title: track.title,
-            language: track.language,
-            isOff: track.isOff
-        )
+        StreamPlayerTrackPolicy.trackChoice(from: track)
     }
 }
 

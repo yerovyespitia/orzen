@@ -92,7 +92,7 @@ struct StreamPlayerNextEpisodeBanner: View {
 private extension View {
     @ViewBuilder
     func nextEpisodeBannerBackground(isHovered: Bool, shape: RoundedRectangle) -> some View {
-        if #available(macOS 26, *) {
+        if #available(macOS 26, iOS 26, *) {
             self
                 .glassEffect(.clear.interactive(), in: shape)
                 .overlay {
