@@ -6,3 +6,4 @@ Pods/
 *.xcscmblueprint
 *.xccheckout
 **/xcuserdata/
+graphify-out/
