@@ -42,6 +42,7 @@ struct CatalogPosterCard: View {
         .frame(maxWidth: .infinity)
         .aspectRatio(2 / 3, contentMode: .fit)
         .clipped()
+        .contentShape(Rectangle())
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
