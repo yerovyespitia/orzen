@@ -30,6 +30,7 @@ struct StreamPlayerChrome: View {
     let onEpisodeSidebarOpen: () -> Void
     let onFullscreen: () -> Void
     let onBackgroundTap: () -> Void
+    @State private var hoveredCircularButton: String?
     @State private var timelinePreviewTime: Double?
 
     var body: some View {
@@ -95,7 +96,7 @@ struct StreamPlayerChrome: View {
 
     @ViewBuilder
     private var backButton: some View {
-        circularButton(help: "Back", action: onBack) {
+        circularButton(hoverID: "player-back", help: "Back", action: onBack) {
             backIcon
         }
     }
@@ -414,7 +415,8 @@ struct StreamPlayerChrome: View {
         isEnabled: Bool = true,
         action: @escaping () -> Void
     ) -> some View {
-        return circularButton(
+        circularButton(
+            hoverID: "transport-\(systemName)-\(size.buttonSize)",
             help: help,
             isEnabled: isEnabled,
             action: action
@@ -425,6 +427,7 @@ struct StreamPlayerChrome: View {
 
     @ViewBuilder
     private func circularButton<Icon: View>(
+        hoverID: String,
         help: String,
         isEnabled: Bool = true,
         action: @escaping () -> Void,
@@ -432,14 +435,36 @@ struct StreamPlayerChrome: View {
     ) -> some View {
         Button(action: action) {
             icon()
+                #if os(macOS)
+                .background(circularButtonBackground(hoverID: hoverID))
+                #endif
                 .modifier(PlayerLiquidGlassCircleSurface(isActive: true))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        #if os(macOS)
+        .onHover { hovering in
+            hoveredCircularButton = hovering ? hoverID : nil
+        }
+        .animation(.easeInOut(duration: 0.12), value: hoveredCircularButton)
+        #endif
         .help(help)
         .accessibilityLabel(help)
         .disabled(!isEnabled)
     }
+
+    #if os(macOS)
+    private func circularButtonBackground(hoverID: String) -> some View {
+        let isHovered = hoveredCircularButton == hoverID
+
+        return Circle()
+            .fill(Color.white.opacity(isHovered ? 0.16 : 0.08))
+            .overlay {
+                Circle()
+                    .stroke(Color.white.opacity(isHovered ? 0.14 : 0.06), lineWidth: 1)
+            }
+    }
+    #endif
 
     @ViewBuilder
     private func centerTransportIcon(
