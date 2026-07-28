@@ -27,7 +27,8 @@ extension StreamPlayerView {
         if activePlaybackEngine == .vlc {
             VLCPlayerView(
                 controller: vlcController,
-                pictureInPictureSession: pictureInPictureSession
+                pictureInPictureSession: pictureInPictureSession,
+                pictureInPictureSubtitleText: currentExternalSubtitleText
             )
                 .background(Color.black)
                 .iOSVideoZoom(scale: effectiveVideoScale)
