@@ -17,6 +17,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     @Published var errorMessage: String?
     @Published var didReachEnd = false
     @Published var isStarting = false
+    @Published private(set) var isRenderingExternalSubtitle = false
 
     private let player = VLCMediaPlayer()
     private var timer: Timer?
@@ -41,6 +42,10 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     var drawable: Any? {
         get { player.drawable }
         set { player.drawable = newValue }
+    }
+
+    var isSeekable: Bool {
+        player.isSeekable
     }
 
     func play(url: URL) {
@@ -82,6 +87,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         duration = 0
         audioTracks = []
         subtitleTracks = []
+        isRenderingExternalSubtitle = false
         automaticAudioSelectionAttempts = 0
         lastAutomaticAudioSelectionAttempt = nil
     }
@@ -90,9 +96,14 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         if player.isPlaying {
             pause()
         } else {
-            player.play()
-            isPaused = false
+            resume()
         }
+    }
+
+    func resume() {
+        guard currentMedia != nil else { return }
+        player.play()
+        isPaused = false
     }
 
     func pause() {
@@ -139,6 +150,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     func selectSubtitleTrack(_ track: PlayerMediaTrack) {
+        isRenderingExternalSubtitle = false
+
         if track.isOff {
             player.deselectAllTextTracks()
             refreshTracks()
@@ -149,6 +162,27 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         player.deselectAllTextTracks()
         player.selectTrack(at: index, type: .text)
         refreshTracks()
+    }
+
+    @discardableResult
+    func renderExternalSubtitle(from url: URL, delay: Double) -> Bool {
+        player.deselectAllTextTracks()
+        let result = player.addPlaybackSlave(
+            url,
+            type: .subtitle,
+            enforce: true
+        )
+        isRenderingExternalSubtitle = result == 0
+        if isRenderingExternalSubtitle {
+            setSubtitleDelay(delay)
+            refreshTracks()
+        }
+        return isRenderingExternalSubtitle
+    }
+
+    func setSubtitleDelay(_ delay: Double) {
+        let clampedDelay = min(max(delay, -10), 10)
+        player.currentVideoSubTitleDelay = Int(clampedDelay * 1_000_000)
     }
 
     private func startTimer() {
@@ -403,9 +437,11 @@ final class VLCPlaybackController: ObservableObject {
     @Published var errorMessage: String?
     @Published var didReachEnd = false
     @Published var isStarting = false
+    @Published private(set) var isRenderingExternalSubtitle = false
 
     var drawable: Any?
     var isAvailable: Bool { false }
+    var isSeekable: Bool { false }
 
     func play(url: URL) {
         errorMessage = "Install the VLCKit CocoaPod to enable broad-format playback on iOS."
@@ -413,6 +449,7 @@ final class VLCPlaybackController: ObservableObject {
 
     func stop() { }
     func togglePlayPause() { }
+    func resume() { }
     func pause() { }
     func seek(to time: Double) { }
     func seek(by offset: Double) { }
@@ -420,6 +457,8 @@ final class VLCPlaybackController: ObservableObject {
     func toggleMute() { }
     func selectAudioTrack(_ track: PlayerMediaTrack) { }
     func selectSubtitleTrack(_ track: PlayerMediaTrack) { }
+    func renderExternalSubtitle(from url: URL, delay: Double) -> Bool { false }
+    func setSubtitleDelay(_ delay: Double) { }
 }
 #endif
 #endif

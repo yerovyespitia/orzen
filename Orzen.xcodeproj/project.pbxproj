@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000043000000000000001 /* PictureInPictureSession.swift */; };
+		7B0000013000000000000001 /* IOSNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000023000000000000001 /* IOSNowPlayingController.swift */; };
 		7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0000023000000000000001 /* StreamPlayerPolicies.swift */; };
 		7A2000013000000000000001 /* StreamPlayerView+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */; };
 		7A2000023000000000000001 /* StreamPlayerView+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */; };
@@ -117,6 +119,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7B0000043000000000000001 /* PictureInPictureSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureInPictureSession.swift; sourceTree = "<group>"; };
+		7B0000023000000000000001 /* IOSNowPlayingController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IOSNowPlayingController.swift; sourceTree = "<group>"; };
 		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
 		7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Presentation.swift"; sourceTree = "<group>"; };
 		7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Navigation.swift"; sourceTree = "<group>"; };
@@ -273,9 +277,11 @@
 				6DC0DE022E09000000B5D7A1 /* CatalogItemCollectionActions.swift */,
 				6DC0DE002E09000000B5D7A1 /* CinemetaClient.swift */,
 				6DC0DE0C2E09000000B5D7A1 /* ExternalSubtitleResolver.swift */,
+				7B0000023000000000000001 /* IOSNowPlayingController.swift */,
 				6D77A0012E16000000B5D7A1 /* NativePlaybackCompatibility.swift */,
 				6DC0DE082E09000000B5D7A1 /* MPVPlaybackController.swift */,
 				6DAA20142E04000000B5D7A1 /* NativePlayerTrackResolver.swift */,
+				7B0000043000000000000001 /* PictureInPictureSession.swift */,
 				6D1AD9332E1B100000BFF0DE /* VLCPlaybackController.swift */,
 				6D2872102E1C10000B5D7A1 /* StremioManifestClient.swift */,
 				6D2872022E034A0100B5D7A1 /* StremioStreamClient.swift */,
@@ -608,6 +614,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */,
+				7B0000013000000000000001 /* IOSNowPlayingController.swift in Sources */,
 				7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */,
 				6DAA10012E04000000B5D7A1 /* AddonsView.swift in Sources */,
 				6D5648112DD0F57D003D7144 /* SearchView.swift in Sources */,

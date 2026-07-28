@@ -139,6 +139,13 @@ extension StreamPlayerView {
             return nil
         }
 
+        #if os(iOS)
+        if activePlaybackEngine == .vlc,
+           vlcController.isRenderingExternalSubtitle {
+            return nil
+        }
+        #endif
+
         return ExternalSubtitleResolver.preferredText(
             in: externalSubtitleCues,
             at: currentTime - subtitleDelay
@@ -151,6 +158,12 @@ extension StreamPlayerView {
         if activePlaybackEngine == .mpv {
             mpvController.setSubtitleDelay(subtitleDelay)
         }
+        #if os(iOS)
+        if activePlaybackEngine == .vlc,
+           vlcController.isRenderingExternalSubtitle {
+            vlcController.setSubtitleDelay(subtitleDelay)
+        }
+        #endif
         saveCurrentProgress(force: true)
         chromeVisibility.keepVisible()
     }
@@ -188,6 +201,28 @@ extension StreamPlayerView {
 
     var isChromePresented: Bool {
         chromeVisibility.isVisible || playbackErrorMessage != nil
+    }
+
+    var isPictureInPictureAvailable: Bool {
+        #if os(iOS)
+        return pictureInPictureSession.isAvailable
+        #else
+        return false
+        #endif
+    }
+
+    var isPictureInPictureActive: Bool {
+        #if os(iOS)
+        return pictureInPictureSession.isActive
+        #else
+        return false
+        #endif
+    }
+
+    func togglePictureInPicture() {
+        #if os(iOS)
+        pictureInPictureSession.toggle()
+        #endif
     }
 
     var shouldAutoHideChrome: Bool {

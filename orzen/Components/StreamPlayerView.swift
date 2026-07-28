@@ -50,6 +50,8 @@ struct StreamPlayerView: View {
     @StateObject var playbackObserver = StreamPlaybackObserver()
     #if os(iOS)
     @StateObject var vlcController = VLCPlaybackController()
+    @StateObject var nowPlayingController = IOSNowPlayingController()
+    @StateObject var pictureInPictureSession = PictureInPictureSession()
     #endif
     @StateObject var mpvController = MPVPlaybackController()
     @StateObject var chromeVisibility = StreamPlayerChromeVisibilityController()
@@ -94,6 +96,9 @@ struct StreamPlayerView: View {
             pendingTrackSelections = request.initialTrackSelections ?? progressStore.trackSelections(for: request)
             subtitleDelay = progressStore.subtitleDelay(for: request)
             progressStore.beginPlayback(for: request)
+            #if os(iOS)
+            beginNowPlayingSession()
+            #endif
             startPlaybackIfPossible()
             refreshFullscreenState()
             scheduleChromeHideIfNeeded()
@@ -119,6 +124,9 @@ struct StreamPlayerView: View {
             startNativeFallbackIfPossible()
         }
         .onChange(of: isPaused) { _, isPaused in
+            #if os(iOS)
+            updateNowPlayingSession()
+            #endif
             if isPaused {
                 chromeVisibility.keepVisible()
             } else {
@@ -155,10 +163,16 @@ struct StreamPlayerView: View {
             }
         }
         .onChange(of: duration) { _, _ in
+            #if os(iOS)
+            updateNowPlayingSession()
+            #endif
             applySavedProgressIfPossible()
             handlePlaybackEndIfNeeded()
         }
         .onChange(of: currentTime) { _, _ in
+            #if os(iOS)
+            updateNowPlayingSession()
+            #endif
             handlePlaybackEndIfNeeded()
         }
         .onChange(of: audioTracks) { _, _ in
@@ -192,6 +206,7 @@ struct StreamPlayerView: View {
             removeNativeTimeObserver()
             playbackObserver.stop()
             #if os(iOS)
+            nowPlayingController.end()
             vlcController.stop()
             #endif
             mpvController.stop()

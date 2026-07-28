@@ -16,6 +16,8 @@ struct StreamPlayerChrome: View {
     let canAdjustSubtitleDelay: Bool
     let canShowEpisodeSidebar: Bool
     let isEpisodeSidebarPresented: Bool
+    let isPictureInPictureAvailable: Bool
+    let isPictureInPictureActive: Bool
     let onBack: () -> Void
     let onPlayPause: () -> Void
     let onSeekBackward: () -> Void
@@ -28,6 +30,7 @@ struct StreamPlayerChrome: View {
     let onSubtitleTrackSelect: (PlayerMediaTrack) -> Void
     let onSubtitleDelayChange: (Double) -> Void
     let onEpisodeSidebarOpen: () -> Void
+    let onPictureInPicture: () -> Void
     let onFullscreen: () -> Void
     let onBackgroundTap: () -> Void
     @State private var hoveredCircularButton: String?
@@ -81,6 +84,14 @@ struct StreamPlayerChrome: View {
             Spacer(minLength: 0)
 
             #if os(iOS)
+            PlayerIconButton(
+                systemName: isPictureInPictureActive ? "pip.exit" : "pip.enter",
+                help: isPictureInPictureActive ? "Exit Picture in Picture" : "Picture in Picture",
+                isEnabled: isPictureInPictureAvailable,
+                usesGlassBackground: true,
+                action: onPictureInPicture
+            )
+
             if !isEpisodeSidebarPresented {
                 PlayerIconButton(
                     systemName: "list.bullet",

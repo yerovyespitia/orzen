@@ -2,6 +2,80 @@ import XCTest
 @testable import Orzen
 
 final class StreamPlayerPlaybackPolicyTests: XCTestCase {
+    func testPictureInPictureSessionRoutesStartStopAndDetach() {
+        let session = PictureInPictureSession()
+        let registrationID = UUID()
+        var startCount = 0
+        var stopCount = 0
+
+        session.attach(
+            registrationID: registrationID,
+            isPossible: true,
+            isActive: false,
+            start: { startCount += 1 },
+            stop: { stopCount += 1 }
+        )
+
+        XCTAssertTrue(session.isAvailable)
+        session.toggle()
+        XCTAssertEqual(startCount, 1)
+
+        session.update(
+            registrationID: registrationID,
+            isPossible: true,
+            isActive: true
+        )
+        session.toggle()
+        XCTAssertEqual(stopCount, 1)
+
+        session.detach(registrationID: registrationID)
+        XCTAssertFalse(session.isAvailable)
+        XCTAssertFalse(session.isActive)
+    }
+
+    func testNowPlayingMetadataUsesEpisodeArtworkAndSeriesName() {
+        let item = CatalogItem(
+            id: "series-1",
+            title: "Test Series",
+            description: "Description",
+            posterURL: URL(string: "https://example.com/poster.jpg"),
+            backgroundURL: URL(string: "https://example.com/background.jpg"),
+            cinemetaType: .series
+        )
+        let episode = CatalogEpisode(
+            id: "episode-1",
+            title: "Pilot",
+            description: nil,
+            thumbnailURL: URL(string: "https://example.com/episode.jpg"),
+            runtime: nil,
+            released: nil,
+            season: 1,
+            episode: 1
+        )
+        let request = TestFixtures.request(
+            item: item,
+            episode: episode,
+            contentID: episode.id,
+            contentType: .series
+        )
+
+        let metadata = StreamNowPlayingMetadata(request: request)
+
+        XCTAssertEqual(metadata.title, episode.playbackTitle)
+        XCTAssertEqual(metadata.subtitle, item.title)
+        XCTAssertEqual(metadata.artworkURL, episode.thumbnailURL)
+        XCTAssertEqual(metadata.contentID, episode.id)
+    }
+
+    func testNowPlayingMetadataAvoidsDuplicateMovieSubtitle() {
+        let request = TestFixtures.request()
+        let metadata = StreamNowPlayingMetadata(request: request)
+
+        XCTAssertEqual(metadata.title, request.title)
+        XCTAssertNil(metadata.subtitle)
+        XCTAssertEqual(metadata.contentID, request.contentID)
+    }
+
     func testInvalidSourceFailsBeforeSelectingAnEngine() {
         let source = TestFixtures.source(url: URL(string: "file:///tmp/video.mp4"))
 

@@ -1,6 +1,44 @@
 import AVFoundation
 
 extension StreamPlayerView {
+    func play() {
+        performPlayerAction {
+            switch activePlaybackEngine {
+            case .mpv:
+                if mpvController.isPaused {
+                    mpvController.togglePlayPause()
+                }
+            case .vlc:
+                #if os(iOS)
+                vlcController.resume()
+                #endif
+            case .native:
+                player?.play()
+                nativeIsPaused = false
+            case nil:
+                break
+            }
+        }
+    }
+
+    func pause() {
+        performPlayerAction {
+            switch activePlaybackEngine {
+            case .mpv:
+                mpvController.pause()
+            case .vlc:
+                #if os(iOS)
+                vlcController.pause()
+                #endif
+            case .native:
+                player?.pause()
+                nativeIsPaused = true
+            case nil:
+                break
+            }
+        }
+    }
+
     func togglePlayPause() {
         performPlayerAction {
             switch activePlaybackEngine {
@@ -24,6 +62,28 @@ extension StreamPlayerView {
             }
         }
     }
+
+    #if os(iOS)
+    func beginNowPlayingSession() {
+        nowPlayingController.begin(
+            metadata: StreamNowPlayingMetadata(request: request),
+            onPlay: play,
+            onPause: pause,
+            onTogglePlayPause: togglePlayPause,
+            onSeek: seek(to:),
+            onSkip: seek(by:)
+        )
+        updateNowPlayingSession()
+    }
+
+    func updateNowPlayingSession() {
+        nowPlayingController.updatePlayback(
+            currentTime: currentTime,
+            duration: duration,
+            isPaused: activePlaybackEngine == nil || isPaused
+        )
+    }
+    #endif
 
     func seek(to time: Double) {
         performPlayerAction {

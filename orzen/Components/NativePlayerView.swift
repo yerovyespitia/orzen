@@ -44,9 +44,10 @@ struct NativePlayerView: NSViewRepresentable {
 #else
 struct NativePlayerView: UIViewRepresentable {
     let player: AVPlayer
+    @ObservedObject var pictureInPictureSession: PictureInPictureSession
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(pictureInPictureSession: pictureInPictureSession)
     }
 
     func makeUIView(context: Context) -> NativePlayerUIView {
@@ -67,9 +68,16 @@ struct NativePlayerView: UIViewRepresentable {
     }
 
     final class Coordinator: NSObject, AVPictureInPictureControllerDelegate {
+        private let registrationID = UUID()
+        private let pictureInPictureSession: PictureInPictureSession
         private weak var playerView: NativePlayerUIView?
         private var pictureInPictureController: AVPictureInPictureController?
-        private var backgroundObserver: NSObjectProtocol?
+        private var possibleObservation: NSKeyValueObservation?
+        private var activeObservation: NSKeyValueObservation?
+
+        init(pictureInPictureSession: PictureInPictureSession) {
+            self.pictureInPictureSession = pictureInPictureSession
+        }
 
         func attach(to view: NativePlayerUIView) {
             guard playerView !== view else { return }
@@ -83,32 +91,82 @@ struct NativePlayerView: UIViewRepresentable {
             controller.delegate = self
             controller.canStartPictureInPictureAutomaticallyFromInline = true
             pictureInPictureController = controller
-            backgroundObserver = NotificationCenter.default.addObserver(
-                forName: UIApplication.willResignActiveNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                self?.startPictureInPictureIfNeeded()
+
+            pictureInPictureSession.attach(
+                registrationID: registrationID,
+                isPossible: controller.isPictureInPicturePossible,
+                isActive: controller.isPictureInPictureActive,
+                start: { [weak self] in
+                    self?.startPictureInPicture()
+                },
+                stop: { [weak self] in
+                    self?.stopPictureInPicture()
+                }
+            )
+
+            possibleObservation = controller.observe(
+                \.isPictureInPicturePossible,
+                options: [.initial, .new]
+            ) { [weak self] _, _ in
+                DispatchQueue.main.async {
+                    self?.publishState()
+                }
+            }
+            activeObservation = controller.observe(
+                \.isPictureInPictureActive,
+                options: [.initial, .new]
+            ) { [weak self] _, _ in
+                DispatchQueue.main.async {
+                    self?.publishState()
+                }
             }
         }
 
         func detach() {
-            if let backgroundObserver {
-                NotificationCenter.default.removeObserver(backgroundObserver)
-                self.backgroundObserver = nil
-            }
+            possibleObservation?.invalidate()
+            possibleObservation = nil
+            activeObservation?.invalidate()
+            activeObservation = nil
+            pictureInPictureSession.detach(registrationID: registrationID)
             pictureInPictureController?.delegate = nil
             pictureInPictureController = nil
             playerView = nil
         }
 
-        private func startPictureInPictureIfNeeded() {
-            guard playerView?.player?.rate ?? 0 > 0,
-                  let pictureInPictureController,
+        private func startPictureInPicture() {
+            guard let pictureInPictureController,
                   pictureInPictureController.isPictureInPicturePossible,
                   !pictureInPictureController.isPictureInPictureActive else { return }
 
             pictureInPictureController.startPictureInPicture()
+        }
+
+        private func stopPictureInPicture() {
+            guard let pictureInPictureController,
+                  pictureInPictureController.isPictureInPictureActive else { return }
+
+            pictureInPictureController.stopPictureInPicture()
+        }
+
+        private func publishState() {
+            guard let pictureInPictureController else { return }
+            pictureInPictureSession.update(
+                registrationID: registrationID,
+                isPossible: pictureInPictureController.isPictureInPicturePossible,
+                isActive: pictureInPictureController.isPictureInPictureActive
+            )
+        }
+
+        func pictureInPictureControllerDidStartPictureInPicture(
+            _ pictureInPictureController: AVPictureInPictureController
+        ) {
+            publishState()
+        }
+
+        func pictureInPictureControllerDidStopPictureInPicture(
+            _ pictureInPictureController: AVPictureInPictureController
+        ) {
+            publishState()
         }
 
         func pictureInPictureController(

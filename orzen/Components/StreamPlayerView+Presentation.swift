@@ -27,14 +27,17 @@ extension StreamPlayerView {
         if activePlaybackEngine == .vlc {
             VLCPlayerView(
                 controller: vlcController,
-                pictureInPictureSubtitleText: currentExternalSubtitleText
+                pictureInPictureSession: pictureInPictureSession
             )
                 .background(Color.black)
                 .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
                 .gesture(videoPinchGesture)
         } else if activePlaybackEngine == .native, let player {
-            NativePlayerView(player: player)
+            NativePlayerView(
+                player: player,
+                pictureInPictureSession: pictureInPictureSession
+            )
                 .background(Color.black)
                 .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
@@ -77,6 +80,8 @@ extension StreamPlayerView {
             canAdjustSubtitleDelay: selectedExternalSubtitleID != nil,
             canShowEpisodeSidebar: canShowEpisodeSidebar,
             isEpisodeSidebarPresented: isEpisodeSidebarPresented,
+            isPictureInPictureAvailable: isPictureInPictureAvailable,
+            isPictureInPictureActive: isPictureInPictureActive,
             onBack: handleBack,
             onPlayPause: togglePlayPause,
             onSeekBackward: {
@@ -93,6 +98,7 @@ extension StreamPlayerView {
             onSubtitleTrackSelect: selectSubtitleTrack(_:),
             onSubtitleDelayChange: setSubtitleDelay(_:),
             onEpisodeSidebarOpen: showEpisodeSidebar,
+            onPictureInPicture: togglePictureInPicture,
             onFullscreen: toggleFullscreen,
             onBackgroundTap: handlePlayerTap
         )
