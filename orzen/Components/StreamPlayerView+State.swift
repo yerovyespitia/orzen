@@ -139,13 +139,6 @@ extension StreamPlayerView {
             return nil
         }
 
-        #if os(iOS)
-        if activePlaybackEngine == .vlc,
-           vlcController.isRenderingExternalSubtitle {
-            return nil
-        }
-        #endif
-
         return ExternalSubtitleResolver.preferredText(
             in: externalSubtitleCues,
             at: currentTime - subtitleDelay

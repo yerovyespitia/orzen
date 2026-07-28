@@ -128,15 +128,6 @@ extension StreamPlayerView {
             await MainActor.run {
                 guard loadingExternalSubtitleID == subtitle.id else { return }
                 externalSubtitleCues = loadedSubtitle?.cues ?? []
-                #if os(iOS)
-                if activePlaybackEngine == .vlc,
-                   let localFileURL = loadedSubtitle?.localFileURL {
-                    vlcController.renderExternalSubtitle(
-                        from: localFileURL,
-                        delay: subtitleDelay
-                    )
-                }
-                #endif
                 loadingExternalSubtitleID = nil
             }
         }
