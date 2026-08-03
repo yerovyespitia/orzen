@@ -244,9 +244,11 @@ struct InfoView: View {
                         .controlSize(.small)
                         .tint(.white)
                 }
+
+                Spacer(minLength: 8)
+                sourceAddonPicker
             }
 
-            sourceFilter
             sourcesList
         }
         .padding(.horizontal, contentHorizontalPadding)
@@ -356,11 +358,13 @@ struct InfoView: View {
                     if viewModel.isLoadingSources {
                         ProgressView()
                             .controlSize(.small)
-                        .tint(.white)
+                            .tint(.white)
                     }
+
+                    Spacer(minLength: 8)
+                    sourceAddonPicker
                 }
 
-                sourceFilter
                 sourcesList
             }
             .padding(.horizontal, contentHorizontalPadding)
@@ -368,11 +372,14 @@ struct InfoView: View {
     }
 
     @ViewBuilder
-    private var sourceFilter: some View {
-        if !viewModel.sourceFilterCategories.isEmpty {
-            SourceFilterPicker(
-                selection: $viewModel.selectedSourceFilter,
-                categories: viewModel.sourceFilterCategories
+    private var sourceAddonPicker: some View {
+        if !viewModel.sourceAddons.isEmpty {
+            SourceAddonPicker(
+                selection: Binding(
+                    get: { viewModel.selectedSourceAddonID },
+                    set: { viewModel.selectSourceAddon($0) }
+                ),
+                addons: viewModel.sourceAddons
             )
         }
     }
@@ -400,7 +407,7 @@ struct InfoView: View {
             DetailUnavailableView(
                 systemImage: "tray",
                 title: "No sources found",
-                message: "The enabled addons did not return sources for this title."
+                message: "The selected addon did not return sources for this title."
             )
         }
     }

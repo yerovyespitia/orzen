@@ -2,6 +2,21 @@ import Foundation
 @testable import Orzen
 
 enum TestFixtures {
+    static func addon(
+        id: UUID = UUID(),
+        name: String = "Test Addon",
+        sourceCategory: StreamSourceCategory = .general
+    ) -> LocalAddon {
+        LocalAddon(
+            id: id,
+            manifestURL: URL(string: "https://example.com/manifest.json")!,
+            name: name,
+            description: "Test addon",
+            resources: [.stream],
+            sourceCategory: sourceCategory
+        )
+    }
+
     static func source(
         id: String = "source-1",
         addonName: String = "Test Addon",

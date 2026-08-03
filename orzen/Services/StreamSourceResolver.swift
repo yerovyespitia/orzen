@@ -3,24 +3,39 @@ import Foundation
 enum StreamSourceResolver {
     private static let addonFetchTimeoutSeconds: UInt64 = 12
 
+    static func fetchSourcesByAddon(
+        from addons: [LocalAddon],
+        type: CinemetaType,
+        id: String
+    ) async -> [LocalAddon.ID: [StreamSource]] {
+        await withTaskGroup(of: (LocalAddon.ID, [StreamSource]).self) { group in
+            for addon in addons {
+                group.addTask {
+                    let sources = await fetchSourcesWithTimeout(from: addon, type: type, id: id)
+                    return (addon.id, sortedSourcesForCurrentPlatform(sources))
+                }
+            }
+
+            var sourcesByAddonID: [LocalAddon.ID: [StreamSource]] = [:]
+            for await (addonID, sources) in group {
+                sourcesByAddonID[addonID] = sources
+            }
+            return sourcesByAddonID
+        }
+    }
+
     static func fetchAllSources(
         from addons: [LocalAddon],
         type: CinemetaType,
         id: String
     ) async -> [StreamSource] {
-        await withTaskGroup(of: [StreamSource].self) { group in
-            for addon in addons {
-                group.addTask {
-                    await fetchSourcesWithTimeout(from: addon, type: type, id: id)
-                }
-            }
+        let sourcesByAddonID = await fetchSourcesByAddon(from: addons, type: type, id: id)
+        let allSources = addons.flatMap { sourcesByAddonID[$0.id] ?? [] }
+        return sortedSourcesForCurrentPlatform(allSources)
+    }
 
-            var allSources: [StreamSource] = []
-            for await addonSources in group {
-                allSources.append(contentsOf: addonSources)
-            }
-            return sortedSourcesForCurrentPlatform(allSources)
-        }
+    static func sortedSources(_ sources: [StreamSource]) -> [StreamSource] {
+        sortedSourcesForCurrentPlatform(sources)
     }
 
     static func firstSource(

@@ -274,22 +274,22 @@ struct StreamPlayerEpisodeSidebar: View {
 
     @ViewBuilder
     private var sourcesList: some View {
-        if viewModel.isLoadingSources {
-            HStack(spacing: 10) {
-                ProgressView()
-                    .controlSize(.small)
-                    .tint(.white)
+        VStack(alignment: .leading, spacing: 12) {
+            selectedEpisodeSummary
+            sourceAddonPicker
 
-                Text("Loading sources")
-                    .font(.caption.weight(.medium))
-                    .foregroundColor(.white.opacity(0.66))
-            }
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .center)
-        } else if !viewModel.visibleSources.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                selectedEpisodeSummary
-                sourceFilter
+            if viewModel.isLoadingSources {
+                HStack(spacing: 10) {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(.white)
 
+                    Text("Loading sources")
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.white.opacity(0.66))
+                }
+                .frame(maxWidth: .infinity, minHeight: 120, alignment: .center)
+            } else if !viewModel.visibleSources.isEmpty {
                 ScrollView {
                     LazyVStack(spacing: 10) {
                         ForEach(viewModel.visibleSources) { source in
@@ -311,20 +311,23 @@ struct StreamPlayerEpisodeSidebar: View {
                     }
                     .padding(.bottom, 14)
                 }
+            } else if let sourceErrorMessage = viewModel.sourceErrorMessage {
+                sidebarMessage(systemImage: "wifi.exclamationmark", message: sourceErrorMessage)
+            } else if viewModel.hasLoadedSources {
+                sidebarMessage(systemImage: "tray", message: "No sources found for this episode.")
             }
-        } else if let sourceErrorMessage = viewModel.sourceErrorMessage {
-            sidebarMessage(systemImage: "wifi.exclamationmark", message: sourceErrorMessage)
-        } else if viewModel.hasLoadedSources {
-            sidebarMessage(systemImage: "tray", message: "No sources found for this episode.")
         }
     }
 
     @ViewBuilder
-    private var sourceFilter: some View {
-        if !viewModel.sourceFilterCategories.isEmpty {
-            SourceFilterPicker(
-                selection: $viewModel.selectedSourceFilter,
-                categories: viewModel.sourceFilterCategories
+    private var sourceAddonPicker: some View {
+        if !viewModel.sourceAddons.isEmpty {
+            SourceAddonPicker(
+                selection: Binding(
+                    get: { viewModel.selectedSourceAddonID },
+                    set: { viewModel.selectSourceAddon($0) }
+                ),
+                addons: viewModel.sourceAddons
             )
         }
     }

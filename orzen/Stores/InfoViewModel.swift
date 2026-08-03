@@ -14,7 +14,8 @@ final class InfoViewModel: ObservableObject {
     @Published var isLoadingSources = false
     @Published var hasLoadedSources = false
     @Published var sourceErrorMessage: String?
-    @Published var selectedSourceFilter = SourceFilter.all
+    @Published var selectedSourceAddonID: LocalAddon.ID?
+    @Published private(set) var sourceAddons: [LocalAddon] = []
     @Published var pendingEpisodeScrollID: CatalogEpisode.ID?
 
     private let addonStore: LocalAddonStore
@@ -22,6 +23,7 @@ final class InfoViewModel: ObservableObject {
     private let episodeWatchStore: EpisodeWatchStore
     private let collectionStore: CollectionStore
     private var sourceRequestID: String?
+    private var sourcesByAddonID: [LocalAddon.ID: [StreamSource]] = [:]
     private var hasAutoScrolledToWatchedEpisode = false
 
     init(item: CatalogItem) {
@@ -45,21 +47,7 @@ final class InfoViewModel: ObservableObject {
         return detail.episodes.first { $0.id == selectedEpisodeID }
     }
 
-    var sourceFilterCategories: [StreamSourceCategory] {
-        Set(sources.compactMap { source in
-            source.sourceCategory.filterTitle == nil ? nil : source.sourceCategory
-        })
-        .sorted { ($0.filterTitle ?? $0.rawValue) < ($1.filterTitle ?? $1.rawValue) }
-    }
-
-    var visibleSources: [StreamSource] {
-        switch selectedSourceFilter {
-        case .all:
-            return sources
-        case .category(let category):
-            return sources.filter { $0.sourceCategory == category }
-        }
-    }
+    var visibleSources: [StreamSource] { sources }
 
     func loadDetail() async {
         resetDetailState()
@@ -115,7 +103,6 @@ final class InfoViewModel: ObservableObject {
     func selectEpisode(_ episode: CatalogEpisode) {
         selectedEpisodeID = episode.id
         resetSourcesState()
-        sourceRequestID = episode.id
 
         guard let type = item.cinemetaType else { return }
 
@@ -126,12 +113,23 @@ final class InfoViewModel: ObservableObject {
 
     func showEpisodes() {
         selectedEpisodeID = nil
-        sources = []
-        selectedSourceFilter = .all
-        isLoadingSources = false
-        hasLoadedSources = false
-        sourceErrorMessage = nil
-        sourceRequestID = nil
+        resetSourcesState()
+    }
+
+    func selectSourceAddon(_ addonID: LocalAddon.ID?) {
+        guard addonID == nil || sourceAddons.contains(where: { $0.id == addonID }) else {
+            return
+        }
+        guard selectedSourceAddonID != addonID else { return }
+
+        selectedSourceAddonID = addonID
+        sources = StreamSourceResolver.sortedSources(
+            SourceAddonResultsPolicy.sources(
+                for: addonID,
+                addons: sourceAddons,
+                sourcesByAddonID: sourcesByAddonID
+            )
+        )
     }
 
     func playSource(
@@ -160,7 +158,10 @@ final class InfoViewModel: ObservableObject {
         hasAutoScrolledToWatchedEpisode = false
         selectedEpisodeID = nil
         sources = []
-        selectedSourceFilter = .all
+        selectedSourceAddonID = nil
+        sourceAddons = []
+        sourcesByAddonID = [:]
+        isLoadingSources = false
         hasLoadedSources = false
         sourceErrorMessage = nil
         sourceRequestID = nil
@@ -169,9 +170,13 @@ final class InfoViewModel: ObservableObject {
 
     private func resetSourcesState() {
         sources = []
-        selectedSourceFilter = .all
+        selectedSourceAddonID = nil
+        sourceAddons = []
+        sourcesByAddonID = [:]
+        isLoadingSources = false
         hasLoadedSources = false
         sourceErrorMessage = nil
+        sourceRequestID = nil
     }
 
     private func setDetail(_ loadedDetail: CatalogDetail) {
@@ -198,37 +203,82 @@ final class InfoViewModel: ObservableObject {
         await loadSources(for: item.id, type: .movie)
     }
 
-    private func loadSources(for id: String, type: CinemetaType) async {
-        sourceRequestID = id
+    private func loadSources(
+        for id: String,
+        type: CinemetaType
+    ) async {
+        let requestID = UUID().uuidString
+        sourceRequestID = requestID
 
         guard !addonStore.streamAddons.isEmpty else {
-            guard sourceRequestID == id else { return }
+            guard sourceRequestID == requestID else { return }
             sources = []
-            sourceErrorMessage = "Add Torrentio from Addons to see available sources."
+            sourceErrorMessage = "Add a streaming addon from Addons to see available sources."
             hasLoadedSources = true
+            isLoadingSources = false
+            return
+        }
+
+        let compatibleAddons = addonStore.streamAddons.filter {
+            $0.supports(resource: .stream, type: type, id: id)
+        }
+
+        guard !compatibleAddons.isEmpty else {
+            guard sourceRequestID == requestID else { return }
+            sources = []
+            sourceErrorMessage = "No installed streaming addon supports this title."
+            hasLoadedSources = true
+            isLoadingSources = false
             return
         }
 
         isLoadingSources = true
         sourceErrorMessage = nil
 
-        let loadedSources = await StreamSourceResolver.fetchAllSources(
-            from: addonStore.streamAddons,
+        let loadedSourcesByAddonID = await StreamSourceResolver.fetchSourcesByAddon(
+            from: compatibleAddons,
             type: type,
             id: id
         )
 
-        guard sourceRequestID == id else { return }
-        sources = loadedSources
-        if case .category(let selectedCategory) = selectedSourceFilter,
-           !sourceFilterCategories.contains(selectedCategory) {
-            selectedSourceFilter = .all
-        }
-        if loadedSources.isEmpty {
-            sourceErrorMessage = nil
-        }
+        guard sourceRequestID == requestID else { return }
+        sourcesByAddonID = loadedSourcesByAddonID
+        sourceAddons = SourceAddonResultsPolicy.availableAddons(
+            from: compatibleAddons,
+            sourcesByAddonID: loadedSourcesByAddonID
+        )
+        selectedSourceAddonID = nil
+        sources = StreamSourceResolver.sortedSources(
+            SourceAddonResultsPolicy.sources(
+                for: nil,
+                addons: sourceAddons,
+                sourcesByAddonID: loadedSourcesByAddonID
+            )
+        )
+        sourceErrorMessage = nil
 
         hasLoadedSources = true
         isLoadingSources = false
+    }
+}
+
+enum SourceAddonResultsPolicy {
+    static func availableAddons(
+        from addons: [LocalAddon],
+        sourcesByAddonID: [LocalAddon.ID: [StreamSource]]
+    ) -> [LocalAddon] {
+        addons.filter { !(sourcesByAddonID[$0.id] ?? []).isEmpty }
+    }
+
+    static func sources(
+        for addonID: LocalAddon.ID?,
+        addons: [LocalAddon],
+        sourcesByAddonID: [LocalAddon.ID: [StreamSource]]
+    ) -> [StreamSource] {
+        if let addonID {
+            return sourcesByAddonID[addonID] ?? []
+        }
+
+        return addons.flatMap { sourcesByAddonID[$0.id] ?? [] }
     }
 }

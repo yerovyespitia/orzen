@@ -88,7 +88,7 @@
 		6DAA10142E04000000B5D7A1 /* NativePlayerTrackResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20142E04000000B5D7A1 /* NativePlayerTrackResolver.swift */; };
 		6DAA10152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift */; };
 		6DAA10162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift */; };
-		6DAA10172E04000000B5D7A1 /* SourceFilterPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20172E04000000B5D7A1 /* SourceFilterPicker.swift */; };
+		6DAA10172E04000000B5D7A1 /* SourceAddonPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20172E04000000B5D7A1 /* SourceAddonPicker.swift */; };
 		6DAA10182E04000000B5D7A1 /* CatalogItemContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20182E04000000B5D7A1 /* CatalogItemContextMenu.swift */; };
 		6DAA10192E10000000B5D7A1 /* StreamPlayerNextEpisodeBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20192E10000000B5D7A1 /* StreamPlayerNextEpisodeBanner.swift */; };
 		6DAA101A2E10000000B5D7A1 /* PlayerFlatSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */; };
@@ -204,7 +204,7 @@
 		6DAA20142E04000000B5D7A1 /* NativePlayerTrackResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlayerTrackResolver.swift; sourceTree = "<group>"; };
 		6DAA20152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerChromeVisibilityController.swift; sourceTree = "<group>"; };
 		6DAA20162E04000000B5D7A1 /* StreamPlayerKeyboardControls.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerKeyboardControls.swift; sourceTree = "<group>"; };
-		6DAA20172E04000000B5D7A1 /* SourceFilterPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceFilterPicker.swift; sourceTree = "<group>"; };
+		6DAA20172E04000000B5D7A1 /* SourceAddonPicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceAddonPicker.swift; sourceTree = "<group>"; };
 		6DAA20182E04000000B5D7A1 /* CatalogItemContextMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CatalogItemContextMenu.swift; sourceTree = "<group>"; };
 		6DAA20192E10000000B5D7A1 /* StreamPlayerNextEpisodeBanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerNextEpisodeBanner.swift; sourceTree = "<group>"; };
 		6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerFlatSlider.swift; sourceTree = "<group>"; };
@@ -330,7 +330,7 @@
 				6DAA20122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift */,
 				6DAA200B2E04000000B5D7A1 /* SeasonButton.swift */,
 				6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */,
-				6DAA20172E04000000B5D7A1 /* SourceFilterPicker.swift */,
+				6DAA20172E04000000B5D7A1 /* SourceAddonPicker.swift */,
 				6DAA200C2E04000000B5D7A1 /* SourceRow.swift */,
 				6DAA20102E04000000B5D7A1 /* StreamPlayerChrome.swift */,
 				6DAA20152E04000000B5D7A1 /* StreamPlayerChromeVisibilityController.swift */,
@@ -658,7 +658,7 @@
 				6DAA10132E04000000B5D7A1 /* InfoHeroView.swift in Sources */,
 				6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */,
 				6D9055402E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift in Sources */,
-				6DAA10172E04000000B5D7A1 /* SourceFilterPicker.swift in Sources */,
+				6DAA10172E04000000B5D7A1 /* SourceAddonPicker.swift in Sources */,
 				6DAA100C2E04000000B5D7A1 /* SourceRow.swift in Sources */,
 				6D1AD92B2E03A9A100BFF0DE /* MPVPlayerView.swift in Sources */,
 				6DC0DE092E09000000B5D7A1 /* MPVPlaybackController.swift in Sources */,

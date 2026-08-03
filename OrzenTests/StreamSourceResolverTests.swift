@@ -2,6 +2,50 @@ import XCTest
 @testable import Orzen
 
 final class StreamSourceResolverTests: XCTestCase {
+    func testSourceAddonTitleDistinguishesLanguageConfiguration() {
+        let general = TestFixtures.addon(name: "Torrentio RD")
+        let latino = TestFixtures.addon(
+            name: "Torrentio RD",
+            sourceCategory: .language("latino")
+        )
+
+        XCTAssertEqual(general.sourceSelectionTitle, "Torrentio RD")
+        XCTAssertEqual(latino.sourceSelectionTitle, "Torrentio RD · Latino")
+    }
+
+    func testSourceAddonAvailabilityOmitsAddonsWithoutSources() {
+        let torrentio = TestFixtures.addon(id: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!, name: "Torrentio")
+        let comet = TestFixtures.addon(id: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!, name: "Comet")
+        let source = TestFixtures.source(addonName: torrentio.name)
+
+        XCTAssertEqual(
+            SourceAddonResultsPolicy.availableAddons(
+                from: [torrentio, comet],
+                sourcesByAddonID: [torrentio.id: [source], comet.id: []]
+            ),
+            [torrentio]
+        )
+    }
+
+    func testSourceAddonAllSelectionCombinesEveryAvailableAddon() {
+        let torrentio = TestFixtures.addon(id: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!, name: "Torrentio")
+        let comet = TestFixtures.addon(id: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!, name: "Comet")
+        let torrentioSource = TestFixtures.source(id: "torrentio", addonName: torrentio.name)
+        let cometSource = TestFixtures.source(id: "comet", addonName: comet.name)
+
+        XCTAssertEqual(
+            SourceAddonResultsPolicy.sources(
+                for: nil,
+                addons: [torrentio, comet],
+                sourcesByAddonID: [
+                    torrentio.id: [torrentioSource],
+                    comet.id: [cometSource]
+                ]
+            ),
+            [torrentioSource, cometSource]
+        )
+    }
+
     func testMatchingSourcePrefersIdentifier() {
         let stored = TestFixtures.source(
             id: "stable",

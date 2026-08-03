@@ -58,6 +58,14 @@ struct LocalAddon: Identifiable, Codable, Equatable, Sendable {
             .joined(separator: " + ")
     }
 
+    var sourceSelectionTitle: String {
+        guard let variantTitle = sourceCategory.filterTitle else {
+            return name
+        }
+
+        return "\(name) · \(variantTitle)"
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id
         case manifestURL
