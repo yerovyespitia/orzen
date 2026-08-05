@@ -2,6 +2,7 @@ import Foundation
 
 struct StreamSource: Identifiable, Codable, Hashable, Sendable {
     let id: String
+    let addonID: LocalAddon.ID?
     let addonName: String
     let title: String
     let description: String
@@ -15,6 +16,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
 
     init(
         id: String,
+        addonID: LocalAddon.ID? = nil,
         addonName: String,
         title: String,
         description: String,
@@ -27,6 +29,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         torrentFileIndex: Int? = nil
     ) {
         self.id = id
+        self.addonID = addonID
         self.addonName = addonName
         self.title = title
         self.description = description
@@ -41,6 +44,7 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id
+        case addonID
         case addonName
         case title
         case description
@@ -56,6 +60,8 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
+        addonID = try container.decodeIfPresent(LocalAddon.ID.self, forKey: .addonID)
+            ?? Self.inferredAddonID(from: id)
         addonName = try container.decode(String.self, forKey: .addonName)
         title = try container.decode(String.self, forKey: .title)
         description = try container.decode(String.self, forKey: .description)
@@ -66,6 +72,29 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         playbackURL = try container.decodeIfPresent(URL.self, forKey: .playbackURL)
         torrentInfoHash = try container.decodeIfPresent(String.self, forKey: .torrentInfoHash)
         torrentFileIndex = try container.decodeIfPresent(Int.self, forKey: .torrentFileIndex)
+    }
+
+    private static func inferredAddonID(from sourceID: String) -> LocalAddon.ID? {
+        guard sourceID.count >= 36 else { return nil }
+        return LocalAddon.ID(uuidString: String(sourceID.prefix(36)))
+    }
+
+    func resolvingAddonID(_ fallbackAddonID: LocalAddon.ID?) -> StreamSource {
+        guard addonID == nil, let fallbackAddonID else { return self }
+        return StreamSource(
+            id: id,
+            addonID: fallbackAddonID,
+            addonName: addonName,
+            title: title,
+            description: description,
+            metadata: metadata,
+            compatibilityHints: compatibilityHints,
+            sourceCategory: sourceCategory,
+            addonSourceIndex: addonSourceIndex,
+            playbackURL: playbackURL,
+            torrentInfoHash: torrentInfoHash,
+            torrentFileIndex: torrentFileIndex
+        )
     }
 
     var preferredPlaybackEngine: StreamPlaybackEngine {
@@ -162,6 +191,7 @@ enum StremioStreamClient {
         let streamResponse = try JSONDecoder().decode(StremioStreamResponse.self, from: data)
         return streamResponse.streams.enumerated().compactMap { index, stream in
             stream.source(
+                addonID: addon.id,
                 addonName: addon.name,
                 fallbackID: "\(addon.id.uuidString)-\(index)",
                 addonSourceIndex: index,
@@ -222,6 +252,7 @@ private struct StremioStream: Decodable {
     }
 
     func source(
+        addonID: LocalAddon.ID,
         addonName: String,
         fallbackID: String,
         addonSourceIndex: Int,
@@ -241,6 +272,7 @@ private struct StremioStream: Decodable {
 
         return StreamSource(
             id: idParts.joined(separator: "-"),
+            addonID: addonID,
             addonName: addonName,
             title: resolvedTitle,
             description: resolvedDescription.isEmpty ? "No source details available." : resolvedDescription,

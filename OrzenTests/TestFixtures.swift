@@ -19,6 +19,7 @@ enum TestFixtures {
 
     static func source(
         id: String = "source-1",
+        addonID: LocalAddon.ID? = nil,
         addonName: String = "Test Addon",
         title: String = "Test Source",
         description: String = "Test source description",
@@ -31,6 +32,7 @@ enum TestFixtures {
     ) -> StreamSource {
         StreamSource(
             id: id,
+            addonID: addonID,
             addonName: addonName,
             title: title,
             description: description,

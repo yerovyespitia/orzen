@@ -6,6 +6,7 @@ struct PlaybackProgressEntry: Codable, Identifiable {
     let item: CatalogItem
     let episode: CatalogEpisode?
     let source: StreamSource
+    let sourceAddonID: LocalAddon.ID?
     let preferredSourceTitle: String?
     let title: String
     let subtitle: String
@@ -25,8 +26,9 @@ struct PlaybackProgressEntry: Codable, Identifiable {
     }
 
     var playbackRequest: StreamPlaybackRequest {
-        StreamPlaybackRequest(
-            source: source,
+        let resolvedSource = source.resolvingAddonID(sourceAddonID)
+        return StreamPlaybackRequest(
+            source: resolvedSource,
             title: title,
             subtitle: subtitle,
             contentID: contentID,
@@ -148,6 +150,7 @@ final class PlaybackProgressStore: ObservableObject {
                 item: item,
                 episode: episode,
                 source: source,
+                sourceAddonID: source.addonID,
                 preferredSourceTitle: preferredSourceTitle ?? source.title,
                 title: episode.playbackTitle,
                 subtitle: subtitle,
@@ -198,6 +201,7 @@ final class PlaybackProgressStore: ObservableObject {
                 item: item,
                 episode: request.episode,
                 source: request.source,
+                sourceAddonID: request.source.addonID,
                 preferredSourceTitle: request.preferredSourceTitle,
                 title: request.title,
                 subtitle: request.subtitle,

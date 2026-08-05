@@ -10,6 +10,7 @@ struct HomeView: View {
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var addonStore = LocalAddonStore.shared
     @ObservedObject private var bannerScrollStore = HomeBannerScrollStore.shared
+    @State private var playbackRefreshTask: Task<Void, Never>?
     private let scrollTopID = "home-scroll-top"
 
     var body: some View {
@@ -92,61 +93,27 @@ struct HomeView: View {
     private func playSavedProgress(_ item: CatalogItem) {
         guard let entry = progressStore.entry(for: item) else { return }
 
-        Task {
-            playbackStore.request = await refreshedPlaybackRequest(for: entry)
+        playbackRefreshTask?.cancel()
+        playbackRefreshTask = Task {
+            let refreshedRequest = await refreshedPlaybackRequest(for: entry)
+            guard !Task.isCancelled else { return }
+            playbackStore.request = refreshedRequest
         }
     }
 
     private func refreshedPlaybackRequest(for entry: PlaybackProgressEntry) async -> StreamPlaybackRequest {
         let storedRequest = entry.playbackRequest
-        if entry.contentType == .series,
-           let refreshedSource = await StreamSourceResolver.continuingSource(
-               after: entry.source,
-               preferredTitle: entry.resolvedPreferredSourceTitle,
-               from: addonStore.streamAddons,
-               type: .series,
-               id: entry.contentID
-           ) {
-            return StreamPlaybackRequest(
-                source: refreshedSource,
-                title: storedRequest.title,
-                subtitle: storedRequest.subtitle,
-                contentID: storedRequest.contentID,
-                contentType: storedRequest.contentType,
-                item: storedRequest.item,
-                episode: storedRequest.episode,
-                preferredSourceTitle: storedRequest.preferredSourceTitle,
-                initialTrackSelections: storedRequest.initialTrackSelections
-            )
+        guard let refreshedSource = await StreamSourceResolver.continuingSource(
+            after: entry.source,
+            preferredTitle: entry.resolvedPreferredSourceTitle,
+            from: addonStore.streamAddons,
+            type: entry.contentType,
+            id: entry.contentID
+        ) else {
+            return storedRequest
         }
 
-        let matchingAddons = addonStore.streamAddons.filter {
-            $0.name == entry.source.addonName && $0.sourceCategory == entry.source.sourceCategory
-        }
-
-        for addon in matchingAddons {
-            let sources = await StreamSourceResolver.fetchAllSources(
-                from: [addon],
-                type: entry.contentType,
-                id: entry.contentID
-            )
-
-            if let refreshedSource = StreamSourceResolver.matchingSource(for: entry.source, in: sources) {
-                return StreamPlaybackRequest(
-                    source: refreshedSource,
-                    title: storedRequest.title,
-                    subtitle: storedRequest.subtitle,
-                    contentID: storedRequest.contentID,
-                    contentType: storedRequest.contentType,
-                    item: storedRequest.item,
-                    episode: storedRequest.episode,
-                    preferredSourceTitle: storedRequest.preferredSourceTitle,
-                    initialTrackSelections: storedRequest.initialTrackSelections
-                )
-            }
-        }
-
-        return storedRequest
+        return storedRequest.replacingSource(refreshedSource)
     }
 
     private func scrollToTop(with scrollProxy: ScrollViewProxy) {

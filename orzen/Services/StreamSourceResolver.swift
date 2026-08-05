@@ -1,27 +1,73 @@
 import Foundation
 
+struct StreamSourceAddonResult: Sendable {
+    let addon: LocalAddon
+    let sources: [StreamSource]
+}
+
 enum StreamSourceResolver {
+    typealias SourceFetcher = @Sendable (LocalAddon, CinemetaType, String) async -> [StreamSource]
+
     private static let addonFetchTimeoutSeconds: UInt64 = 12
+
+    static func sourceResults(
+        from addons: [LocalAddon],
+        type: CinemetaType,
+        id: String
+    ) -> AsyncStream<StreamSourceAddonResult> {
+        sourceResults(
+            from: addons,
+            type: type,
+            id: id,
+            fetch: { addon, type, id in
+                await fetchSourcesWithTimeout(from: addon, type: type, id: id)
+            }
+        )
+    }
+
+    static func sourceResults(
+        from addons: [LocalAddon],
+        type: CinemetaType,
+        id: String,
+        fetch: @escaping SourceFetcher
+    ) -> AsyncStream<StreamSourceAddonResult> {
+        AsyncStream { continuation in
+            let task = Task {
+                await withTaskGroup(of: StreamSourceAddonResult.self) { group in
+                    for addon in addons {
+                        group.addTask {
+                            let sources = await fetch(addon, type, id)
+                            return StreamSourceAddonResult(
+                                addon: addon,
+                                sources: sortedSourcesForCurrentPlatform(sources)
+                            )
+                        }
+                    }
+
+                    for await result in group {
+                        guard !Task.isCancelled else { break }
+                        continuation.yield(result)
+                    }
+                }
+                continuation.finish()
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
+            }
+        }
+    }
 
     static func fetchSourcesByAddon(
         from addons: [LocalAddon],
         type: CinemetaType,
         id: String
     ) async -> [LocalAddon.ID: [StreamSource]] {
-        await withTaskGroup(of: (LocalAddon.ID, [StreamSource]).self) { group in
-            for addon in addons {
-                group.addTask {
-                    let sources = await fetchSourcesWithTimeout(from: addon, type: type, id: id)
-                    return (addon.id, sortedSourcesForCurrentPlatform(sources))
-                }
-            }
-
-            var sourcesByAddonID: [LocalAddon.ID: [StreamSource]] = [:]
-            for await (addonID, sources) in group {
-                sourcesByAddonID[addonID] = sources
-            }
-            return sourcesByAddonID
+        var sourcesByAddonID: [LocalAddon.ID: [StreamSource]] = [:]
+        for await result in sourceResults(from: addons, type: type, id: id) {
+            sourcesByAddonID[result.addon.id] = result.sources
         }
+        return sourcesByAddonID
     }
 
     static func fetchAllSources(
@@ -43,11 +89,8 @@ enum StreamSourceResolver {
         type: CinemetaType,
         id: String
     ) async -> StreamSource? {
-        for addon in addons {
-            let sources = sortedSourcesForCurrentPlatform(
-                await fetchSourcesWithTimeout(from: addon, type: type, id: id)
-            )
-            if let source = firstPlayableSourceForCurrentPlatform(in: sources) {
+        for await result in sourceResults(from: addons, type: type, id: id) {
+            if let source = firstPlayableSourceForCurrentPlatform(in: result.sources) {
                 return source
             }
         }
@@ -62,15 +105,15 @@ enum StreamSourceResolver {
         type: CinemetaType,
         id: String
     ) async -> StreamSource? {
-        let matchingAddons = addons.filter {
-            $0.name == source.addonName && $0.sourceCategory == source.sourceCategory
-        }
+        let matchingAddons = sourceAddons(for: source, from: addons)
+        let sourcesByAddonID = await fetchSourcesByAddon(
+            from: matchingAddons,
+            type: type,
+            id: id
+        )
 
         for addon in matchingAddons {
-            let sources = sortedSourcesForCurrentPlatform(
-                await fetchSourcesWithTimeout(from: addon, type: type, id: id)
-            )
-
+            let sources = sourcesByAddonID[addon.id] ?? []
             if let matchingBranch = matchingBranch(
                 for: source,
                 preferredTitle: preferredTitle,
@@ -80,7 +123,27 @@ enum StreamSourceResolver {
             }
         }
 
-        return await firstSource(from: addons, type: type, id: id)
+        for addon in matchingAddons {
+            let sources = sourcesByAddonID[addon.id] ?? []
+            if let fallback = matchingSource(for: source, in: sources) {
+                return fallback
+            }
+        }
+
+        return nil
+    }
+
+    static func sourceAddons(
+        for source: StreamSource,
+        from addons: [LocalAddon]
+    ) -> [LocalAddon] {
+        if let addonID = source.addonID {
+            return addons.first(where: { $0.id == addonID }).map { [$0] } ?? []
+        }
+
+        return addons.filter {
+            $0.name == source.addonName && $0.sourceCategory == source.sourceCategory
+        }
     }
 
     static func matchingSource(

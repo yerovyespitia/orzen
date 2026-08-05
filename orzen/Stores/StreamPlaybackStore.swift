@@ -39,6 +39,21 @@ struct StreamPlaybackRequest: Identifiable {
     var id: String {
         "\(source.id)-\(title)-\(subtitle)-\(contentType.rawValue)-\(contentID)"
     }
+
+    func replacingSource(_ source: StreamSource) -> StreamPlaybackRequest {
+        StreamPlaybackRequest(
+            source: source,
+            title: title,
+            subtitle: subtitle,
+            contentID: contentID,
+            contentType: contentType,
+            item: item,
+            episode: episode,
+            preferredSourceTitle: preferredSourceTitle,
+            initialTrackSelections: initialTrackSelections,
+            attemptedSourceIDs: attemptedSourceIDs
+        )
+    }
 }
 
 @MainActor

@@ -2,6 +2,91 @@ import XCTest
 @testable import Orzen
 
 final class StreamSourceResolverTests: XCTestCase {
+    func testStreamSourcePersistsExactAddonIdentity() throws {
+        let addonID = UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!
+        let source = TestFixtures.source(addonID: addonID)
+
+        let data = try JSONEncoder().encode(source)
+        let decoded = try JSONDecoder().decode(StreamSource.self, from: data)
+
+        XCTAssertEqual(decoded.addonID, addonID)
+    }
+
+    func testLegacyStreamSourceInfersAddonIdentityFromStableIdentifier() throws {
+        let addonID = UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!
+        let legacySource = TestFixtures.source(
+            id: "\(addonID.uuidString)-0-legacy-source",
+            addonID: nil
+        )
+
+        let data = try JSONEncoder().encode(legacySource)
+        let decoded = try JSONDecoder().decode(StreamSource.self, from: data)
+
+        XCTAssertEqual(decoded.addonID, addonID)
+    }
+
+    func testExactAddonIdentityAvoidsEquivalentConfigurations() {
+        let first = TestFixtures.addon(
+            id: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!,
+            name: "Torrentio RD"
+        )
+        let exact = TestFixtures.addon(
+            id: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!,
+            name: "Torrentio RD"
+        )
+        let source = TestFixtures.source(addonID: exact.id, addonName: exact.name)
+
+        XCTAssertEqual(
+            StreamSourceResolver.sourceAddons(for: source, from: [first, exact]),
+            [exact]
+        )
+    }
+
+    func testRemovedExactAddonDoesNotFallBackToEquivalentConfiguration() {
+        let removedAddonID = UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!
+        let replacement = TestFixtures.addon(
+            id: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!,
+            name: "Torrentio RD"
+        )
+        let source = TestFixtures.source(addonID: removedAddonID, addonName: replacement.name)
+
+        XCTAssertTrue(
+            StreamSourceResolver.sourceAddons(for: source, from: [replacement]).isEmpty
+        )
+    }
+
+    func testLegacyAddonIdentityKeepsNameAndCategoryMigrationFallback() {
+        let first = TestFixtures.addon(name: "Torrentio RD")
+        let second = TestFixtures.addon(name: "Torrentio RD")
+        let source = TestFixtures.source(id: "legacy-source", addonName: "Torrentio RD")
+
+        XCTAssertEqual(
+            StreamSourceResolver.sourceAddons(for: source, from: [first, second]),
+            [first, second]
+        )
+    }
+
+    func testSourceResultsYieldWithoutWaitingForSlowestAddon() async {
+        let slow = TestFixtures.addon(name: "Slow")
+        let fast = TestFixtures.addon(name: "Fast")
+        var resultIDs: [LocalAddon.ID] = []
+
+        for await result in StreamSourceResolver.sourceResults(
+            from: [slow, fast],
+            type: .movie,
+            id: "tt123",
+            fetch: { addon, _, _ in
+                let delay: UInt64 = addon.id == slow.id ? 100_000_000 : 10_000_000
+                try? await Task.sleep(nanoseconds: delay)
+                return [TestFixtures.source(addonID: addon.id, addonName: addon.name)]
+            }
+        ) {
+            resultIDs.append(result.addon.id)
+        }
+
+        XCTAssertEqual(resultIDs, [fast.id, slow.id])
+    }
+
     func testSourceAddonTitleDistinguishesLanguageConfiguration() {
         let general = TestFixtures.addon(name: "Torrentio RD")
         let latino = TestFixtures.addon(
@@ -27,7 +112,7 @@ final class StreamSourceResolverTests: XCTestCase {
         )
     }
 
-    func testSourceAddonAllSelectionCombinesEveryAvailableAddon() {
+    func testSourceAddonAllSelectionAppendsSourcesInCompletionOrder() {
         let torrentio = TestFixtures.addon(id: UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!, name: "Torrentio")
         let comet = TestFixtures.addon(id: UUID(uuidString: "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB")!, name: "Comet")
         let torrentioSource = TestFixtures.source(id: "torrentio", addonName: torrentio.name)
@@ -36,13 +121,13 @@ final class StreamSourceResolverTests: XCTestCase {
         XCTAssertEqual(
             SourceAddonResultsPolicy.sources(
                 for: nil,
-                addons: [torrentio, comet],
+                addons: [comet, torrentio],
                 sourcesByAddonID: [
                     torrentio.id: [torrentioSource],
                     comet.id: [cometSource]
                 ]
             ),
-            [torrentioSource, cometSource]
+            [cometSource, torrentioSource]
         )
     }
 

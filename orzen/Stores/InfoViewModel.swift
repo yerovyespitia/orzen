@@ -23,6 +23,7 @@ final class InfoViewModel: ObservableObject {
     private let episodeWatchStore: EpisodeWatchStore
     private let collectionStore: CollectionStore
     private var sourceRequestID: String?
+    private var sourceTask: Task<Void, Never>?
     private var sourcesByAddonID: [LocalAddon.ID: [StreamSource]] = [:]
     private var hasAutoScrolledToWatchedEpisode = false
 
@@ -101,12 +102,13 @@ final class InfoViewModel: ObservableObject {
     }
 
     func selectEpisode(_ episode: CatalogEpisode) {
+        sourceTask?.cancel()
         selectedEpisodeID = episode.id
         resetSourcesState()
 
         guard let type = item.cinemetaType else { return }
 
-        Task {
+        sourceTask = Task {
             await loadSources(for: episode.id, type: type)
         }
     }
@@ -123,12 +125,10 @@ final class InfoViewModel: ObservableObject {
         guard selectedSourceAddonID != addonID else { return }
 
         selectedSourceAddonID = addonID
-        sources = StreamSourceResolver.sortedSources(
-            SourceAddonResultsPolicy.sources(
-                for: addonID,
-                addons: sourceAddons,
-                sourcesByAddonID: sourcesByAddonID
-            )
+        sources = SourceAddonResultsPolicy.sources(
+            for: addonID,
+            addons: sourceAddons,
+            sourcesByAddonID: sourcesByAddonID
         )
     }
 
@@ -153,6 +153,8 @@ final class InfoViewModel: ObservableObject {
     }
 
     private func resetDetailState() {
+        sourceTask?.cancel()
+        sourceTask = nil
         selectedSeason = 1
         pendingEpisodeScrollID = nil
         hasAutoScrolledToWatchedEpisode = false
@@ -169,6 +171,8 @@ final class InfoViewModel: ObservableObject {
     }
 
     private func resetSourcesState() {
+        sourceTask?.cancel()
+        sourceTask = nil
         sources = []
         selectedSourceAddonID = nil
         sourceAddons = []
@@ -235,30 +239,36 @@ final class InfoViewModel: ObservableObject {
         isLoadingSources = true
         sourceErrorMessage = nil
 
-        let loadedSourcesByAddonID = await StreamSourceResolver.fetchSourcesByAddon(
+        for await result in StreamSourceResolver.sourceResults(
             from: compatibleAddons,
             type: type,
             id: id
-        )
+        ) {
+            guard sourceRequestID == requestID, !Task.isCancelled else { return }
+            sourcesByAddonID[result.addon.id] = result.sources
 
-        guard sourceRequestID == requestID else { return }
-        sourcesByAddonID = loadedSourcesByAddonID
-        sourceAddons = SourceAddonResultsPolicy.availableAddons(
-            from: compatibleAddons,
-            sourcesByAddonID: loadedSourcesByAddonID
-        )
-        selectedSourceAddonID = nil
-        sources = StreamSourceResolver.sortedSources(
-            SourceAddonResultsPolicy.sources(
-                for: nil,
-                addons: sourceAddons,
-                sourcesByAddonID: loadedSourcesByAddonID
-            )
-        )
+            if !result.sources.isEmpty,
+               !sourceAddons.contains(where: { $0.id == result.addon.id }) {
+                sourceAddons.append(result.addon)
+            }
+
+            applySourceSelection()
+            await Task.yield()
+        }
+
+        guard sourceRequestID == requestID, !Task.isCancelled else { return }
         sourceErrorMessage = nil
 
         hasLoadedSources = true
         isLoadingSources = false
+    }
+
+    private func applySourceSelection() {
+        sources = SourceAddonResultsPolicy.sources(
+            for: selectedSourceAddonID,
+            addons: sourceAddons,
+            sourcesByAddonID: sourcesByAddonID
+        )
     }
 }
 

@@ -37,6 +37,21 @@ final class PlaybackProgressStoreTests: XCTestCase {
         XCTAssertEqual(store.resumePosition(for: request), 120)
     }
 
+    func testSavedProgressPersistsExactSourceAddonIdentity() {
+        let addonID = UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!
+        let request = TestFixtures.request(
+            source: TestFixtures.source(addonID: addonID)
+        )
+
+        store.saveProgress(for: request, position: 120, duration: 7_200)
+
+        let reloadedStore = PlaybackProgressStore(userDefaults: defaults)
+        XCTAssertEqual(
+            reloadedStore.entry(contentID: request.contentID, contentType: .movie)?.sourceAddonID,
+            addonID
+        )
+    }
+
     func testSavedProgressCanResumeWhenURLMatchesButIdentifierChanges() {
         let url = URL(string: "https://example.com/stable.m3u8")!
         let originalRequest = TestFixtures.request(source: TestFixtures.source(id: "old", url: url))
