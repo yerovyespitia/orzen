@@ -58,6 +58,7 @@ struct StreamPlayerView: View {
     #if os(iOS)
     @State var videoScale: CGFloat = 1
     @State var wasPausedBeforeBackground: Bool?
+    @State var hasEnteredBackground = false
     #endif
 
     let nativeStartupMinimumProgress = 1.0
@@ -158,8 +159,11 @@ struct StreamPlayerView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             handleApplicationWillResignActive()
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            handleApplicationDidBecomeActive()
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+            handleApplicationDidEnterBackground()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            handleApplicationWillEnterForeground()
         }
         #endif
         .onChange(of: isEpisodeSidebarPresented) { _, isPresented in

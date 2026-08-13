@@ -148,9 +148,10 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
             StreamPlayerLifecyclePolicy.foregroundAction(
                 for: .vlc,
                 wasPausedBeforeBackground: false,
+                hasEnteredBackground: true,
                 isPictureInPictureActive: false
             ),
-            .recoverVideoOutput(shouldResume: true)
+            .recoverVideoOutput(shouldResume: true, requiresTrackReset: false)
         )
     }
 
@@ -159,9 +160,10 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
             StreamPlayerLifecyclePolicy.foregroundAction(
                 for: .vlc,
                 wasPausedBeforeBackground: true,
+                hasEnteredBackground: true,
                 isPictureInPictureActive: false
             ),
-            .recoverVideoOutput(shouldResume: false)
+            .recoverVideoOutput(shouldResume: false, requiresTrackReset: true)
         )
     }
 
@@ -170,6 +172,7 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
             StreamPlayerLifecyclePolicy.foregroundAction(
                 for: .vlc,
                 wasPausedBeforeBackground: false,
+                hasEnteredBackground: true,
                 isPictureInPictureActive: true
             ),
             .none
@@ -181,6 +184,19 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
             StreamPlayerLifecyclePolicy.foregroundAction(
                 for: .vlc,
                 wasPausedBeforeBackground: nil,
+                hasEnteredBackground: true,
+                isPictureInPictureActive: false
+            ),
+            .none
+        )
+    }
+
+    func testCancelledHomeGestureDoesNotRecoverVideoOutput() {
+        XCTAssertEqual(
+            StreamPlayerLifecyclePolicy.foregroundAction(
+                for: .vlc,
+                wasPausedBeforeBackground: false,
+                hasEnteredBackground: false,
                 isPictureInPictureActive: false
             ),
             .none

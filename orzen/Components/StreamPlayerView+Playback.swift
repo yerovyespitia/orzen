@@ -7,25 +7,42 @@ extension StreamPlayerView {
               !pictureInPictureSession.isActive else { return }
 
         wasPausedBeforeBackground = isPaused
+    }
+
+    func handleApplicationDidEnterBackground() {
+        guard wasPausedBeforeBackground != nil,
+              !pictureInPictureSession.isActive else { return }
+
+        hasEnteredBackground = true
         if activePlaybackEngine == .vlc {
-            vlcController.markVideoOutputForRecovery()
+            vlcController.markVideoOutputForRecovery(
+                requiresTrackReset: wasPausedBeforeBackground == true
+            )
         }
     }
 
-    func handleApplicationDidBecomeActive() {
+    func handleApplicationWillEnterForeground() {
         let action = StreamPlayerLifecyclePolicy.foregroundAction(
             for: activePlaybackEngine,
             wasPausedBeforeBackground: wasPausedBeforeBackground,
+            hasEnteredBackground: hasEnteredBackground,
             isPictureInPictureActive: pictureInPictureSession.isActive
         )
         wasPausedBeforeBackground = nil
+        hasEnteredBackground = false
 
-        guard case .recoverVideoOutput(let shouldResume) = action else { return }
+        guard case .recoverVideoOutput(
+            let shouldResume,
+            let requiresTrackReset
+        ) = action else { return }
         IOSMediaPlaybackSession.activate()
 
         switch activePlaybackEngine {
         case .vlc:
-            vlcController.recoverVideoOutput(shouldResume: shouldResume)
+            vlcController.recoverVideoOutput(
+                shouldResume: shouldResume,
+                requiresTrackReset: requiresTrackReset
+            )
         case .native:
             recoverNativeVideoOutput(shouldResume: shouldResume)
         default:

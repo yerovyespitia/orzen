@@ -26,6 +26,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     private var automaticAudioSelectionAttempts = 0
     private var lastAutomaticAudioSelectionAttempt: Date?
     private var videoOutputNeedsRecovery = false
+    private var videoTrackResetNeeded = false
 
     var isAvailable: Bool { true }
 
@@ -92,6 +93,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         automaticAudioSelectionAttempts = 0
         lastAutomaticAudioSelectionAttempt = nil
         videoOutputNeedsRecovery = false
+        videoTrackResetNeeded = false
     }
 
     func togglePlayPause() {
@@ -105,7 +107,10 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     func resume() {
         guard currentMedia != nil else { return }
         if videoOutputNeedsRecovery {
-            recoverVideoOutput(shouldResume: true)
+            recoverVideoOutput(
+                shouldResume: true,
+                requiresTrackReset: videoTrackResetNeeded
+            )
             return
         }
         player.play()
@@ -117,21 +122,26 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         isPaused = true
     }
 
-    func markVideoOutputForRecovery() {
+    func markVideoOutputForRecovery(requiresTrackReset: Bool) {
         guard currentMedia != nil else { return }
         videoOutputNeedsRecovery = true
+        videoTrackResetNeeded = requiresTrackReset
     }
 
-    func recoverVideoOutput(shouldResume: Bool) {
+    func recoverVideoOutput(shouldResume: Bool, requiresTrackReset: Bool) {
         guard currentMedia != nil else { return }
         videoOutputNeedsRecovery = false
+        videoTrackResetNeeded = false
 
         if let drawable = player.drawable {
-            player.drawable = nil
+            if requiresTrackReset {
+                player.drawable = nil
+            }
             player.drawable = drawable
         }
 
-        if let selectedVideoTrack = player.videoTracks.first(where: \.isSelected) {
+        if requiresTrackReset,
+           let selectedVideoTrack = player.videoTracks.first(where: \.isSelected) {
             selectedVideoTrack.isSelected = false
             selectedVideoTrack.isSelectedExclusively = true
         }
@@ -485,8 +495,8 @@ final class VLCPlaybackController: ObservableObject {
     func togglePlayPause() { }
     func resume() { }
     func pause() { }
-    func markVideoOutputForRecovery() { }
-    func recoverVideoOutput(shouldResume: Bool) { }
+    func markVideoOutputForRecovery(requiresTrackReset: Bool) { }
+    func recoverVideoOutput(shouldResume: Bool, requiresTrackReset: Bool) { }
     func seek(to time: Double) { }
     func seek(by offset: Double) { }
     func setVolume(_ value: Double) { }

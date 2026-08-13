@@ -12,22 +12,27 @@ enum StreamPlayerInitialPlaybackDecision: Equatable {
 
 enum StreamPlayerForegroundAction: Equatable {
     case none
-    case recoverVideoOutput(shouldResume: Bool)
+    case recoverVideoOutput(shouldResume: Bool, requiresTrackReset: Bool)
 }
 
 enum StreamPlayerLifecyclePolicy {
     static func foregroundAction(
         for engine: StreamPlaybackEngine?,
         wasPausedBeforeBackground: Bool?,
+        hasEnteredBackground: Bool,
         isPictureInPictureActive: Bool
     ) -> StreamPlayerForegroundAction {
         guard engine == .vlc || engine == .native,
               let wasPausedBeforeBackground,
+              hasEnteredBackground,
               !isPictureInPictureActive else {
             return .none
         }
 
-        return .recoverVideoOutput(shouldResume: !wasPausedBeforeBackground)
+        return .recoverVideoOutput(
+            shouldResume: !wasPausedBeforeBackground,
+            requiresTrackReset: wasPausedBeforeBackground
+        )
     }
 }
 
