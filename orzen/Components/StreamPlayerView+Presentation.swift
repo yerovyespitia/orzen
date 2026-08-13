@@ -67,7 +67,7 @@ extension StreamPlayerView {
     var playerChrome: some View {
         StreamPlayerChrome(
             title: request.title,
-            subtitle: request.subtitle,
+            subtitle: request.contentType == .series ? request.subtitle : nil,
             isPaused: isPaused,
             isPreparingPlayback: isPreparingPlayback,
             currentTime: currentTime,

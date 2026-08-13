@@ -2,7 +2,7 @@ import SwiftUI
 
 struct StreamPlayerChrome: View {
     let title: String
-    let subtitle: String
+    let subtitle: String?
     let isPaused: Bool
     let isPreparingPlayback: Bool
     let currentTime: Double
@@ -75,10 +75,12 @@ struct StreamPlayerChrome: View {
                     .foregroundColor(.white)
                     .lineLimit(1)
 
-                Text(subtitle)
-                    .font(.caption.weight(.medium))
-                    .foregroundColor(.white.opacity(0.7))
-                    .lineLimit(1)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.white.opacity(0.7))
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 0)
