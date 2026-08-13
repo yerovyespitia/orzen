@@ -7,8 +7,6 @@ struct InfoView: View {
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
     @StateObject private var viewModel: InfoViewModel
     @State private var isSourcesBackHovered = false
-    @State private var isSourceAddonMenuPresented = false
-    @State private var sourceAddonPickerFrame = CGRect.zero
     @Environment(\.dismiss) private var dismiss
     private var contentHorizontalPadding: CGFloat {
         OrzenLayout.current.detailHorizontalPadding
@@ -20,7 +18,7 @@ struct InfoView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack(alignment: .top) {
             backgroundImage
                 .frame(maxWidth: .infinity, maxHeight: detailBackdropHeight)
                 .clipped()
@@ -64,34 +62,7 @@ struct InfoView: View {
                 }
             }
 
-            if isSourceAddonMenuPresented {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        isSourceAddonMenuPresented = false
-                    }
-                    .zIndex(2)
-
-                SourceAddonPickerMenu(
-                    selection: Binding(
-                        get: { viewModel.selectedSourceAddonID },
-                        set: { viewModel.selectSourceAddon($0) }
-                    ),
-                    addons: viewModel.sourceAddons,
-                    dismiss: { isSourceAddonMenuPresented = false }
-                )
-                .offset(
-                    x: max(0, sourceAddonPickerFrame.maxX - 268),
-                    y: sourceAddonPickerFrame.maxY + 8
-                )
-                .zIndex(3)
-            }
-
             topBackOverlay
-        }
-        .coordinateSpace(name: SourceAddonPickerCoordinateSpace.name)
-        .onPreferenceChange(SourceAddonPickerFramePreferenceKey.self) { frame in
-            sourceAddonPickerFrame = frame
         }
         .background(Color.black)
         #if os(iOS)
@@ -408,10 +379,7 @@ struct InfoView: View {
                     get: { viewModel.selectedSourceAddonID },
                     set: { viewModel.selectSourceAddon($0) }
                 ),
-                addons: viewModel.sourceAddons,
-                onMenuRequested: {
-                    isSourceAddonMenuPresented.toggle()
-                }
+                addons: viewModel.sourceAddons
             )
         }
     }
