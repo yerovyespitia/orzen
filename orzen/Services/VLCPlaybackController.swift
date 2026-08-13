@@ -25,6 +25,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     private var currentMedia: VLCMedia?
     private var automaticAudioSelectionAttempts = 0
     private var lastAutomaticAudioSelectionAttempt: Date?
+    private var videoOutputNeedsRecovery = false
 
     var isAvailable: Bool { true }
 
@@ -90,6 +91,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         isRenderingExternalSubtitle = false
         automaticAudioSelectionAttempts = 0
         lastAutomaticAudioSelectionAttempt = nil
+        videoOutputNeedsRecovery = false
     }
 
     func togglePlayPause() {
@@ -102,6 +104,10 @@ final class VLCPlaybackController: NSObject, ObservableObject {
 
     func resume() {
         guard currentMedia != nil else { return }
+        if videoOutputNeedsRecovery {
+            recoverVideoOutput(shouldResume: true)
+            return
+        }
         player.play()
         isPaused = false
     }
@@ -109,6 +115,34 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     func pause() {
         player.pause()
         isPaused = true
+    }
+
+    func markVideoOutputForRecovery() {
+        guard currentMedia != nil else { return }
+        videoOutputNeedsRecovery = true
+    }
+
+    func recoverVideoOutput(shouldResume: Bool) {
+        guard currentMedia != nil else { return }
+        videoOutputNeedsRecovery = false
+
+        if let drawable = player.drawable {
+            player.drawable = nil
+            player.drawable = drawable
+        }
+
+        if let selectedVideoTrack = player.videoTracks.first(where: \.isSelected) {
+            selectedVideoTrack.isSelected = false
+            selectedVideoTrack.isSelectedExclusively = true
+        }
+
+        player.play()
+        if shouldResume {
+            isPaused = false
+        } else {
+            player.pause()
+            isPaused = true
+        }
     }
 
     func seek(to time: Double) {
@@ -451,6 +485,8 @@ final class VLCPlaybackController: ObservableObject {
     func togglePlayPause() { }
     func resume() { }
     func pause() { }
+    func markVideoOutputForRecovery() { }
+    func recoverVideoOutput(shouldResume: Bool) { }
     func seek(to time: Double) { }
     func seek(by offset: Double) { }
     func setVolume(_ value: Double) { }

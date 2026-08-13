@@ -10,6 +10,27 @@ enum StreamPlayerInitialPlaybackDecision: Equatable {
     case play(URL, with: StreamPlaybackEngine)
 }
 
+enum StreamPlayerForegroundAction: Equatable {
+    case none
+    case recoverVideoOutput(shouldResume: Bool)
+}
+
+enum StreamPlayerLifecyclePolicy {
+    static func foregroundAction(
+        for engine: StreamPlaybackEngine?,
+        wasPausedBeforeBackground: Bool?,
+        isPictureInPictureActive: Bool
+    ) -> StreamPlayerForegroundAction {
+        guard engine == .vlc || engine == .native,
+              let wasPausedBeforeBackground,
+              !isPictureInPictureActive else {
+            return .none
+        }
+
+        return .recoverVideoOutput(shouldResume: !wasPausedBeforeBackground)
+    }
+}
+
 struct StreamPlayerFallbackSelection: Equatable {
     let source: StreamSource
     let attemptedSourceIDs: Set<StreamSource.ID>

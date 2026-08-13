@@ -57,6 +57,7 @@ struct StreamPlayerView: View {
     @StateObject var chromeVisibility = StreamPlayerChromeVisibilityController()
     #if os(iOS)
     @State var videoScale: CGFloat = 1
+    @State var wasPausedBeforeBackground: Bool?
     #endif
 
     let nativeStartupMinimumProgress = 1.0
@@ -153,6 +154,12 @@ struct StreamPlayerView: View {
         .onChange(of: vlcController.didReachEnd) { _, didReachEnd in
             guard didReachEnd else { return }
             handlePlaybackEnded()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+            handleApplicationWillResignActive()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            handleApplicationDidBecomeActive()
         }
         #endif
         .onChange(of: isEpisodeSidebarPresented) { _, isPresented in

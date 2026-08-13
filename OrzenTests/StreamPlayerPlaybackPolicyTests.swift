@@ -143,6 +143,50 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
         )
     }
 
+    func testForegroundRecoveryResumesPlaybackThatWasPlayingBeforeBackground() {
+        XCTAssertEqual(
+            StreamPlayerLifecyclePolicy.foregroundAction(
+                for: .vlc,
+                wasPausedBeforeBackground: false,
+                isPictureInPictureActive: false
+            ),
+            .recoverVideoOutput(shouldResume: true)
+        )
+    }
+
+    func testForegroundRecoveryPreservesPausedPlayback() {
+        XCTAssertEqual(
+            StreamPlayerLifecyclePolicy.foregroundAction(
+                for: .vlc,
+                wasPausedBeforeBackground: true,
+                isPictureInPictureActive: false
+            ),
+            .recoverVideoOutput(shouldResume: false)
+        )
+    }
+
+    func testForegroundRecoveryDoesNotDisruptPictureInPicture() {
+        XCTAssertEqual(
+            StreamPlayerLifecyclePolicy.foregroundAction(
+                for: .vlc,
+                wasPausedBeforeBackground: false,
+                isPictureInPictureActive: true
+            ),
+            .none
+        )
+    }
+
+    func testForegroundRecoveryRequiresCapturedPlaybackState() {
+        XCTAssertEqual(
+            StreamPlayerLifecyclePolicy.foregroundAction(
+                for: .vlc,
+                wasPausedBeforeBackground: nil,
+                isPictureInPictureActive: false
+            ),
+            .none
+        )
+    }
+
     func testFallbackExcludesCurrentPreviouslyAttemptedAndUnsupportedSources() {
         let current = TestFixtures.source(id: "current", url: URL(string: "https://example.com/current.mp4"))
         let attempted = TestFixtures.source(id: "attempted", url: URL(string: "https://example.com/attempted.m3u8"))

@@ -1,6 +1,55 @@
 import AVFoundation
 
 extension StreamPlayerView {
+    #if os(iOS)
+    func handleApplicationWillResignActive() {
+        guard activePlaybackEngine != nil,
+              !pictureInPictureSession.isActive else { return }
+
+        wasPausedBeforeBackground = isPaused
+        if activePlaybackEngine == .vlc {
+            vlcController.markVideoOutputForRecovery()
+        }
+    }
+
+    func handleApplicationDidBecomeActive() {
+        let action = StreamPlayerLifecyclePolicy.foregroundAction(
+            for: activePlaybackEngine,
+            wasPausedBeforeBackground: wasPausedBeforeBackground,
+            isPictureInPictureActive: pictureInPictureSession.isActive
+        )
+        wasPausedBeforeBackground = nil
+
+        guard case .recoverVideoOutput(let shouldResume) = action else { return }
+        IOSMediaPlaybackSession.activate()
+
+        switch activePlaybackEngine {
+        case .vlc:
+            vlcController.recoverVideoOutput(shouldResume: shouldResume)
+        case .native:
+            recoverNativeVideoOutput(shouldResume: shouldResume)
+        default:
+            break
+        }
+    }
+
+    func recoverNativeVideoOutput(shouldResume: Bool) {
+        guard let player else { return }
+
+        let currentTime = player.currentTime()
+        player.seek(to: currentTime, toleranceBefore: .zero, toleranceAfter: .zero) { _ in
+            Task { @MainActor in
+                if shouldResume {
+                    player.play()
+                } else {
+                    player.pause()
+                }
+                nativeIsPaused = !shouldResume
+            }
+        }
+    }
+    #endif
+
     func startPlaybackIfPossible() {
         guard player == nil, !isPreparingNativePlayback else { return }
 
