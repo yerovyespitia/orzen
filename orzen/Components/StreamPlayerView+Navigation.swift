@@ -75,18 +75,23 @@ extension StreamPlayerView {
         }
         chromeVisibility.cancelAutoHide()
         player?.pause()
-        #if os(iOS)
-        if activePlaybackEngine == .vlc {
-            vlcController.stop()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                onBack()
-            }
-            return
-        }
-        #endif
         mpvController.pause()
         onBack()
     }
+
+    #if os(iOS)
+    func stopVLCPlaybackOnDisappear() {
+        guard isClosing, activePlaybackEngine == .vlc else {
+            vlcController.stop()
+            return
+        }
+
+        let controller = vlcController
+        DispatchQueue.main.async {
+            controller.stop()
+        }
+    }
+    #endif
 
     func showEpisodeSidebar() {
         guard canShowEpisodeSidebar else { return }

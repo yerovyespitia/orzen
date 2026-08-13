@@ -223,7 +223,7 @@ struct StreamPlayerView: View {
             playbackObserver.stop()
             #if os(iOS)
             nowPlayingController.end()
-            vlcController.stop()
+            stopVLCPlaybackOnDisappear()
             #endif
             mpvController.stop()
         }
