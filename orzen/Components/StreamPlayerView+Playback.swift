@@ -1,6 +1,28 @@
 import AVFoundation
 
 extension StreamPlayerView {
+    func refreshSourceBeforePlaybackIfNeeded() async {
+        guard request.requiresSourceRefresh else { return }
+
+        let refreshedSource = await StreamSourceResolver.continuingSource(
+            after: request.source,
+            preferredTitle: request.preferredSourceTitle,
+            from: addonStore.streamAddons,
+            type: request.contentType,
+            id: request.contentID
+        )
+
+        guard !Task.isCancelled,
+              !isClosing,
+              StreamPlaybackStore.shared.request?.id == request.id else {
+            return
+        }
+
+        StreamPlaybackStore.shared.request = request.completingSourceRefresh(
+            with: refreshedSource ?? request.source
+        )
+    }
+
     #if os(iOS)
     func handleApplicationWillResignActive() {
         guard activePlaybackEngine != nil,

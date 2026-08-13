@@ -11,6 +11,7 @@ struct StreamPlaybackRequest: Identifiable {
     let preferredSourceTitle: String
     let initialTrackSelections: PlaybackTrackSelections?
     let attemptedSourceIDs: Set<StreamSource.ID>
+    let requiresSourceRefresh: Bool
 
     init(
         source: StreamSource,
@@ -22,7 +23,8 @@ struct StreamPlaybackRequest: Identifiable {
         episode: CatalogEpisode? = nil,
         preferredSourceTitle: String? = nil,
         initialTrackSelections: PlaybackTrackSelections? = nil,
-        attemptedSourceIDs: Set<StreamSource.ID> = []
+        attemptedSourceIDs: Set<StreamSource.ID> = [],
+        requiresSourceRefresh: Bool = false
     ) {
         self.source = source
         self.title = title
@@ -34,10 +36,12 @@ struct StreamPlaybackRequest: Identifiable {
         self.preferredSourceTitle = preferredSourceTitle ?? source.title
         self.initialTrackSelections = initialTrackSelections
         self.attemptedSourceIDs = attemptedSourceIDs
+        self.requiresSourceRefresh = requiresSourceRefresh
     }
 
     var id: String {
-        "\(source.id)-\(title)-\(subtitle)-\(contentType.rawValue)-\(contentID)"
+        let playbackID = "\(source.id)-\(title)-\(subtitle)-\(contentType.rawValue)-\(contentID)"
+        return requiresSourceRefresh ? "\(playbackID)-refreshing-source" : playbackID
     }
 
     func replacingSource(_ source: StreamSource) -> StreamPlaybackRequest {
@@ -53,6 +57,26 @@ struct StreamPlaybackRequest: Identifiable {
             initialTrackSelections: initialTrackSelections,
             attemptedSourceIDs: attemptedSourceIDs
         )
+    }
+
+    func requiringSourceRefresh() -> StreamPlaybackRequest {
+        StreamPlaybackRequest(
+            source: source,
+            title: title,
+            subtitle: subtitle,
+            contentID: contentID,
+            contentType: contentType,
+            item: item,
+            episode: episode,
+            preferredSourceTitle: preferredSourceTitle,
+            initialTrackSelections: initialTrackSelections,
+            attemptedSourceIDs: attemptedSourceIDs,
+            requiresSourceRefresh: true
+        )
+    }
+
+    func completingSourceRefresh(with source: StreamSource) -> StreamPlaybackRequest {
+        replacingSource(source)
     }
 }
 

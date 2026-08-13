@@ -8,9 +8,7 @@ struct HomeView: View {
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
     @ObservedObject private var progressStore = PlaybackProgressStore.shared
     @ObservedObject private var collectionStore = CollectionStore.shared
-    @ObservedObject private var addonStore = LocalAddonStore.shared
     @ObservedObject private var bannerScrollStore = HomeBannerScrollStore.shared
-    @State private var playbackRefreshTask: Task<Void, Never>?
     private let scrollTopID = "home-scroll-top"
 
     var body: some View {
@@ -92,28 +90,7 @@ struct HomeView: View {
 
     private func playSavedProgress(_ item: CatalogItem) {
         guard let entry = progressStore.entry(for: item) else { return }
-
-        playbackRefreshTask?.cancel()
-        playbackRefreshTask = Task {
-            let refreshedRequest = await refreshedPlaybackRequest(for: entry)
-            guard !Task.isCancelled else { return }
-            playbackStore.request = refreshedRequest
-        }
-    }
-
-    private func refreshedPlaybackRequest(for entry: PlaybackProgressEntry) async -> StreamPlaybackRequest {
-        let storedRequest = entry.playbackRequest
-        guard let refreshedSource = await StreamSourceResolver.continuingSource(
-            after: entry.source,
-            preferredTitle: entry.resolvedPreferredSourceTitle,
-            from: addonStore.streamAddons,
-            type: entry.contentType,
-            id: entry.contentID
-        ) else {
-            return storedRequest
-        }
-
-        return storedRequest.replacingSource(refreshedSource)
+        playbackStore.request = entry.playbackRequest.requiringSourceRefresh()
     }
 
     private func scrollToTop(with scrollProxy: ScrollViewProxy) {

@@ -184,6 +184,10 @@ extension StreamPlayerView {
     }
 
     var isPreparingPlayback: Bool {
+        if request.requiresSourceRefresh {
+            return true
+        }
+
         #if os(iOS)
         if activePlaybackEngine == .vlc {
             return vlcController.isStarting

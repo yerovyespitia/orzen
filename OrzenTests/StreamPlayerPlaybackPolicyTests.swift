@@ -2,6 +2,32 @@ import XCTest
 @testable import Orzen
 
 final class StreamPlayerPlaybackPolicyTests: XCTestCase {
+    func testSavedPlaybackRequestRefreshesAfterPlayerPresentation() {
+        let request = TestFixtures.request()
+
+        let refreshingRequest = request.requiringSourceRefresh()
+
+        XCTAssertTrue(refreshingRequest.requiresSourceRefresh)
+        XCTAssertNotEqual(refreshingRequest.id, request.id)
+        XCTAssertEqual(refreshingRequest.source, request.source)
+        XCTAssertEqual(refreshingRequest.contentID, request.contentID)
+    }
+
+    func testCompletingSavedPlaybackRefreshUsesResolvedSource() {
+        let request = TestFixtures.request().requiringSourceRefresh()
+        let refreshedSource = TestFixtures.source(
+            id: "refreshed",
+            url: URL(string: "https://example.com/refreshed.m3u8")
+        )
+
+        let completedRequest = request.completingSourceRefresh(with: refreshedSource)
+
+        XCTAssertFalse(completedRequest.requiresSourceRefresh)
+        XCTAssertEqual(completedRequest.source, refreshedSource)
+        XCTAssertEqual(completedRequest.preferredSourceTitle, request.preferredSourceTitle)
+        XCTAssertEqual(completedRequest.contentID, request.contentID)
+    }
+
     func testPictureInPictureSessionRoutesStartStopAndDetach() {
         let session = PictureInPictureSession()
         let registrationID = UUID()

@@ -101,9 +101,14 @@ struct StreamPlayerView: View {
             #if os(iOS)
             beginNowPlayingSession()
             #endif
-            startPlaybackIfPossible()
+            if !request.requiresSourceRefresh {
+                startPlaybackIfPossible()
+            }
             refreshFullscreenState()
             scheduleChromeHideIfNeeded()
+        }
+        .task(id: request.id) {
+            await refreshSourceBeforePlaybackIfNeeded()
         }
         #if os(macOS)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didEnterFullScreenNotification)) { _ in
