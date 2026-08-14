@@ -36,7 +36,8 @@ struct PlaybackProgressEntry: Codable, Identifiable {
             item: item,
             episode: episode,
             preferredSourceTitle: resolvedPreferredSourceTitle,
-            initialTrackSelections: trackSelections
+            initialTrackSelections: trackSelections,
+            initialSubtitleDelay: subtitleDelay
         )
     }
 

@@ -114,6 +114,10 @@ final class PlaybackProgressStoreTests: XCTestCase {
 
         XCTAssertEqual(store.trackSelections(for: request), selections)
         XCTAssertEqual(store.subtitleDelay(for: request), -0.75)
+        XCTAssertEqual(
+            store.entry(contentID: request.contentID, contentType: .movie)?.playbackRequest.initialSubtitleDelay,
+            -0.75
+        )
 
         let reloadedStore = PlaybackProgressStore(userDefaults: defaults)
         XCTAssertEqual(reloadedStore.trackSelections(for: request), selections)

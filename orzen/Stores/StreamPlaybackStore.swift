@@ -10,6 +10,7 @@ struct StreamPlaybackRequest: Identifiable {
     let episode: CatalogEpisode?
     let preferredSourceTitle: String
     let initialTrackSelections: PlaybackTrackSelections?
+    let initialSubtitleDelay: Double?
     let attemptedSourceIDs: Set<StreamSource.ID>
     let requiresSourceRefresh: Bool
 
@@ -23,6 +24,7 @@ struct StreamPlaybackRequest: Identifiable {
         episode: CatalogEpisode? = nil,
         preferredSourceTitle: String? = nil,
         initialTrackSelections: PlaybackTrackSelections? = nil,
+        initialSubtitleDelay: Double? = nil,
         attemptedSourceIDs: Set<StreamSource.ID> = [],
         requiresSourceRefresh: Bool = false
     ) {
@@ -35,6 +37,7 @@ struct StreamPlaybackRequest: Identifiable {
         self.episode = episode
         self.preferredSourceTitle = preferredSourceTitle ?? source.title
         self.initialTrackSelections = initialTrackSelections
+        self.initialSubtitleDelay = initialSubtitleDelay
         self.attemptedSourceIDs = attemptedSourceIDs
         self.requiresSourceRefresh = requiresSourceRefresh
     }
@@ -55,6 +58,7 @@ struct StreamPlaybackRequest: Identifiable {
             episode: episode,
             preferredSourceTitle: preferredSourceTitle,
             initialTrackSelections: initialTrackSelections,
+            initialSubtitleDelay: initialSubtitleDelay,
             attemptedSourceIDs: attemptedSourceIDs
         )
     }
@@ -70,6 +74,7 @@ struct StreamPlaybackRequest: Identifiable {
             episode: episode,
             preferredSourceTitle: preferredSourceTitle,
             initialTrackSelections: initialTrackSelections,
+            initialSubtitleDelay: initialSubtitleDelay,
             attemptedSourceIDs: attemptedSourceIDs,
             requiresSourceRefresh: true
         )

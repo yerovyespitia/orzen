@@ -252,6 +252,7 @@ extension StreamPlayerView {
             item: request.item,
             episode: request.episode,
             initialTrackSelections: request.initialTrackSelections,
+            initialSubtitleDelay: request.initialSubtitleDelay,
             attemptedSourceIDs: selection.attemptedSourceIDs
         )
         #else

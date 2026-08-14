@@ -33,7 +33,8 @@ extension StreamPlayerView {
                     item: item,
                     episode: nextEpisode,
                     preferredSourceTitle: request.preferredSourceTitle,
-                    initialTrackSelections: trackSelections
+                    initialTrackSelections: trackSelections,
+                    initialSubtitleDelay: subtitleDelay
                 )
             }
         }

@@ -14,7 +14,7 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
     }
 
     func testCompletingSavedPlaybackRefreshUsesResolvedSource() {
-        let request = TestFixtures.request().requiringSourceRefresh()
+        let request = TestFixtures.request(initialSubtitleDelay: -0.75).requiringSourceRefresh()
         let refreshedSource = TestFixtures.source(
             id: "refreshed",
             url: URL(string: "https://example.com/refreshed.m3u8")
@@ -26,6 +26,7 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
         XCTAssertEqual(completedRequest.source, refreshedSource)
         XCTAssertEqual(completedRequest.preferredSourceTitle, request.preferredSourceTitle)
         XCTAssertEqual(completedRequest.contentID, request.contentID)
+        XCTAssertEqual(completedRequest.initialSubtitleDelay, -0.75)
     }
 
     func testPictureInPictureSessionRoutesStartStopAndDetach() {

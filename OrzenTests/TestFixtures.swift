@@ -84,6 +84,7 @@ enum TestFixtures {
         contentType: CinemetaType = .movie,
         preferredSourceTitle: String? = nil,
         initialTrackSelections: PlaybackTrackSelections? = nil,
+        initialSubtitleDelay: Double? = nil,
         attemptedSourceIDs: Set<StreamSource.ID> = []
     ) -> StreamPlaybackRequest {
         StreamPlaybackRequest(
@@ -96,6 +97,7 @@ enum TestFixtures {
             episode: episode,
             preferredSourceTitle: preferredSourceTitle,
             initialTrackSelections: initialTrackSelections,
+            initialSubtitleDelay: initialSubtitleDelay,
             attemptedSourceIDs: attemptedSourceIDs
         )
     }

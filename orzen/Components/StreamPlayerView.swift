@@ -96,7 +96,7 @@ struct StreamPlayerView: View {
         .onAppear {
             pendingResumePosition = progressStore.resumePosition(for: request)
             pendingTrackSelections = request.initialTrackSelections ?? progressStore.trackSelections(for: request)
-            subtitleDelay = progressStore.subtitleDelay(for: request)
+            subtitleDelay = request.initialSubtitleDelay ?? progressStore.subtitleDelay(for: request)
             progressStore.beginPlayback(for: request)
             #if os(iOS)
             beginNowPlayingSession()
