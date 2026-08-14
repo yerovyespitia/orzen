@@ -50,6 +50,10 @@ struct iPhoneRootShell: View {
                 addonsView
             }
 
+            Tab("Settings", systemImage: "gearshape", value: RootTab.settings) {
+                settingsView
+            }
+
             Tab(value: RootTab.search, role: .search) {
                 searchView(showsSearchBar: false)
             }
@@ -72,6 +76,10 @@ struct iPhoneRootShell: View {
                 .tabItem { Label("Addons", systemImage: "puzzlepiece.extension") }
                 .tag(RootTab.addons)
 
+            settingsView
+                .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tag(RootTab.settings)
+
             searchView(showsSearchBar: true)
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(RootTab.search)
@@ -92,6 +100,10 @@ struct iPhoneRootShell: View {
 
     private var addonsView: some View {
         AddonsView(popToRootRequest: addonsPopToRootRequest)
+    }
+
+    private var settingsView: some View {
+        SettingsView()
     }
 
     private func searchView(showsSearchBar: Bool) -> some View {
@@ -172,6 +184,8 @@ struct iPhoneRootShell: View {
             collectionsPopToRootRequest += 1
         case .addons:
             addonsPopToRootRequest += 1
+        case .settings:
+            break
         case .search:
             searchPopToRootRequest += 1
             searchScrollToTopRequest += 1
@@ -186,6 +200,7 @@ private enum RootTab: Hashable {
     case search
     case collections
     case addons
+    case settings
 }
 
 private struct StreamPlayerPresenter: UIViewControllerRepresentable {

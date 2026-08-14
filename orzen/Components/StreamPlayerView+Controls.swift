@@ -71,6 +71,7 @@ extension StreamPlayerView {
             onPause: pause,
             onTogglePlayPause: togglePlayPause,
             onSeek: seek(to:),
+            skipInterval: seekInterval.seconds,
             onSkip: seek(by:)
         )
         updateNowPlayingSession()

@@ -2,6 +2,23 @@ import XCTest
 @testable import Orzen
 
 final class StreamPlayerPlaybackPolicyTests: XCTestCase {
+    func testPlaybackSeekIntervalOffersSupportedValues() {
+        XCTAssertEqual(
+            PlaybackSeekInterval.allCases.map(\.rawValue),
+            [5, 10, 15, 30]
+        )
+        XCTAssertEqual(PlaybackSeekInterval.defaultValue, .ten)
+    }
+
+    func testInvalidPlaybackSeekIntervalFallsBackToTenSeconds() {
+        XCTAssertEqual(
+            PlaybackSeekInterval.resolved(rawValue: 99),
+            .ten
+        )
+        XCTAssertEqual(PlaybackSeekInterval.resolved(rawValue: 20), .ten)
+        XCTAssertEqual(PlaybackSeekInterval.resolved(rawValue: 25), .ten)
+    }
+
     func testSavedPlaybackRequestRefreshesAfterPlayerPresentation() {
         let request = TestFixtures.request()
 

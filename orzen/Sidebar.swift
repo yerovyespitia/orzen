@@ -282,6 +282,7 @@ let items: [SidebarItem] = [
     SidebarItem(title: "Movies", systemImage: "film"),
     SidebarItem(title: "Collections", systemImage: "square.stack"),
     SidebarItem(title: "Addons", systemImage: "puzzlepiece.extension"),
+    SidebarItem(title: "Settings", systemImage: "gearshape"),
 ]
 
 #Preview {
@@ -299,6 +300,8 @@ let items: [SidebarItem] = [
             Text("Search Content")
         case "Addons":
             Text("Addons Content")
+        case "Settings":
+            Text("Settings Content")
         default:
             Text("Select an item")
         }

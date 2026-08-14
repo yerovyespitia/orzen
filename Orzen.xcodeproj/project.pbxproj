@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C0000013000000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0000023000000000000001 /* SettingsView.swift */; };
+		7C0000033000000000000001 /* PlaybackPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0000043000000000000001 /* PlaybackPreferences.swift */; };
 		7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000043000000000000001 /* PictureInPictureSession.swift */; };
 		7B0000013000000000000001 /* IOSNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000023000000000000001 /* IOSNowPlayingController.swift */; };
 		7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0000023000000000000001 /* StreamPlayerPolicies.swift */; };
@@ -119,6 +121,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C0000023000000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7C0000043000000000000001 /* PlaybackPreferences.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackPreferences.swift; sourceTree = "<group>"; };
 		7B0000043000000000000001 /* PictureInPictureSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureInPictureSession.swift; sourceTree = "<group>"; };
 		7B0000023000000000000001 /* IOSNowPlayingController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IOSNowPlayingController.swift; sourceTree = "<group>"; };
 		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
@@ -257,6 +261,7 @@
 		6D2872042E034A0400B5D7A1 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
+				7C0000043000000000000001 /* PlaybackPreferences.swift */,
 				6D2872002E034A0000B5D7A1 /* LocalAddonStore.swift */,
 				6D28720A2E05A00000B5D7A1 /* CollectionStore.swift */,
 				6DAA20082E04000000B5D7A1 /* CinemetaCatalogStore.swift */,
@@ -295,6 +300,7 @@
 		6D5648182DD1102D003D7144 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				7C0000023000000000000001 /* SettingsView.swift */,
 				6DAA20212E1C11000B5D7A1 /* AddonManifestInstallView.swift */,
 				6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */,
 				6DAA20012E04000000B5D7A1 /* AddonsView.swift */,
@@ -614,6 +620,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C0000013000000000000001 /* SettingsView.swift in Sources */,
+				7C0000033000000000000001 /* PlaybackPreferences.swift in Sources */,
 				7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */,
 				7B0000013000000000000001 /* IOSNowPlayingController.swift in Sources */,
 				7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */,

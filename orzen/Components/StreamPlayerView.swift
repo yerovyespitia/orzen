@@ -45,6 +45,8 @@ struct StreamPlayerView: View {
     @State var isLoadingNextEpisode = false
     @State var isEpisodeSidebarPresented = false
     @State var isAdjustingTimeline = false
+    @AppStorage(PlaybackSeekInterval.storageKey)
+    var seekIntervalSeconds = PlaybackSeekInterval.defaultValue.rawValue
     @State var prefetchedNextEpisodeID: CatalogEpisode.ID?
     @State var prefetchedNextSource: StreamSource?
     @StateObject var playbackObserver = StreamPlaybackObserver()
@@ -65,6 +67,10 @@ struct StreamPlayerView: View {
     #if os(iOS)
     let expandedVideoScale: CGFloat = 1.22
     #endif
+
+    var seekInterval: PlaybackSeekInterval {
+        PlaybackSeekInterval.resolved(rawValue: seekIntervalSeconds)
+    }
 
     init(request: StreamPlaybackRequest, onBack: @escaping () -> Void) {
         self.request = request

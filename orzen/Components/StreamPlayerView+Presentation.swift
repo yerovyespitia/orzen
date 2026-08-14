@@ -11,6 +11,7 @@ extension StreamPlayerView {
             MPVPlayerView(
                 url: playbackURL,
                 externalSubtitles: externalSubtitleTracks,
+                seekInterval: seekInterval,
                 onEscape: handleEscape,
                 controller: mpvController
             )
@@ -83,13 +84,14 @@ extension StreamPlayerView {
             isEpisodeSidebarPresented: isEpisodeSidebarPresented,
             isPictureInPictureAvailable: isPictureInPictureAvailable,
             isPictureInPictureActive: isPictureInPictureActive,
+            seekInterval: seekInterval,
             onBack: handleBack,
             onPlayPause: togglePlayPause,
             onSeekBackward: {
-                seek(by: -5)
+                seek(by: -seekInterval.seconds)
             },
             onSeekForward: {
-                seek(by: 5)
+                seek(by: seekInterval.seconds)
             },
             onSeek: seek(to:),
             onTimelineInteractionChange: handleTimelineInteractionChange,
@@ -202,10 +204,10 @@ extension StreamPlayerView {
             onEpisodeSidebarOpen: showEpisodeSidebar,
             onMute: toggleMute,
             onSeekBackward: {
-                seek(by: -5)
+                seek(by: -seekInterval.seconds)
             },
             onSeekForward: {
-                seek(by: 5)
+                seek(by: seekInterval.seconds)
             }
         )
     }

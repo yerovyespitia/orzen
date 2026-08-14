@@ -19,6 +19,8 @@ struct ContentView: View {
                 SearchView()
             case "Addons":
                 AddonsView()
+            case "Settings":
+                SettingsView()
             default:
                 ZStack {
                     Color.black.ignoresSafeArea()

@@ -18,6 +18,7 @@ struct StreamPlayerChrome: View {
     let isEpisodeSidebarPresented: Bool
     let isPictureInPictureAvailable: Bool
     let isPictureInPictureActive: Bool
+    let seekInterval: PlaybackSeekInterval
     let onBack: () -> Void
     let onPlayPause: () -> Void
     let onSeekBackward: () -> Void
@@ -144,10 +145,8 @@ struct StreamPlayerChrome: View {
 
     private var centerTransportButtons: some View {
         HStack(spacing: 34) {
-            centerTransportButton(
-                systemName: "5.arrow.trianglehead.counterclockwise",
-                size: .small,
-                help: "Rewind 5 seconds",
+            centerSeekTransportButton(
+                direction: .backward,
                 action: onSeekBackward
             )
 
@@ -160,10 +159,8 @@ struct StreamPlayerChrome: View {
                 action: onPlayPause
             )
 
-            centerTransportButton(
-                systemName: "5.arrow.trianglehead.clockwise",
-                size: .small,
-                help: "Forward 5 seconds",
+            centerSeekTransportButton(
+                direction: .forward,
                 action: onSeekForward
             )
         }
@@ -438,6 +435,19 @@ struct StreamPlayerChrome: View {
         }
     }
 
+    private func centerSeekTransportButton(
+        direction: StreamPlayerSeekDirection,
+        action: @escaping () -> Void
+    ) -> some View {
+        circularButton(
+            hoverID: "transport-seek-\(direction.id)-\(seekInterval.rawValue)",
+            help: direction.help(for: seekInterval),
+            action: action
+        ) {
+            seekTransportIcon(direction: direction)
+        }
+    }
+
     @ViewBuilder
     private func circularButton<Icon: View>(
         hoverID: String,
@@ -498,6 +508,16 @@ struct StreamPlayerChrome: View {
         }
     }
 
+    private func seekTransportIcon(direction: StreamPlayerSeekDirection) -> some View {
+        Image(systemName: direction.systemName(for: seekInterval))
+            .font(.system(size: CenterTransportButtonSize.small.iconSize, weight: .semibold))
+            .foregroundColor(.white)
+            .frame(
+                width: CenterTransportButtonSize.small.buttonSize,
+                height: CenterTransportButtonSize.small.buttonSize
+            )
+    }
+
     private func formatTime(_ value: Double) -> String {
         guard value.isFinite, value > 0 else { return "0:00" }
 
@@ -533,6 +553,38 @@ private enum CenterTransportButtonSize {
             23
         case .large:
             34
+        }
+    }
+}
+
+private enum StreamPlayerSeekDirection {
+    case backward
+    case forward
+
+    var id: String {
+        switch self {
+        case .backward:
+            "backward"
+        case .forward:
+            "forward"
+        }
+    }
+
+    func systemName(for interval: PlaybackSeekInterval) -> String {
+        switch self {
+        case .backward:
+            interval.backwardSystemImage
+        case .forward:
+            interval.forwardSystemImage
+        }
+    }
+
+    func help(for interval: PlaybackSeekInterval) -> String {
+        switch self {
+        case .backward:
+            "Rewind \(interval.rawValue) seconds"
+        case .forward:
+            "Forward \(interval.rawValue) seconds"
         }
     }
 }

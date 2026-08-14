@@ -5,12 +5,14 @@ import SwiftUI
 struct MPVPlayerView: NSViewRepresentable {
     let url: URL
     let externalSubtitles: [ExternalSubtitleTrack]
+    let seekInterval: PlaybackSeekInterval
     let onEscape: () -> Void
     @ObservedObject var controller: MPVPlaybackController
 
     func makeNSView(context: Context) -> MPVOpenGLPlayerView {
         let view = MPVOpenGLPlayerView()
         view.controller = controller
+        view.seekInterval = seekInterval
         view.onEscape = onEscape
         DispatchQueue.main.async { [weak view] in
             view?.load(url: url, externalSubtitles: externalSubtitles)
@@ -20,6 +22,7 @@ struct MPVPlayerView: NSViewRepresentable {
 
     func updateNSView(_ nsView: MPVOpenGLPlayerView, context: Context) {
         nsView.controller = controller
+        nsView.seekInterval = seekInterval
         nsView.onEscape = onEscape
         DispatchQueue.main.async { [weak nsView] in
             nsView?.load(url: url, externalSubtitles: externalSubtitles)
@@ -41,6 +44,7 @@ private final class MPVRenderCallbackTarget {
 
 final class MPVOpenGLPlayerView: NSOpenGLView {
     weak var controller: MPVPlaybackController?
+    var seekInterval = PlaybackSeekInterval.defaultValue
     var onEscape: (() -> Void)?
 
     private var mpv: OpaquePointer?
@@ -103,9 +107,9 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
         case "m":
             toggleMute()
         case String(UnicodeScalar(NSLeftArrowFunctionKey)!):
-            seek(by: -5)
+            seek(by: -seekInterval.seconds)
         case String(UnicodeScalar(NSRightArrowFunctionKey)!):
-            seek(by: 5)
+            seek(by: seekInterval.seconds)
         default:
             super.keyDown(with: event)
         }

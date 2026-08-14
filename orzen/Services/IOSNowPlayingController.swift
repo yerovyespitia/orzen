@@ -34,6 +34,7 @@ final class IOSNowPlayingController: ObservableObject {
     private var onTogglePlayPause: (() -> Void)?
     private var onSeek: ((Double) -> Void)?
     private var onSkip: ((Double) -> Void)?
+    private var skipInterval = PlaybackSeekInterval.defaultValue.seconds
 
     init(
         commandCenter: MPRemoteCommandCenter = .shared(),
@@ -53,6 +54,7 @@ final class IOSNowPlayingController: ObservableObject {
         onPause: @escaping () -> Void,
         onTogglePlayPause: @escaping () -> Void,
         onSeek: @escaping (Double) -> Void,
+        skipInterval: Double,
         onSkip: @escaping (Double) -> Void
     ) {
         end()
@@ -62,6 +64,7 @@ final class IOSNowPlayingController: ObservableObject {
         self.onTogglePlayPause = onTogglePlayPause
         self.onSeek = onSeek
         self.onSkip = onSkip
+        self.skipInterval = skipInterval
 
         var nowPlayingInfo: [String: Any] = [
             MPMediaItemPropertyTitle: metadata.title,
@@ -142,17 +145,15 @@ final class IOSNowPlayingController: ObservableObject {
             return .success
         }
 
-        commandCenter.skipForwardCommand.preferredIntervals = [10]
-        register(commandCenter.skipForwardCommand) { [weak self] event in
-            let interval = (event as? MPSkipIntervalCommandEvent)?.interval ?? 10
-            self?.onSkip?(interval)
+        commandCenter.skipForwardCommand.preferredIntervals = [NSNumber(value: skipInterval)]
+        register(commandCenter.skipForwardCommand) { [weak self] _ in
+            self?.onSkip?(self?.skipInterval ?? PlaybackSeekInterval.defaultValue.seconds)
             return .success
         }
 
-        commandCenter.skipBackwardCommand.preferredIntervals = [10]
-        register(commandCenter.skipBackwardCommand) { [weak self] event in
-            let interval = (event as? MPSkipIntervalCommandEvent)?.interval ?? 10
-            self?.onSkip?(-interval)
+        commandCenter.skipBackwardCommand.preferredIntervals = [NSNumber(value: skipInterval)]
+        register(commandCenter.skipBackwardCommand) { [weak self] _ in
+            self?.onSkip?(-(self?.skipInterval ?? PlaybackSeekInterval.defaultValue.seconds))
             return .success
         }
 
