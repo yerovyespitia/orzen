@@ -36,6 +36,21 @@ enum StreamPlayerLifecyclePolicy {
     }
 }
 
+enum PausedVideoOutputRecoveryPolicy {
+    static let minimumRecoveredPlaybackDuration = 0.75
+
+    static func shouldComplete(
+        force: Bool,
+        hasVideoOutput: Bool,
+        recoveredPlaybackDuration: Double
+    ) -> Bool {
+        force || (
+            hasVideoOutput
+                && recoveredPlaybackDuration >= minimumRecoveredPlaybackDuration
+        )
+    }
+}
+
 struct StreamPlayerFallbackSelection: Equatable {
     let source: StreamSource
     let attemptedSourceIDs: Set<StreamSource.ID>

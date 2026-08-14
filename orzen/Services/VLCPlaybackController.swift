@@ -207,9 +207,10 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         guard isRecoveringPausedVideoOutput else { return }
 
         let recoveredTime = seconds(from: player.time)
-        guard force || (
-            player.hasVideoOut
-                && recoveredTime - pausedVideoOutputRecoveryStartTime >= 0.75
+        guard PausedVideoOutputRecoveryPolicy.shouldComplete(
+            force: force,
+            hasVideoOutput: player.hasVideoOut,
+            recoveredPlaybackDuration: recoveredTime - pausedVideoOutputRecoveryStartTime
         ) else {
             return
         }
@@ -326,6 +327,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     private func refreshPlaybackState() {
+        completePausedVideoOutputRecovery()
         currentTime = seconds(from: player.time)
         duration = resolvedDuration(currentTime: currentTime)
         isPaused = isRecoveringPausedVideoOutput || !player.isPlaying
@@ -515,12 +517,6 @@ extension VLCPlaybackController: VLCMediaPlayerDelegate {
             default:
                 break
             }
-        }
-    }
-
-    nonisolated func mediaPlayerTimeChanged(_ notification: Notification) {
-        Task { @MainActor in
-            completePausedVideoOutputRecovery()
         }
     }
 

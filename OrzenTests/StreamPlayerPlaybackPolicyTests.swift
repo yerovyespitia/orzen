@@ -230,6 +230,40 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
         )
     }
 
+    func testPausedVideoOutputRecoveryWaitsForEnoughRenderedPlayback() {
+        XCTAssertFalse(
+            PausedVideoOutputRecoveryPolicy.shouldComplete(
+                force: false,
+                hasVideoOutput: true,
+                recoveredPlaybackDuration: 0.74
+            )
+        )
+        XCTAssertTrue(
+            PausedVideoOutputRecoveryPolicy.shouldComplete(
+                force: false,
+                hasVideoOutput: true,
+                recoveredPlaybackDuration: 0.75
+            )
+        )
+    }
+
+    func testPausedVideoOutputRecoveryRequiresVideoUnlessForced() {
+        XCTAssertFalse(
+            PausedVideoOutputRecoveryPolicy.shouldComplete(
+                force: false,
+                hasVideoOutput: false,
+                recoveredPlaybackDuration: 2
+            )
+        )
+        XCTAssertTrue(
+            PausedVideoOutputRecoveryPolicy.shouldComplete(
+                force: true,
+                hasVideoOutput: false,
+                recoveredPlaybackDuration: 0
+            )
+        )
+    }
+
     func testFallbackExcludesCurrentPreviouslyAttemptedAndUnsupportedSources() {
         let current = TestFixtures.source(id: "current", url: URL(string: "https://example.com/current.mp4"))
         let attempted = TestFixtures.source(id: "attempted", url: URL(string: "https://example.com/attempted.m3u8"))
