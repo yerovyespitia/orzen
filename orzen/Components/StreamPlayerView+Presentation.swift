@@ -54,11 +54,25 @@ extension StreamPlayerView {
     var interactivePlayerSurface: some View {
         #if os(iOS)
         playerSurface
-            .contentShape(Rectangle())
-            .allowsHitTesting(!isChromePresented)
-            .onTapGesture {
-                guard !isAdjustingTimeline else { return }
-                handlePlayerTap()
+            .overlay {
+                GeometryReader { proxy in
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .allowsHitTesting(!isChromePresented)
+                        .onTapGesture {
+                            guard !isAdjustingTimeline else { return }
+                            handlePlayerTap()
+                        }
+                        .highPriorityGesture(
+                            SpatialTapGesture(count: 2, coordinateSpace: .local)
+                                .onEnded { value in
+                                    handlePlayerDoubleTap(
+                                        at: value.location,
+                                        in: proxy.size.width
+                                    )
+                                }
+                        )
+                }
             }
         #else
         playerSurface
@@ -103,12 +117,48 @@ extension StreamPlayerView {
             onEpisodeSidebarOpen: showEpisodeSidebar,
             onPictureInPicture: togglePictureInPicture,
             onFullscreen: toggleFullscreen,
-            onBackgroundTap: handlePlayerTap
+            onBackgroundTap: handlePlayerTap,
+            onDoubleTapSeek: { location, width in
+                #if os(iOS)
+                handlePlayerDoubleTap(at: location, in: width)
+                #endif
+            }
         )
         .opacity(isChromePresented ? 1 : 0)
         .allowsHitTesting(isChromePresented)
         .zIndex(3)
         .animation(.easeInOut(duration: 0.24), value: isChromePresented)
+    }
+
+    @ViewBuilder
+    var doubleTapSeekFeedbackOverlay: some View {
+        #if os(iOS)
+        if let seekOffset = doubleTapSeekFeedback {
+            GeometryReader { proxy in
+                Text(doubleTapSeekFeedbackText(for: seekOffset))
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.46), in: Capsule())
+                    .position(
+                        x: seekOffset < 0 ? proxy.size.width * 0.25 : proxy.size.width * 0.75,
+                        y: proxy.size.height * 0.5
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            }
+            .allowsHitTesting(false)
+            .zIndex(3.5)
+            .task(id: doubleTapSeekFeedbackID) {
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+
+                withAnimation(.easeOut(duration: 0.35)) {
+                    doubleTapSeekFeedback = nil
+                }
+            }
+        }
+        #endif
     }
 
     @ViewBuilder

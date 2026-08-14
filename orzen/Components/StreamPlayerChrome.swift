@@ -34,15 +34,24 @@ struct StreamPlayerChrome: View {
     let onPictureInPicture: () -> Void
     let onFullscreen: () -> Void
     let onBackgroundTap: () -> Void
+    let onDoubleTapSeek: (CGPoint, CGFloat) -> Void
     @State private var hoveredCircularButton: String?
     @State private var timelinePreviewTime: Double?
 
     var body: some View {
         ZStack {
             #if os(iOS)
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onBackgroundTap)
+            GeometryReader { proxy in
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: onBackgroundTap)
+                    .highPriorityGesture(
+                        SpatialTapGesture(count: 2, coordinateSpace: .local)
+                            .onEnded { value in
+                                onDoubleTapSeek(value.location, proxy.size.width)
+                            }
+                    )
+            }
             #endif
 
             VStack(spacing: 0) {

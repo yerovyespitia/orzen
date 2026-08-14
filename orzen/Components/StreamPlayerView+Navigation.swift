@@ -31,6 +31,42 @@ extension StreamPlayerView {
         }
     }
 
+    #if os(iOS)
+    func handlePlayerDoubleTap(at location: CGPoint, in width: CGFloat) {
+        guard width > 0,
+              playbackErrorMessage == nil,
+              !isEpisodeSidebarPresented,
+              !isAdjustingTimeline,
+              !isClosing,
+              activePlaybackEngine != nil else { return }
+
+        let leftBoundary = width * 0.42
+        let rightBoundary = width * 0.58
+
+        if location.x < leftBoundary {
+            let seekOffset = -seekInterval.seconds
+            seek(by: seekOffset)
+            showDoubleTapSeekFeedback(for: seekOffset)
+        } else if location.x > rightBoundary {
+            let seekOffset = seekInterval.seconds
+            seek(by: seekOffset)
+            showDoubleTapSeekFeedback(for: seekOffset)
+        }
+    }
+
+    func showDoubleTapSeekFeedback(for offset: Double) {
+        withAnimation(.easeOut(duration: 0.15)) {
+            doubleTapSeekFeedback = offset
+            doubleTapSeekFeedbackID = UUID()
+        }
+    }
+
+    func doubleTapSeekFeedbackText(for offset: Double) -> String {
+        let seconds = Int(offset.rounded())
+        return "\(seconds > 0 ? "+" : "")\(seconds)s"
+    }
+    #endif
+
     func performPlayerAction(_ action: () -> Void) {
         guard !isClosing else { return }
         chromeVisibility.reveal()

@@ -61,6 +61,8 @@ struct StreamPlayerView: View {
     @State var videoScale: CGFloat = 1
     @State var wasPausedBeforeBackground: Bool?
     @State var hasEnteredBackground = false
+    @State var doubleTapSeekFeedback: Double?
+    @State var doubleTapSeekFeedbackID = UUID()
     #endif
 
     let nativeStartupMinimumProgress = 1.0
@@ -87,6 +89,7 @@ struct StreamPlayerView: View {
             externalSubtitleOverlay
             nextEpisodeBanner
             playerChrome
+            doubleTapSeekFeedbackOverlay
             episodeSidebar
             startingOverlay
             errorOverlay
