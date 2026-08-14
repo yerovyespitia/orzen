@@ -24,7 +24,19 @@ struct AddonsView: View {
         }
     }
 
-    private var content: some View {
+    @ViewBuilder
+    private var screenContent: some View {
+        #if os(iOS)
+        ScrollView {
+            addonList
+                .padding(.horizontal, contentHorizontalPadding)
+                .padding(.top, contentTopPadding)
+                .padding(.bottom, 24)
+        }
+        .scrollBounceBehavior(.always, axes: .vertical)
+        .orzenTopScrollEdgeEffect()
+        .background(Color.black.ignoresSafeArea())
+        #else
         ZStack {
             Color.black.ignoresSafeArea()
 
@@ -41,7 +53,12 @@ struct AddonsView: View {
             .padding(.top, contentTopPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .navigationTitle(ownsNavigationStack ? "Addons" : "")
+        #endif
+    }
+
+    private var content: some View {
+        screenContent
+        .navigationTitle("Addons")
         .sheet(item: $configuringSubtitleAddon) { addon in
             SubtitleAddonSettingsView(addonName: addon.name)
         }
@@ -60,7 +77,17 @@ struct AddonsView: View {
             Text("This addon will be removed from Orzen on this device.")
         }
         #if os(iOS)
-        .toolbar(ownsNavigationStack ? .hidden : .visible, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isAddingAddon = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("Add addon")
+            }
+        }
         .interactivePopGestureEnabled()
         #endif
     }
@@ -195,12 +222,6 @@ private struct AddonRow: View {
                 Text(category)
                     .font(.caption.weight(.semibold))
                     .foregroundColor(.white.opacity(0.58))
-
-                if !isRemovable {
-                    Text("This addon cannot be removed.")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.5))
-                }
             }
 
             Spacer()

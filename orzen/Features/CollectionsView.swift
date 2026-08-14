@@ -24,7 +24,18 @@ struct CollectionsView: View {
         }
     }
 
-    private var content: some View {
+    @ViewBuilder
+    private var screenContent: some View {
+        #if os(iOS)
+        ScrollView {
+            collectionGrid
+                .padding(.horizontal, contentHorizontalPadding)
+                .padding(.top, contentTopPadding)
+        }
+        .scrollBounceBehavior(.always, axes: .vertical)
+        .orzenTopScrollEdgeEffect()
+        .background(Color.black.ignoresSafeArea())
+        #else
         ZStack(alignment: .topLeading) {
             Color.black.ignoresSafeArea()
 
@@ -35,20 +46,7 @@ struct CollectionsView: View {
                     .fontWeight(.bold)
 
                 ScrollView {
-                    LazyVGrid(
-                        columns: OrzenLayout.posterGridColumns,
-                        alignment: .leading,
-                        spacing: OrzenLayout.current.gridVerticalSpacing
-                    ) {
-                        ForEach(collectionStore.collections) { collection in
-                            NavigationLink {
-                                CollectionDetailView(collection: collection)
-                            } label: {
-                                CollectionCard(collection: collection)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
+                    collectionGrid
                 }
                 .orzenTopScrollEdgeEffect()
             }
@@ -56,8 +54,14 @@ struct CollectionsView: View {
             .padding(.top, contentTopPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+        #endif
+    }
+
+    private var content: some View {
+        screenContent
+        .navigationTitle("Collections")
         #if os(iOS)
-        .toolbar(ownsNavigationStack ? .hidden : .visible, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.large)
         .interactivePopGestureEnabled()
         #endif
     }
@@ -68,6 +72,23 @@ struct CollectionsView: View {
         #else
         return .title
         #endif
+    }
+
+    private var collectionGrid: some View {
+        LazyVGrid(
+            columns: OrzenLayout.posterGridColumns,
+            alignment: .leading,
+            spacing: OrzenLayout.current.gridVerticalSpacing
+        ) {
+            ForEach(collectionStore.collections) { collection in
+                NavigationLink {
+                    CollectionDetailView(collection: collection)
+                } label: {
+                    CollectionCard(collection: collection)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
     }
 }
 
