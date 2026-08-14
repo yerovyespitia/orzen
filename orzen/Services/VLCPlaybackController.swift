@@ -18,6 +18,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     @Published var didReachEnd = false
     @Published var isStarting = false
     @Published private(set) var isRenderingExternalSubtitle = false
+    @Published private(set) var recoverySnapshot: UIImage?
 
     private let player = VLCMediaPlayer()
     private var timer: Timer?
@@ -27,6 +28,11 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     private var lastAutomaticAudioSelectionAttempt: Date?
     private var videoOutputNeedsRecovery = false
     private var videoTrackResetNeeded = false
+    private var isRecoveringPausedVideoOutput = false
+    private var pausedVideoOutputRecoveryStartTime: Double = 0
+    private var pausedVideoOutputRecoveryTimeoutTask: Task<Void, Never>?
+    private var recoverySnapshotURL: URL?
+    private var isRecoverySnapshotRequested = false
 
     var isAvailable: Bool { true }
 
@@ -94,9 +100,15 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         lastAutomaticAudioSelectionAttempt = nil
         videoOutputNeedsRecovery = false
         videoTrackResetNeeded = false
+        cancelPausedVideoOutputRecovery()
+        clearRecoverySnapshot()
     }
 
     func togglePlayPause() {
+        if isRecoveringPausedVideoOutput {
+            resume()
+            return
+        }
         if player.isPlaying {
             pause()
         } else {
@@ -106,6 +118,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
 
     func resume() {
         guard currentMedia != nil else { return }
+        cancelPausedVideoOutputRecovery()
+        clearRecoverySnapshot()
         if videoOutputNeedsRecovery {
             recoverVideoOutput(
                 shouldResume: true,
@@ -118,6 +132,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     }
 
     func pause() {
+        cancelPausedVideoOutputRecovery()
         player.pause()
         isPaused = true
     }
@@ -126,6 +141,21 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         guard currentMedia != nil else { return }
         videoOutputNeedsRecovery = true
         videoTrackResetNeeded = requiresTrackReset
+    }
+
+    func captureVideoOutputForRecovery() {
+        guard currentMedia != nil, player.hasVideoOut else { return }
+
+        clearRecoverySnapshot()
+        isRecoverySnapshotRequested = true
+        let snapshotURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("orzen-vlc-recovery-\(UUID().uuidString).png")
+        recoverySnapshotURL = snapshotURL
+        player.saveVideoSnapshot(
+            at: snapshotURL.path,
+            withWidth: 0,
+            andHeight: 0
+        )
     }
 
     func recoverVideoOutput(shouldResume: Bool, requiresTrackReset: Bool) {
@@ -146,13 +176,70 @@ final class VLCPlaybackController: NSObject, ObservableObject {
             selectedVideoTrack.isSelectedExclusively = true
         }
 
-        player.play()
         if shouldResume {
+            cancelPausedVideoOutputRecovery()
+            clearRecoverySnapshot()
+            player.play()
             isPaused = false
         } else {
-            player.pause()
+            beginPausedVideoOutputRecovery()
             isPaused = true
         }
+    }
+
+    private func beginPausedVideoOutputRecovery() {
+        cancelPausedVideoOutputRecovery()
+        isRecoveringPausedVideoOutput = true
+        pausedVideoOutputRecoveryStartTime = seconds(from: player.time)
+        player.play()
+
+        pausedVideoOutputRecoveryTimeoutTask = Task { @MainActor [weak self] in
+            do {
+                try await Task.sleep(nanoseconds: 2_000_000_000)
+            } catch {
+                return
+            }
+            self?.completePausedVideoOutputRecovery(force: true)
+        }
+    }
+
+    private func completePausedVideoOutputRecovery(force: Bool = false) {
+        guard isRecoveringPausedVideoOutput else { return }
+
+        let recoveredTime = seconds(from: player.time)
+        guard force || (
+            player.hasVideoOut
+                && recoveredTime - pausedVideoOutputRecoveryStartTime >= 0.75
+        ) else {
+            return
+        }
+
+        let recoveryTime = pausedVideoOutputRecoveryStartTime
+        cancelPausedVideoOutputRecovery()
+        player.pause()
+        player.time = VLCTime(int: Int32(recoveryTime * 1_000))
+        currentTime = recoveryTime
+        isPaused = true
+        isStarting = false
+    }
+
+    private func cancelPausedVideoOutputRecovery() {
+        isRecoveringPausedVideoOutput = false
+        pausedVideoOutputRecoveryStartTime = 0
+        pausedVideoOutputRecoveryTimeoutTask?.cancel()
+        pausedVideoOutputRecoveryTimeoutTask = nil
+    }
+
+    private func clearRecoverySnapshot() {
+        isRecoverySnapshotRequested = false
+        recoverySnapshot = nil
+        removeRecoverySnapshotFile()
+    }
+
+    private func removeRecoverySnapshotFile() {
+        guard let recoverySnapshotURL else { return }
+        try? FileManager.default.removeItem(at: recoverySnapshotURL)
+        self.recoverySnapshotURL = nil
     }
 
     func seek(to time: Double) {
@@ -241,7 +328,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     private func refreshPlaybackState() {
         currentTime = seconds(from: player.time)
         duration = resolvedDuration(currentTime: currentTime)
-        isPaused = !player.isPlaying
+        isPaused = isRecoveringPausedVideoOutput || !player.isPlaying
         volume = Double(player.audio?.volume ?? 0)
         isMuted = (player.audio?.volume ?? 0) == 0
 
@@ -422,12 +509,27 @@ extension VLCPlaybackController: VLCMediaPlayerDelegate {
                 isPaused = true
                 isStarting = false
             case .playing:
-                isPaused = false
+                isPaused = isRecoveringPausedVideoOutput
                 isStarting = false
                 refreshTracks()
             default:
                 break
             }
+        }
+    }
+
+    nonisolated func mediaPlayerTimeChanged(_ notification: Notification) {
+        Task { @MainActor in
+            completePausedVideoOutputRecovery()
+        }
+    }
+
+    nonisolated func mediaPlayerSnapshot(_ notification: Notification) {
+        Task { @MainActor in
+            if isRecoverySnapshotRequested {
+                recoverySnapshot = player.lastSnapshot
+            }
+            removeRecoverySnapshotFile()
         }
     }
 
@@ -482,6 +584,7 @@ final class VLCPlaybackController: ObservableObject {
     @Published var didReachEnd = false
     @Published var isStarting = false
     @Published private(set) var isRenderingExternalSubtitle = false
+    @Published private(set) var recoverySnapshot: UIImage?
 
     var drawable: Any?
     var isAvailable: Bool { false }
@@ -496,6 +599,7 @@ final class VLCPlaybackController: ObservableObject {
     func resume() { }
     func pause() { }
     func markVideoOutputForRecovery(requiresTrackReset: Bool) { }
+    func captureVideoOutputForRecovery() { }
     func recoverVideoOutput(shouldResume: Bool, requiresTrackReset: Bool) { }
     func seek(to time: Double) { }
     func seek(by offset: Double) { }

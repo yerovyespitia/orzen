@@ -20,6 +20,7 @@ struct VLCPlayerView: UIViewRepresentable {
             pictureInPictureSession: pictureInPictureSession
         )
         view.pictureInPictureSubtitleText = pictureInPictureSubtitleText
+        view.recoverySnapshot = controller.recoverySnapshot
         view.capturesVLCSubtitleOverlay = controller.subtitleTracks.contains {
             !$0.isOff && $0.isSelected
         }
@@ -31,6 +32,7 @@ struct VLCPlayerView: UIViewRepresentable {
         if controller.drawable == nil {
             controller.drawable = uiView
         }
+        uiView.recoverySnapshot = controller.recoverySnapshot
         uiView.pictureInPictureSubtitleText = pictureInPictureSubtitleText
         uiView.capturesVLCSubtitleOverlay = controller.subtitleTracks.contains {
             !$0.isOff && $0.isSelected
@@ -58,6 +60,7 @@ final class VLCPictureInPictureView: UIView, VLCPictureInPictureDrawable {
     private var isPictureInPictureActive = false
     private weak var sampleBufferDisplayView: UIView?
     private weak var vlcSubtitleView: UIView?
+    private let recoveryImageView = UIImageView()
     private var subtitleCaptureTimer: Timer?
     private var subtitleCompositor: VLCSubtitleSampleBufferCompositor?
 
@@ -79,6 +82,13 @@ final class VLCPictureInPictureView: UIView, VLCPictureInPictureDrawable {
         }
     }
 
+    var recoverySnapshot: UIImage? {
+        didSet {
+            recoveryImageView.image = recoverySnapshot
+            recoveryImageView.isHidden = recoverySnapshot == nil
+        }
+    }
+
     init(
         playbackController: VLCPlaybackController,
         pictureInPictureSession: PictureInPictureSession
@@ -91,10 +101,20 @@ final class VLCPictureInPictureView: UIView, VLCPictureInPictureDrawable {
         super.init(frame: .zero)
         backgroundColor = .black
         isUserInteractionEnabled = false
+        recoveryImageView.backgroundColor = .black
+        recoveryImageView.contentMode = .scaleAspectFit
+        recoveryImageView.isHidden = true
+        addSubview(recoveryImageView)
     }
 
     required init?(coder: NSCoder) {
         nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        recoveryImageView.frame = bounds
+        bringSubviewToFront(recoveryImageView)
     }
 
     func mediaController() -> VLCPictureInPictureMediaControlling! {
@@ -836,6 +856,7 @@ private final class VLCPictureInPictureMediaController:
 final class VLCPictureInPictureView: UIView {
     var pictureInPictureSubtitleText: String?
     var capturesVLCSubtitleOverlay = false
+    var recoverySnapshot: UIImage?
 
     init(
         playbackController: VLCPlaybackController,

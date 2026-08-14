@@ -29,6 +29,9 @@ extension StreamPlayerView {
               !pictureInPictureSession.isActive else { return }
 
         wasPausedBeforeBackground = isPaused
+        if activePlaybackEngine == .vlc, isPaused {
+            vlcController.captureVideoOutputForRecovery()
+        }
     }
 
     func handleApplicationDidEnterBackground() {
