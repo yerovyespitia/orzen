@@ -835,6 +835,7 @@ private final class VLCPictureInPictureMediaController:
 #else
 final class VLCPictureInPictureView: UIView {
     var pictureInPictureSubtitleText: String?
+    var capturesVLCSubtitleOverlay = false
 
     init(
         playbackController: VLCPlaybackController,
