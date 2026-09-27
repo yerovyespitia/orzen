@@ -2,6 +2,8 @@ import SwiftUI
 
 struct InfoView: View {
     let item: CatalogItem
+    @AppStorage(LocalMediaModePreference.storageKey)
+    private var localMediaModeEnabled = false
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
     @ObservedObject private var playbackProgressStore = PlaybackProgressStore.shared
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
@@ -74,6 +76,9 @@ struct InfoView: View {
         #endif
         .task(id: item.id) {
             await viewModel.loadDetail()
+        }
+        .onChange(of: localMediaModeEnabled) { _, enabled in
+            viewModel.updateLocalMediaMode(enabled: enabled)
         }
         .escapeKeyShortcut(performBackAction)
     }
@@ -234,7 +239,7 @@ struct InfoView: View {
                 sourcesBackButton
                 #endif
 
-                Text("Sources")
+                Text(localMediaModeEnabled ? "Local Media" : "Sources")
                     .font(sectionTitleFont)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -246,7 +251,9 @@ struct InfoView: View {
                 }
 
                 Spacer(minLength: 8)
-                sourceAddonPicker
+                if !localMediaModeEnabled {
+                    sourceAddonPicker
+                }
             }
 
             sourcesList
@@ -350,7 +357,7 @@ struct InfoView: View {
         if item.cinemetaType != nil {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(spacing: 12) {
-                    Text("Sources")
+                    Text(localMediaModeEnabled ? "Local Media" : "Sources")
                         .font(sectionTitleFont)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -362,7 +369,9 @@ struct InfoView: View {
                     }
 
                     Spacer(minLength: 8)
-                    sourceAddonPicker
+                    if !localMediaModeEnabled {
+                        sourceAddonPicker
+                    }
                 }
 
                 sourcesList
@@ -386,7 +395,12 @@ struct InfoView: View {
 
     @ViewBuilder
     private var sourcesList: some View {
-        if !viewModel.visibleSources.isEmpty {
+        if localMediaModeEnabled {
+            LocalMediaSourcesView(item: item, episode: viewModel.selectedEpisode) { source in
+                viewModel.playSource(source)
+            }
+                .id(viewModel.selectedEpisodeID ?? item.id)
+        } else if !viewModel.visibleSources.isEmpty {
             LazyVStack(spacing: rowStackSpacing) {
                 ForEach(viewModel.visibleSources) { source in
                     Button {

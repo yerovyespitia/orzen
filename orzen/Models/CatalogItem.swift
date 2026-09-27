@@ -1,6 +1,6 @@
 import Foundation
 
-struct CatalogItem: Identifiable, Codable, Sendable {
+struct CatalogItem: Identifiable, Codable, Equatable, Sendable {
     let id: String
     let title: String
     let imageName: String? // Nombre de la imagen local, si existe

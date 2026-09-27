@@ -224,7 +224,7 @@ struct SourceRow: View {
     #endif
 }
 
-private enum SourceRowStyle {
+enum SourceRowStyle {
     static var cornerRadius: CGFloat {
         #if os(iOS)
         return 10
@@ -235,7 +235,7 @@ private enum SourceRowStyle {
     static let cardShape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
 }
 
-private extension View {
+extension View {
     @ViewBuilder
     func sourceRowBackground() -> some View {
         let shape = SourceRowStyle.cardShape

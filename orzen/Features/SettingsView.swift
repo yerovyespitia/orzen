@@ -1,6 +1,15 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage(LocalMediaModePreference.storageKey)
+    private var localMediaModeEnabled = false
+    @ObservedObject private var torznabSettings = TorznabSettingsStore.shared
+    #if os(macOS)
+    @ObservedObject private var localServer = LocalMediaServer.shared
+    #else
+    @ObservedObject private var remoteMedia = RemoteLocalMediaClient.shared
+    #endif
+
     @AppStorage(PlaybackSeekInterval.storageKey)
     private var seekIntervalSeconds = PlaybackSeekInterval.defaultValue.rawValue
 
@@ -20,11 +29,23 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        #if os(macOS)
-        macSettings
-        #else
-        iPhoneSettings
-        #endif
+        Group {
+            #if os(macOS)
+            macSettings
+            #else
+            iPhoneSettings
+            #endif
+        }
+        .onAppear {
+            #if os(macOS)
+            if localMediaModeEnabled { localServer.start() }
+            #endif
+        }
+        .onChange(of: localMediaModeEnabled) { _, enabled in
+            #if os(macOS)
+            if enabled { localServer.start() } else { localServer.stop() }
+            #endif
+        }
     }
 
     #if os(macOS)
@@ -48,8 +69,45 @@ struct SettingsView: View {
                             title: "Start Screen",
                             systemImage: "rectangle.inset.filled",
                             value: "Home",
+                            cardStyle: true,
+                            showsDivider: true
+                        )
+
+                        SettingsToggleRow(
+                            title: "Local Media",
+                            systemImage: "externaldrive",
+                            isOn: $localMediaModeEnabled,
                             cardStyle: true
                         )
+                    }
+
+                    if localMediaModeEnabled {
+                        SettingsCardSection(title: "Local Media") {
+                            NavigationLink {
+                                macLibraryDetails
+                            } label: {
+                                SettingsRow(
+                                    title: "Mac Library",
+                                    systemImage: "externaldrive",
+                                    cardStyle: true,
+                                    showsDivider: true,
+                                    showsChevron: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+
+                            NavigationLink {
+                                torrentSearchDetails
+                            } label: {
+                                SettingsRow(
+                                    title: "Torrent Search",
+                                    systemImage: "magnifyingglass",
+                                    cardStyle: true,
+                                    showsChevron: true
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
 
                     SettingsCardSection(title: "Playback") {
@@ -103,6 +161,59 @@ struct SettingsView: View {
         }
         .background(Color.black)
     }
+
+    private var macLibraryDetails: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text("Mac Library")
+                    .font(.largeTitle.bold())
+
+                SettingsCardSection(title: "Library") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Files: ~/Documents/Orzen")
+                        Text("Connect iPhone to \(localServer.hostName):8937")
+                        Text("Pairing code: \(localServer.pairingCode)")
+                        Text(localServer.isRunning ? "Sharing on local network" : (localServer.errorMessage ?? "Starting local server"))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 32)
+            .padding(.vertical, 28)
+        }
+        .background(Color.black)
+        .navigationTitle("Mac Library")
+    }
+
+    private var torrentSearchDetails: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text("Torrent Search")
+                    .font(.largeTitle.bold())
+
+                SettingsCardSection(title: "Search") {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("Automatic search is ready. Titles are searched when you open a movie or episode.")
+                            .foregroundStyle(.secondary)
+                        Rectangle()
+                            .fill(Color.white.opacity(0.12))
+                            .frame(height: 1)
+                        torznabConfiguration
+                    }
+                    .padding(20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 32)
+            .padding(.vertical, 28)
+        }
+        .background(Color.black)
+        .navigationTitle("Torrent Search")
+    }
     #else
     private var iPhoneSettings: some View {
         NavigationStack {
@@ -119,6 +230,22 @@ struct SettingsView: View {
                         systemImage: "rectangle.inset.filled",
                         value: "Home"
                     )
+
+                    SettingsToggleRow(
+                        title: "Local Media",
+                        systemImage: "externaldrive",
+                        isOn: $localMediaModeEnabled
+                    )
+                }
+
+                if localMediaModeEnabled {
+                    Section("Local Media") {
+                        NavigationLink {
+                            iPhoneLibraryDetails
+                        } label: {
+                            SettingsRow(title: "Mac Library", systemImage: "externaldrive")
+                        }
+                    }
                 }
 
                 Section("Playback") {
@@ -161,7 +288,114 @@ struct SettingsView: View {
             .navigationTitle("Settings")
         }
     }
+
+    private var iPhoneLibraryDetails: some View {
+        List {
+            Section("Mac Library") {
+                TextField("Mac name or IP address", text: $remoteMedia.host)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                TextField("Pairing code", text: $remoteMedia.pairingCode)
+                    .keyboardType(.numberPad)
+                Button("Connect to Mac") { Task { await remoteMedia.pair() } }
+                if let message = remoteMedia.message {
+                    Text(message).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(Color.black)
+        .navigationTitle("Mac Library")
+    }
     #endif
+
+    private var torznabConfiguration: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Optional Torznab provider")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.white)
+
+            Text("Only needed if you also use Prowlarr or Jackett. Paste its Torznab API URL (ending in /api) and API key.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            TextField("Torznab API URL", text: $torznabSettings.endpointText)
+                .modifier(SettingsTextInputStyle())
+
+            SecureField("API key", text: $torznabSettings.apiKey)
+                .modifier(SettingsTextInputStyle())
+
+            HStack {
+                Spacer()
+                Button {
+                    torznabSettings.save()
+                } label: {
+                    Text("Save Search Provider")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.black.opacity(0.86))
+                        .padding(.horizontal, 22)
+                        .frame(height: 46)
+                        .background(Color.white.opacity(0.9), in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            if let saveMessage = torznabSettings.saveMessage {
+                Text(saveMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+private struct SettingsTextInputStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .textFieldStyle(.plain)
+            .font(.body)
+            .foregroundStyle(.white)
+            .tint(.white)
+            .autocorrectionDisabled()
+            .padding(.horizontal, 14)
+            .frame(height: 52)
+            .background(Color.white.opacity(0.075), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+            }
+    }
+}
+
+private struct SettingsToggleRow: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    @Binding var isOn: Bool
+    var cardStyle = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: systemImage)
+                    .foregroundStyle(.blue)
+            }
+            .font(cardStyle ? .system(size: 15) : .body)
+
+            Spacer(minLength: 16)
+
+            Toggle(title, isOn: $isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .tint(.blue)
+                .fixedSize()
+        }
+        .padding(.horizontal, cardStyle ? 20 : 0)
+        .padding(.vertical, cardStyle ? 0 : 4)
+        .frame(minHeight: cardStyle ? 58 : nil)
+    }
 }
 
 private struct SettingsRow: View {
@@ -170,19 +404,22 @@ private struct SettingsRow: View {
     var value: String?
     var cardStyle = false
     var showsDivider = false
+    var showsChevron = false
 
     init(
         title: LocalizedStringKey,
         systemImage: String,
         value: String? = nil,
         cardStyle: Bool = false,
-        showsDivider: Bool = false
+        showsDivider: Bool = false,
+        showsChevron: Bool = false
     ) {
         self.title = title
         self.systemImage = systemImage
         self.value = value
         self.cardStyle = cardStyle
         self.showsDivider = showsDivider
+        self.showsChevron = showsChevron
     }
 
     var body: some View {
@@ -202,10 +439,17 @@ private struct SettingsRow: View {
                     .font(rowFont)
                     .foregroundStyle(.secondary)
             }
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, cardStyle ? 20 : 0)
         .padding(.vertical, cardStyle ? 0 : rowVerticalPadding)
         .frame(minHeight: cardStyle ? 58 : nil)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
         .overlay(alignment: .bottom) {
             if cardStyle && showsDivider {
                 Rectangle()

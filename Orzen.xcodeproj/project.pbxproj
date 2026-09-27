@@ -7,29 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7C0000013000000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0000023000000000000001 /* SettingsView.swift */; };
-		7C0000033000000000000001 /* PlaybackPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0000043000000000000001 /* PlaybackPreferences.swift */; };
-		7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000043000000000000001 /* PictureInPictureSession.swift */; };
-		7B0000013000000000000001 /* IOSNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000023000000000000001 /* IOSNowPlayingController.swift */; };
-		7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0000023000000000000001 /* StreamPlayerPolicies.swift */; };
-		7A2000013000000000000001 /* StreamPlayerView+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */; };
-		7A2000023000000000000001 /* StreamPlayerView+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */; };
-		7A2000033000000000000001 /* StreamPlayerView+Playback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100033000000000000001 /* StreamPlayerView+Playback.swift */; };
-		7A2000043000000000000001 /* StreamPlayerView+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100043000000000000001 /* StreamPlayerView+Progress.swift */; };
-		7A2000053000000000000001 /* StreamPlayerView+Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100053000000000000001 /* StreamPlayerView+Controls.swift */; };
-		7A2000063000000000000001 /* StreamPlayerView+Episodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */; };
-		7A2000073000000000000001 /* StreamPlayerView+Tracks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */; };
-		7A2000083000000000000001 /* StreamPlayerView+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100083000000000000001 /* StreamPlayerView+State.swift */; };
-		7A1000013000000000000001 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100013000000000000001 /* TestFixtures.swift */; };
-		7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */; };
-		7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */; };
-		7A1000043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */; };
-		7A1000053000000000000001 /* NativePlaybackCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */; };
-		7A1000063000000000000001 /* PlaybackProgressStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */; };
-		7A1000073000000000000001 /* EpisodeWatchStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */; };
-		7A1000083000000000000001 /* StreamSourceResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100083000000000000001 /* StreamSourceResolverTests.swift */; };
-		7A1000093000000000000001 /* ExternalSubtitleResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */; };
-		7A10000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */; };
 		1D15EBDE4FF105437CA47B4A /* libPods-Orzen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A02060550CF52A2BCE73A3F3 /* libPods-Orzen.a */; platformFilter = ios; };
 		6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */; };
 		6D1AD92B2E03A9A100BFF0DE /* MPVPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */; };
@@ -39,17 +16,18 @@
 		6D1AD9362E1B100100BFF0DE /* VLCPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD9352E1B100100BFF0DE /* VLCPlayerView.swift */; };
 		6D2872012E034A0000B5D7A1 /* LocalAddonStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872002E034A0000B5D7A1 /* LocalAddonStore.swift */; };
 		6D2872032E034A0100B5D7A1 /* StremioStreamClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872022E034A0100B5D7A1 /* StremioStreamClient.swift */; };
-		6D2872112E1C10000B5D7A1 /* StremioManifestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872102E1C10000B5D7A1 /* StremioManifestClient.swift */; };
 		6D2872072E034A0200B5D7A1 /* StremioSubtitleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872062E034A0200B5D7A1 /* StremioSubtitleClient.swift */; };
 		6D2872092E034A0300B5D7A1 /* SubtitlePreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872082E034A0300B5D7A1 /* SubtitlePreferencesStore.swift */; };
 		6D28720B2E05A00000B5D7A1 /* CollectionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D28720A2E05A00000B5D7A1 /* CollectionStore.swift */; };
 		6D28720D2E08100000B5D7A1 /* EpisodeWatchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D28720C2E08100000B5D7A1 /* EpisodeWatchStore.swift */; };
 		6D28720F2E08100100B5D7A1 /* PlaybackProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D28720E2E08100100B5D7A1 /* PlaybackProgressStore.swift */; };
+		6D2872112E1C10000B5D7A1 /* StremioManifestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872102E1C10000B5D7A1 /* StremioManifestClient.swift */; };
 		6D341C2F2DD0782E0072A85D /* Sidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D341C2E2DD0782E0072A85D /* Sidebar.swift */; };
 		6D5648112DD0F57D003D7144 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D56480F2DD0F57D003D7144 /* SearchView.swift */; };
 		6D5648122DD0F57D003D7144 /* CollectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5648102DD0F57D003D7144 /* CollectionsView.swift */; };
 		6D5648152DD105F8003D7144 /* MoviesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5648132DD105F8003D7144 /* MoviesView.swift */; };
 		6D5648162DD105F8003D7144 /* SeriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5648142DD105F8003D7144 /* SeriesView.swift */; };
+		6D5E10102E20000000B5D7A1 /* PlayerSettingsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */; };
 		6D5EA1012E17000000B5D7A1 /* SearchCatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5EA1002E17000000B5D7A1 /* SearchCatalogStore.swift */; };
 		6D77A0022E16000000B5D7A1 /* NativePlaybackCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D77A0012E16000000B5D7A1 /* NativePlaybackCompatibility.swift */; };
 		6D9055192DCE3D490023DEAE /* OrzenApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055182DCE3D490023DEAE /* OrzenApp.swift */; };
@@ -66,8 +44,6 @@
 		6D90553E2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */; };
 		6D9055402E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */; };
 		6D938E892DD4C3240048DEB4 /* CollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D938E882DD4C3240048DEB4 /* CollectionDetailView.swift */; };
-		6DAA10212E1C11000B5D7A1 /* AddonManifestInstallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20212E1C11000B5D7A1 /* AddonManifestInstallView.swift */; };
-		6DAA10202E1B20000B5D7A1 /* AddonSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */; };
 		6DAA10012E04000000B5D7A1 /* AddonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20012E04000000B5D7A1 /* AddonsView.swift */; };
 		6DAA10022E04000000B5D7A1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20022E04000000B5D7A1 /* HomeView.swift */; };
 		6DAA10032E04000000B5D7A1 /* HomeCatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20032E04000000B5D7A1 /* HomeCatalogStore.swift */; };
@@ -96,8 +72,9 @@
 		6DAA101A2E10000000B5D7A1 /* PlayerFlatSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */; };
 		6DAA101B2E10000000B5D7A1 /* PlayerIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201B2E10000000B5D7A1 /* PlayerIconButton.swift */; };
 		6DAA101C2E10000000B5D7A1 /* PlayerTrackMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */; };
-		6D5E10102E20000000B5D7A1 /* PlayerSettingsMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */; };
 		6DAA101D2E19010000B5D7A1 /* ExpandableDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */; };
+		6DAA10202E1B20000B5D7A1 /* AddonSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */; };
+		6DAA10212E1C11000B5D7A1 /* AddonManifestInstallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20212E1C11000B5D7A1 /* AddonManifestInstallView.swift */; };
 		6DBEEF022E04A00000B5D7A1 /* ProfileSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DBEEF012E04A00000B5D7A1 /* ProfileSelectionView.swift */; };
 		6DC0DE012E09000000B5D7A1 /* CinemetaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC0DE002E09000000B5D7A1 /* CinemetaClient.swift */; };
 		6DC0DE032E09000000B5D7A1 /* CatalogItemCollectionActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC0DE022E09000000B5D7A1 /* CatalogItemCollectionActions.swift */; };
@@ -108,6 +85,37 @@
 		6DC0DE0D2E09000000B5D7A1 /* ExternalSubtitleResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC0DE0C2E09000000B5D7A1 /* ExternalSubtitleResolver.swift */; };
 		6DF00D022E0A00000B5D7A1 /* StreamPlayerEpisodeSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF00D012E0A00000B5D7A1 /* StreamPlayerEpisodeSidebar.swift */; };
 		6DF00D042E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF00D032E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift */; };
+		7A0000013000000000000001 /* StreamPlayerPolicies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0000023000000000000001 /* StreamPlayerPolicies.swift */; };
+		7A1000013000000000000001 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100013000000000000001 /* TestFixtures.swift */; };
+		7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */; };
+		7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */; };
+		7A1000043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */; };
+		7A1000053000000000000001 /* NativePlaybackCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */; };
+		7A1000063000000000000001 /* PlaybackProgressStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */; };
+		7A1000073000000000000001 /* EpisodeWatchStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */; };
+		7A1000083000000000000001 /* StreamSourceResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100083000000000000001 /* StreamSourceResolverTests.swift */; };
+		7A1000093000000000000001 /* ExternalSubtitleResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */; };
+		7A10000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */; };
+		7A2000013000000000000001 /* StreamPlayerView+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */; };
+		7A2000023000000000000001 /* StreamPlayerView+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */; };
+		7A2000033000000000000001 /* StreamPlayerView+Playback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100033000000000000001 /* StreamPlayerView+Playback.swift */; };
+		7A2000043000000000000001 /* StreamPlayerView+Progress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100043000000000000001 /* StreamPlayerView+Progress.swift */; };
+		7A2000053000000000000001 /* StreamPlayerView+Controls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100053000000000000001 /* StreamPlayerView+Controls.swift */; };
+		7A2000063000000000000001 /* StreamPlayerView+Episodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */; };
+		7A2000073000000000000001 /* StreamPlayerView+Tracks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */; };
+		7A2000083000000000000001 /* StreamPlayerView+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100083000000000000001 /* StreamPlayerView+State.swift */; };
+		7B0000013000000000000001 /* IOSNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000023000000000000001 /* IOSNowPlayingController.swift */; };
+		7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000043000000000000001 /* PictureInPictureSession.swift */; };
+		7C0000013000000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0000023000000000000001 /* SettingsView.swift */; };
+		7C0000033000000000000001 /* PlaybackPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C0000043000000000000001 /* PlaybackPreferences.swift */; };
+		7C1000013000000000000001 /* LocalMediaLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000023000000000000001 /* LocalMediaLibraryStore.swift */; };
+		7C1000033000000000000001 /* TorznabSearchClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000043000000000000001 /* TorznabSearchClient.swift */; };
+		7C1000053000000000000001 /* LocalMediaSourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1000063000000000000001 /* LocalMediaSourcesView.swift */; };
+		7C2100013000000000000001 /* LocalMediaDownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000013000000000000001 /* LocalMediaDownloadManager.swift */; };
+		7C2100023000000000000001 /* LocalMediaConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000023000000000000001 /* LocalMediaConnection.swift */; };
+		7C2100033000000000000001 /* RemoteLocalMediaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000033000000000000001 /* RemoteLocalMediaClient.swift */; };
+		7C2100043000000000000001 /* OrzenTorrentBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000043000000000000001 /* OrzenTorrentBridge.mm */; };
+		7C3000013000000000000001 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3000023000000000000001 /* DownloadsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,30 +129,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7C0000023000000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		7C0000043000000000000001 /* PlaybackPreferences.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackPreferences.swift; sourceTree = "<group>"; };
-		7B0000043000000000000001 /* PictureInPictureSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureInPictureSession.swift; sourceTree = "<group>"; };
-		7B0000023000000000000001 /* IOSNowPlayingController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IOSNowPlayingController.swift; sourceTree = "<group>"; };
-		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
-		7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Presentation.swift"; sourceTree = "<group>"; };
-		7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Navigation.swift"; sourceTree = "<group>"; };
-		7A2100033000000000000001 /* StreamPlayerView+Playback.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Playback.swift"; sourceTree = "<group>"; };
-		7A2100043000000000000001 /* StreamPlayerView+Progress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Progress.swift"; sourceTree = "<group>"; };
-		7A2100053000000000000001 /* StreamPlayerView+Controls.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Controls.swift"; sourceTree = "<group>"; };
-		7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Episodes.swift"; sourceTree = "<group>"; };
-		7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Tracks.swift"; sourceTree = "<group>"; };
-		7A2100083000000000000001 /* StreamPlayerView+State.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+State.swift"; sourceTree = "<group>"; };
-		7A1100013000000000000001 /* TestFixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
-		7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerProgressPolicyTests.swift; sourceTree = "<group>"; };
-		7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerTrackPolicyTests.swift; sourceTree = "<group>"; };
-		7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPlaybackPolicyTests.swift; sourceTree = "<group>"; };
-		7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlaybackCompatibilityTests.swift; sourceTree = "<group>"; };
-		7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackProgressStoreTests.swift; sourceTree = "<group>"; };
-		7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeWatchStoreTests.swift; sourceTree = "<group>"; };
-		7A1100083000000000000001 /* StreamSourceResolverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamSourceResolverTests.swift; sourceTree = "<group>"; };
-		7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleResolverTests.swift; sourceTree = "<group>"; };
-		7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerChromeVisibilityControllerTests.swift; sourceTree = "<group>"; };
-		7A1200013000000000000001 /* OrzenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OrzenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BA59AD1B3A942C798EE03E2 /* Pods-Orzen.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Orzen.release.xcconfig"; path = "Target Support Files/Pods-Orzen/Pods-Orzen.release.xcconfig"; sourceTree = "<group>"; };
 		6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
 		6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MPVPlayerView.swift; sourceTree = "<group>"; };
@@ -155,17 +139,18 @@
 		6D1AD9352E1B100100BFF0DE /* VLCPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VLCPlayerView.swift; sourceTree = "<group>"; };
 		6D2872002E034A0000B5D7A1 /* LocalAddonStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalAddonStore.swift; sourceTree = "<group>"; };
 		6D2872022E034A0100B5D7A1 /* StremioStreamClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StremioStreamClient.swift; sourceTree = "<group>"; };
-		6D2872102E1C10000B5D7A1 /* StremioManifestClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StremioManifestClient.swift; sourceTree = "<group>"; };
 		6D2872062E034A0200B5D7A1 /* StremioSubtitleClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StremioSubtitleClient.swift; sourceTree = "<group>"; };
 		6D2872082E034A0300B5D7A1 /* SubtitlePreferencesStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SubtitlePreferencesStore.swift; sourceTree = "<group>"; };
 		6D28720A2E05A00000B5D7A1 /* CollectionStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionStore.swift; sourceTree = "<group>"; };
 		6D28720C2E08100000B5D7A1 /* EpisodeWatchStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeWatchStore.swift; sourceTree = "<group>"; };
 		6D28720E2E08100100B5D7A1 /* PlaybackProgressStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackProgressStore.swift; sourceTree = "<group>"; };
+		6D2872102E1C10000B5D7A1 /* StremioManifestClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StremioManifestClient.swift; sourceTree = "<group>"; };
 		6D341C2E2DD0782E0072A85D /* Sidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sidebar.swift; sourceTree = "<group>"; };
 		6D56480F2DD0F57D003D7144 /* SearchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		6D5648102DD0F57D003D7144 /* CollectionsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
 		6D5648132DD105F8003D7144 /* MoviesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MoviesView.swift; sourceTree = "<group>"; };
 		6D5648142DD105F8003D7144 /* SeriesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SeriesView.swift; sourceTree = "<group>"; };
+		6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerSettingsMenu.swift; sourceTree = "<group>"; };
 		6D5EA1002E17000000B5D7A1 /* SearchCatalogStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchCatalogStore.swift; sourceTree = "<group>"; };
 		6D77A0012E16000000B5D7A1 /* NativePlaybackCompatibility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlaybackCompatibility.swift; sourceTree = "<group>"; };
 		6D9055152DCE3D490023DEAE /* Orzen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Orzen.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -184,8 +169,6 @@
 		6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FeaturedCarouselPageIndicator.swift; sourceTree = "<group>"; };
 		6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScrollEdgeEffectModifier.swift; sourceTree = "<group>"; };
 		6D938E882DD4C3240048DEB4 /* CollectionDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionDetailView.swift; sourceTree = "<group>"; };
-		6DAA20212E1C11000B5D7A1 /* AddonManifestInstallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonManifestInstallView.swift; sourceTree = "<group>"; };
-		6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonSettingsViews.swift; sourceTree = "<group>"; };
 		6DAA20012E04000000B5D7A1 /* AddonsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonsView.swift; sourceTree = "<group>"; };
 		6DAA20022E04000000B5D7A1 /* HomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		6DAA20032E04000000B5D7A1 /* HomeCatalogStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeCatalogStore.swift; sourceTree = "<group>"; };
@@ -214,8 +197,9 @@
 		6DAA201A2E10000000B5D7A1 /* PlayerFlatSlider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerFlatSlider.swift; sourceTree = "<group>"; };
 		6DAA201B2E10000000B5D7A1 /* PlayerIconButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerIconButton.swift; sourceTree = "<group>"; };
 		6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerTrackMenu.swift; sourceTree = "<group>"; };
-		6D5E20102E20000000B5D7A1 /* PlayerSettingsMenu.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerSettingsMenu.swift; sourceTree = "<group>"; };
 		6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpandableDescriptionText.swift; sourceTree = "<group>"; };
+		6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonSettingsViews.swift; sourceTree = "<group>"; };
+		6DAA20212E1C11000B5D7A1 /* AddonManifestInstallView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddonManifestInstallView.swift; sourceTree = "<group>"; };
 		6DBEEF012E04A00000B5D7A1 /* ProfileSelectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileSelectionView.swift; sourceTree = "<group>"; };
 		6DC0DE002E09000000B5D7A1 /* CinemetaClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CinemetaClient.swift; sourceTree = "<group>"; };
 		6DC0DE022E09000000B5D7A1 /* CatalogItemCollectionActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CatalogItemCollectionActions.swift; sourceTree = "<group>"; };
@@ -226,23 +210,56 @@
 		6DC0DE0C2E09000000B5D7A1 /* ExternalSubtitleResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleResolver.swift; sourceTree = "<group>"; };
 		6DF00D012E0A00000B5D7A1 /* StreamPlayerEpisodeSidebar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerEpisodeSidebar.swift; sourceTree = "<group>"; };
 		6DF00D032E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerEpisodeSidebarRows.swift; sourceTree = "<group>"; };
+		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
+		7A1100013000000000000001 /* TestFixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
+		7A1100023000000000000001 /* StreamPlayerProgressPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerProgressPolicyTests.swift; sourceTree = "<group>"; };
+		7A1100033000000000000001 /* StreamPlayerTrackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerTrackPolicyTests.swift; sourceTree = "<group>"; };
+		7A1100043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPlaybackPolicyTests.swift; sourceTree = "<group>"; };
+		7A1100053000000000000001 /* NativePlaybackCompatibilityTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NativePlaybackCompatibilityTests.swift; sourceTree = "<group>"; };
+		7A1100063000000000000001 /* PlaybackProgressStoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackProgressStoreTests.swift; sourceTree = "<group>"; };
+		7A1100073000000000000001 /* EpisodeWatchStoreTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EpisodeWatchStoreTests.swift; sourceTree = "<group>"; };
+		7A1100083000000000000001 /* StreamSourceResolverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamSourceResolverTests.swift; sourceTree = "<group>"; };
+		7A1100093000000000000001 /* ExternalSubtitleResolverTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleResolverTests.swift; sourceTree = "<group>"; };
+		7A11000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerChromeVisibilityControllerTests.swift; sourceTree = "<group>"; };
+		7A1200013000000000000001 /* OrzenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OrzenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Presentation.swift"; sourceTree = "<group>"; };
+		7A2100023000000000000001 /* StreamPlayerView+Navigation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Navigation.swift"; sourceTree = "<group>"; };
+		7A2100033000000000000001 /* StreamPlayerView+Playback.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Playback.swift"; sourceTree = "<group>"; };
+		7A2100043000000000000001 /* StreamPlayerView+Progress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Progress.swift"; sourceTree = "<group>"; };
+		7A2100053000000000000001 /* StreamPlayerView+Controls.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Controls.swift"; sourceTree = "<group>"; };
+		7A2100063000000000000001 /* StreamPlayerView+Episodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Episodes.swift"; sourceTree = "<group>"; };
+		7A2100073000000000000001 /* StreamPlayerView+Tracks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+Tracks.swift"; sourceTree = "<group>"; };
+		7A2100083000000000000001 /* StreamPlayerView+State.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "StreamPlayerView+State.swift"; sourceTree = "<group>"; };
+		7B0000023000000000000001 /* IOSNowPlayingController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IOSNowPlayingController.swift; sourceTree = "<group>"; };
+		7B0000043000000000000001 /* PictureInPictureSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PictureInPictureSession.swift; sourceTree = "<group>"; };
+		7C0000023000000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7C0000043000000000000001 /* PlaybackPreferences.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaybackPreferences.swift; sourceTree = "<group>"; };
+		7C1000023000000000000001 /* LocalMediaLibraryStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaLibraryStore.swift; sourceTree = "<group>"; };
+		7C1000043000000000000001 /* TorznabSearchClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TorznabSearchClient.swift; sourceTree = "<group>"; };
+		7C1000063000000000000001 /* LocalMediaSourcesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaSourcesView.swift; sourceTree = "<group>"; };
+		7C2000013000000000000001 /* LocalMediaDownloadManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaDownloadManager.swift; sourceTree = "<group>"; };
+		7C2000023000000000000001 /* LocalMediaConnection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaConnection.swift; sourceTree = "<group>"; };
+		7C2000033000000000000001 /* RemoteLocalMediaClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RemoteLocalMediaClient.swift; sourceTree = "<group>"; };
+		7C2000043000000000000001 /* OrzenTorrentBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OrzenTorrentBridge.mm; sourceTree = "<group>"; };
+		7C2000053000000000000001 /* OrzenTorrentBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OrzenTorrentBridge.h; sourceTree = "<group>"; };
+		7C3000023000000000000001 /* DownloadsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		A02060550CF52A2BCE73A3F3 /* libPods-Orzen.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Orzen.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B960F5B080F54887687FBB72 /* Pods-Orzen.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Orzen.debug.xcconfig"; path = "Target Support Files/Pods-Orzen/Pods-Orzen.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		7A1300013000000000000001 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6D9055122DCE3D480023DEAE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				1D15EBDE4FF105437CA47B4A /* libPods-Orzen.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7A1300013000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +270,8 @@
 			isa = PBXGroup;
 			children = (
 				6D1AD92D2E03D33A00BFF0DE /* MPVOpenGLBridge.c */,
+				7C2000053000000000000001 /* OrzenTorrentBridge.h */,
+				7C2000043000000000000001 /* OrzenTorrentBridge.mm */,
 				6D1AD9312E15B00000BFF0DE /* InteractivePopGestureEnabler.swift */,
 			);
 			path = Support;
@@ -261,6 +280,7 @@
 		6D2872042E034A0400B5D7A1 /* Stores */ = {
 			isa = PBXGroup;
 			children = (
+				7C1000023000000000000001 /* LocalMediaLibraryStore.swift */,
 				7C0000043000000000000001 /* PlaybackPreferences.swift */,
 				6D2872002E034A0000B5D7A1 /* LocalAddonStore.swift */,
 				6D28720A2E05A00000B5D7A1 /* CollectionStore.swift */,
@@ -279,6 +299,10 @@
 		6D2872052E034A0500B5D7A1 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				7C1000043000000000000001 /* TorznabSearchClient.swift */,
+				7C2000033000000000000001 /* RemoteLocalMediaClient.swift */,
+				7C2000023000000000000001 /* LocalMediaConnection.swift */,
+				7C2000013000000000000001 /* LocalMediaDownloadManager.swift */,
 				6DC0DE022E09000000B5D7A1 /* CatalogItemCollectionActions.swift */,
 				6DC0DE002E09000000B5D7A1 /* CinemetaClient.swift */,
 				6DC0DE0C2E09000000B5D7A1 /* ExternalSubtitleResolver.swift */,
@@ -301,6 +325,7 @@
 			isa = PBXGroup;
 			children = (
 				7C0000023000000000000001 /* SettingsView.swift */,
+				7C3000023000000000000001 /* DownloadsView.swift */,
 				6DAA20212E1C11000B5D7A1 /* AddonManifestInstallView.swift */,
 				6DAA20202E1B20000B5D7A1 /* AddonSettingsViews.swift */,
 				6DAA20012E04000000B5D7A1 /* AddonsView.swift */,
@@ -319,6 +344,7 @@
 		6D5648192DD11034003D7144 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				7C1000063000000000000001 /* LocalMediaSourcesView.swift */,
 				6DAA20052E04000000B5D7A1 /* CatalogFilterButton.swift */,
 				6DAA20182E04000000B5D7A1 /* CatalogItemContextMenu.swift */,
 				6DAA20062E04000000B5D7A1 /* CatalogPosterCard.swift */,
@@ -462,24 +488,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		7A1400013000000000000001 /* OrzenTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 7A1500033000000000000001 /* Build configuration list for PBXNativeTarget "OrzenTests" */;
-			buildPhases = (
-				7A1300033000000000000001 /* Sources */,
-				7A1300013000000000000001 /* Frameworks */,
-				7A1300023000000000000001 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				7A1700023000000000000001 /* PBXTargetDependency */,
-			);
-			name = OrzenTests;
-			productName = OrzenTests;
-			productReference = 7A1200013000000000000001 /* OrzenTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		6D9055142DCE3D480023DEAE /* Orzen */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6D9055242DCE3D4D0023DEAE /* Build configuration list for PBXNativeTarget "Orzen" */;
@@ -498,6 +506,24 @@
 			productName = Orzen;
 			productReference = 6D9055152DCE3D490023DEAE /* Orzen.app */;
 			productType = "com.apple.product-type.application";
+		};
+		7A1400013000000000000001 /* OrzenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7A1500033000000000000001 /* Build configuration list for PBXNativeTarget "OrzenTests" */;
+			buildPhases = (
+				7A1300033000000000000001 /* Sources */,
+				7A1300013000000000000001 /* Frameworks */,
+				7A1300023000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7A1700023000000000000001 /* PBXTargetDependency */,
+			);
+			name = OrzenTests;
+			productName = OrzenTests;
+			productReference = 7A1200013000000000000001 /* OrzenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -538,19 +564,19 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		7A1300023000000000000001 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6D9055132DCE3D480023DEAE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				6D9055202DCE3D4D0023DEAE /* Preview Assets.xcassets in Resources */,
 				6D90551D2DCE3D4D0023DEAE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7A1300023000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -599,27 +625,18 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		7A1300033000000000000001 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7A1000013000000000000001 /* TestFixtures.swift in Sources */,
-				7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */,
-				7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */,
-				7A1000043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift in Sources */,
-				7A1000053000000000000001 /* NativePlaybackCompatibilityTests.swift in Sources */,
-				7A1000063000000000000001 /* PlaybackProgressStoreTests.swift in Sources */,
-				7A1000073000000000000001 /* EpisodeWatchStoreTests.swift in Sources */,
-				7A1000083000000000000001 /* StreamSourceResolverTests.swift in Sources */,
-				7A1000093000000000000001 /* ExternalSubtitleResolverTests.swift in Sources */,
-				7A10000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6D9055112DCE3D480023DEAE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C1000013000000000000001 /* LocalMediaLibraryStore.swift in Sources */,
+				7C1000033000000000000001 /* TorznabSearchClient.swift in Sources */,
+				7C1000053000000000000001 /* LocalMediaSourcesView.swift in Sources */,
+				7C3000013000000000000001 /* DownloadsView.swift in Sources */,
+				7C2100043000000000000001 /* OrzenTorrentBridge.mm in Sources */,
+				7C2100033000000000000001 /* RemoteLocalMediaClient.swift in Sources */,
+				7C2100023000000000000001 /* LocalMediaConnection.swift in Sources */,
+				7C2100013000000000000001 /* LocalMediaDownloadManager.swift in Sources */,
 				7C0000013000000000000001 /* SettingsView.swift in Sources */,
 				7C0000033000000000000001 /* PlaybackPreferences.swift in Sources */,
 				7B0000033000000000000001 /* PictureInPictureSession.swift in Sources */,
@@ -711,6 +728,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7A1300033000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A1000013000000000000001 /* TestFixtures.swift in Sources */,
+				7A1000023000000000000001 /* StreamPlayerProgressPolicyTests.swift in Sources */,
+				7A1000033000000000000001 /* StreamPlayerTrackPolicyTests.swift in Sources */,
+				7A1000043000000000000001 /* StreamPlayerPlaybackPolicyTests.swift in Sources */,
+				7A1000053000000000000001 /* NativePlaybackCompatibilityTests.swift in Sources */,
+				7A1000063000000000000001 /* PlaybackProgressStoreTests.swift in Sources */,
+				7A1000073000000000000001 /* EpisodeWatchStoreTests.swift in Sources */,
+				7A1000083000000000000001 /* StreamSourceResolverTests.swift in Sources */,
+				7A1000093000000000000001 /* ExternalSubtitleResolverTests.swift in Sources */,
+				7A10000A3000000000000001 /* StreamPlayerChromeVisibilityControllerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -722,78 +756,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		7A1500013000000000000001 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8F48B8WMY3;
-				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Pods/VLCKit",
-					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/XCFrameworkIntermediates/VLCKit",
-				);
-				GENERATE_INFOPLIST_FILE = YES;
-				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
-					"$(inherited)",
-					/opt/homebrew/include,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				"TEST_HOST[sdk=iphone*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Orzen";
-				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Contents/MacOS/Orzen";
-			};
-			name = Debug;
-		};
-		7A1500023000000000000001 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8F48B8WMY3;
-				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Pods/VLCKit",
-					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/XCFrameworkIntermediates/VLCKit",
-				);
-				GENERATE_INFOPLIST_FILE = YES;
-				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
-					"$(inherited)",
-					/opt/homebrew/include,
-				);
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				"TEST_HOST[sdk=iphone*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Orzen";
-				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Contents/MacOS/Orzen";
-			};
-			name = Release;
-		};
 		6D9055222DCE3D4D0023DEAE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -919,6 +881,7 @@
 				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = AppIcon;
 				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = orzen/Orzen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -933,12 +896,13 @@
 					"$(inherited)",
 					/opt/homebrew/include,
 				);
+				"INFOPLIST_FILE[sdk=iphone*]" = "orzen/Info-iOS.plist";
 				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads[sdk=iphone*]" = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking[sdk=macosx*]" = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
-				"INFOPLIST_FILE[sdk=iphone*]" = orzen/Info-iOS.plist;
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations[sdk=iphone*]" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -955,6 +919,7 @@
 				MARKETING_VERSION = 1.0;
 				"OTHER_LDFLAGS[sdk=macosx*]" = (
 					"-lmpv",
+					"-ltorrent-rasterbar",
 					"-framework",
 					OpenGL,
 				);
@@ -976,6 +941,7 @@
 				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphone*]" = AppIcon;
 				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = orzen/Orzen.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -990,12 +956,13 @@
 					"$(inherited)",
 					/opt/homebrew/include,
 				);
+				"INFOPLIST_FILE[sdk=iphone*]" = "orzen/Info-iOS.plist";
 				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads[sdk=iphone*]" = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				"INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking[sdk=macosx*]" = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphone*]" = YES;
-				"INFOPLIST_FILE[sdk=iphone*]" = orzen/Info-iOS.plist;
 				"INFOPLIST_KEY_UISupportedInterfaceOrientations[sdk=iphone*]" = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1012,6 +979,7 @@
 				MARKETING_VERSION = 1.0;
 				"OTHER_LDFLAGS[sdk=macosx*]" = (
 					"-lmpv",
+					"-ltorrent-rasterbar",
 					"-framework",
 					OpenGL,
 				);
@@ -1026,18 +994,81 @@
 			};
 			name = Release;
 		};
+		7A1500013000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8F48B8WMY3;
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Pods/VLCKit",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/XCFrameworkIntermediates/VLCKit",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					/opt/homebrew/include,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				"TEST_HOST[sdk=iphone*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Orzen";
+				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Contents/MacOS/Orzen";
+			};
+			name = Debug;
+		};
+		7A1500023000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8F48B8WMY3;
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphone*]" = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Pods/VLCKit",
+					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/XCFrameworkIntermediates/VLCKit",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = (
+					"$(inherited)",
+					/opt/homebrew/include,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				"TEST_HOST[sdk=iphone*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Orzen";
+				"TEST_HOST[sdk=macosx*]" = "$(BUILT_PRODUCTS_DIR)/Orzen.app/Contents/MacOS/Orzen";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7A1500033000000000000001 /* Build configuration list for PBXNativeTarget "OrzenTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				7A1500013000000000000001 /* Debug */,
-				7A1500023000000000000001 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		6D9055102DCE3D480023DEAE /* Build configuration list for PBXProject "Orzen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1052,6 +1083,15 @@
 			buildConfigurations = (
 				6D9055252DCE3D4D0023DEAE /* Debug */,
 				6D9055262DCE3D4D0023DEAE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7A1500033000000000000001 /* Build configuration list for PBXNativeTarget "OrzenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A1500013000000000000001 /* Debug */,
+				7A1500023000000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

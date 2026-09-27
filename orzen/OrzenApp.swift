@@ -17,6 +17,9 @@ struct OrzenApp: App {
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1280, minHeight: 780)
                 .task {
+                    if UserDefaults.standard.bool(forKey: LocalMediaModePreference.storageKey) {
+                        LocalMediaServer.shared.start()
+                    }
                     await LaunchCatalogPrefetcher.prefetchInitialCatalogs()
                 }
         }

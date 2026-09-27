@@ -14,6 +14,14 @@
 
 - Do not install Graphify hooks or assistant skills, modify agent instructions automatically, or commit `graphify-out/` unless the user explicitly asks.
 
+## SwiftUI design consistency
+
+- Before adding or changing a screen, inspect the existing view, its neighboring screens, and any available app screenshots. Match Orzen's established spacing, typography, colors, cards, icons, and control placement.
+- Reuse the app's existing row and control patterns. Do not assume a default SwiftUI `Form`, `Toggle`, `DisclosureGroup`, or `NavigationLink` has the intended appearance or interaction.
+- For controls that look like full-width rows, make the entire row interactive, including its empty space, and check that the visible affordance matches what happens on click or tap.
+- After a UI change, review the rendered result and exercise the affected interaction when the app or a preview is available. A successful build alone does not establish that the design matches Orzen.
+- Keep macOS and iOS layouts consistent with each platform's existing Orzen design while preserving their distinct behavior.
+
 ## Refactoring safety
 
 - For behavior-preserving refactors, establish proportionate tests around the behavior being moved before making structural changes.

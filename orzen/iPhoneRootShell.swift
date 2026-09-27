@@ -5,12 +5,14 @@ import UIKit
 
 struct iPhoneRootShell: View {
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
+    @AppStorage(LocalMediaModePreference.storageKey) private var localMediaModeEnabled = false
     @State private var selectedTab: RootTab = .home
     @State private var homeScrollToTopRequest = 0
     @State private var searchScrollToTopRequest = 0
     @State private var homePopToRootRequest = 0
     @State private var collectionsPopToRootRequest = 0
     @State private var addonsPopToRootRequest = 0
+    @State private var downloadsPopToRootRequest = 0
     @State private var searchPopToRootRequest = 0
     @State private var searchText = ""
     @State private var searchActivationRequest = 0
@@ -33,6 +35,9 @@ struct iPhoneRootShell: View {
                 .frame(width: 0, height: 0)
         }
         .background(Color.black.ignoresSafeArea())
+        .onChange(of: localMediaModeEnabled) { _, enabled in
+            if !enabled && selectedTab == .downloads { selectedTab = .home }
+        }
     }
 
     @available(iOS 26, *)
@@ -48,6 +53,12 @@ struct iPhoneRootShell: View {
 
             Tab("Addons", systemImage: "puzzlepiece.extension", value: RootTab.addons) {
                 addonsView
+            }
+
+            if localMediaModeEnabled {
+                Tab("Downloads", systemImage: "arrow.down.to.line", value: RootTab.downloads) {
+                    downloadsView
+                }
             }
 
             Tab("Settings", systemImage: "gearshape", value: RootTab.settings) {
@@ -76,6 +87,12 @@ struct iPhoneRootShell: View {
                 .tabItem { Label("Addons", systemImage: "puzzlepiece.extension") }
                 .tag(RootTab.addons)
 
+            if localMediaModeEnabled {
+                downloadsView
+                    .tabItem { Label("Downloads", systemImage: "arrow.down.to.line") }
+                    .tag(RootTab.downloads)
+            }
+
             settingsView
                 .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(RootTab.settings)
@@ -100,6 +117,10 @@ struct iPhoneRootShell: View {
 
     private var addonsView: some View {
         AddonsView(popToRootRequest: addonsPopToRootRequest)
+    }
+
+    private var downloadsView: some View {
+        DownloadsView(popToRootRequest: downloadsPopToRootRequest)
     }
 
     private var settingsView: some View {
@@ -184,6 +205,8 @@ struct iPhoneRootShell: View {
             collectionsPopToRootRequest += 1
         case .addons:
             addonsPopToRootRequest += 1
+        case .downloads:
+            downloadsPopToRootRequest += 1
         case .settings:
             break
         case .search:
@@ -200,6 +223,7 @@ private enum RootTab: Hashable {
     case search
     case collections
     case addons
+    case downloads
     case settings
 }
 

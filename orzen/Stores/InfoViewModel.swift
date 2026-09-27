@@ -26,6 +26,7 @@ final class InfoViewModel: ObservableObject {
     private var sourceTask: Task<Void, Never>?
     private var sourcesByAddonID: [LocalAddon.ID: [StreamSource]] = [:]
     private var hasAutoScrolledToWatchedEpisode = false
+    private var localMediaModeEnabled: Bool
 
     init(item: CatalogItem) {
         self.item = item
@@ -33,6 +34,7 @@ final class InfoViewModel: ObservableObject {
         self.playbackStore = .shared
         self.episodeWatchStore = .shared
         self.collectionStore = .shared
+        self.localMediaModeEnabled = UserDefaults.standard.bool(forKey: LocalMediaModePreference.storageKey)
     }
 
     var availableSeasons: [Int] {
@@ -106,6 +108,11 @@ final class InfoViewModel: ObservableObject {
         selectedEpisodeID = episode.id
         resetSourcesState()
 
+        guard !localMediaModeEnabled else {
+            hasLoadedSources = true
+            return
+        }
+
         guard let type = item.cinemetaType else { return }
 
         sourceTask = Task {
@@ -116,6 +123,22 @@ final class InfoViewModel: ObservableObject {
     func showEpisodes() {
         selectedEpisodeID = nil
         resetSourcesState()
+    }
+
+    func updateLocalMediaMode(enabled: Bool) {
+        guard localMediaModeEnabled != enabled else { return }
+        localMediaModeEnabled = enabled
+        resetSourcesState()
+
+        if enabled {
+            hasLoadedSources = true
+        } else if hasLoadedDetail,
+                  let type = item.cinemetaType,
+                  let id = selectedEpisodeID ?? (type == .movie ? item.id : nil) {
+            sourceTask = Task {
+                await loadSources(for: id, type: type)
+            }
+        }
     }
 
     func selectSourceAddon(_ addonID: LocalAddon.ID?) {
@@ -204,6 +227,10 @@ final class InfoViewModel: ObservableObject {
 
     private func loadMovieSourcesIfNeeded() async {
         guard item.cinemetaType == .movie else { return }
+        guard !localMediaModeEnabled else {
+            hasLoadedSources = true
+            return
+        }
         await loadSources(for: item.id, type: .movie)
     }
 
@@ -211,6 +238,7 @@ final class InfoViewModel: ObservableObject {
         for id: String,
         type: CinemetaType
     ) async {
+        guard !localMediaModeEnabled else { return }
         let requestID = UUID().uuidString
         sourceRequestID = requestID
 

@@ -19,6 +19,8 @@ struct ContentView: View {
                 SearchView()
             case "Addons":
                 AddonsView()
+            case "Downloads":
+                DownloadsView()
             case "Settings":
                 SettingsView()
             default:

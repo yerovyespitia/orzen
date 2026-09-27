@@ -25,6 +25,8 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Orzen connects to your Mac to browse and play your local media library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

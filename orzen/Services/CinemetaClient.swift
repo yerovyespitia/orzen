@@ -39,6 +39,20 @@ enum CinemetaClient {
         try await fetchCatalog(type: type, catalog: .top, search: query, forceRefresh: true)
     }
 
+    static func fetchItem(type: CinemetaType, id: String) async throws -> CatalogItem {
+        let url = baseURL
+            .appending(path: "meta")
+            .appending(path: type.rawValue)
+            .appending(path: id)
+            .appendingPathExtension("json")
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let response = response as? HTTPURLResponse,
+              (200..<300).contains(response.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(CinemetaItemResponse.self, from: data).meta.item(type: type)
+    }
+
     static func fetchCatalogResult(
         type: CinemetaType,
         catalog: CinemetaCatalog,
@@ -257,6 +271,10 @@ private actor CinemetaDetailMemoryCache {
 
 private struct CinemetaCatalogResponse: Decodable {
     let metas: [CinemetaMeta]
+}
+
+private struct CinemetaItemResponse: Decodable {
+    let meta: CinemetaMeta
 }
 
 private struct CinemetaDetailResponse: Decodable {
