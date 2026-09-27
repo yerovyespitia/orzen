@@ -292,14 +292,25 @@ struct SettingsView: View {
     private var iPhoneLibraryDetails: some View {
         List {
             Section("Mac Library") {
-                TextField("Mac name or IP address", text: $remoteMedia.host)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                TextField("Pairing code", text: $remoteMedia.pairingCode)
-                    .keyboardType(.numberPad)
-                Button("Connect to Mac") { Task { await remoteMedia.pair() } }
-                if let message = remoteMedia.message {
-                    Text(message).font(.caption).foregroundStyle(.secondary)
+                if remoteMedia.isPaired {
+                    Label("Paired with Mac", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    Text(remoteMedia.host)
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                    Button("Disconnect from Mac", role: .destructive) {
+                        remoteMedia.disconnect()
+                    }
+                } else {
+                    TextField("Mac name or IP address", text: $remoteMedia.host)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField("Pairing code", text: $remoteMedia.pairingCode)
+                        .keyboardType(.numberPad)
+                    Button("Connect to Mac") { Task { await remoteMedia.pair() } }
+                    if let message = remoteMedia.message {
+                        Text(message).font(.caption).foregroundStyle(.secondary)
+                    }
                 }
             }
         }

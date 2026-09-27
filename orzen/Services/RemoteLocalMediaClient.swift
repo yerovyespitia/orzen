@@ -39,7 +39,8 @@ final class RemoteLocalMediaClient: ObservableObject {
         do {
             let response: LocalMediaPairResponse = try await request("pair", method: "POST", body: LocalMediaPairRequest(code: pairingCode), authenticated: false)
             token = response.token
-            message = "Connected to Mac."
+            pairingCode = ""
+            message = nil
         } catch {
             if case LocalMediaError.unauthorized = error {
                 message = "Incorrect pairing code."
@@ -47,6 +48,12 @@ final class RemoteLocalMediaClient: ObservableObject {
                 message = error.localizedDescription
             }
         }
+    }
+
+    func disconnect() {
+        token = nil
+        pairingCode = ""
+        message = nil
     }
 
     func versions() async throws -> [LocalMediaVersion] {

@@ -54,6 +54,11 @@ struct LocalMediaSourcesView: View {
         VStack(alignment: .leading, spacing: 24) {
             if !versions.isEmpty { downloadedVersions }
             torrentSearch
+            if let actionError {
+                Text(actionError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
         }
         .task(id: searchRequest) {
             await search(request: searchRequest)
@@ -90,9 +95,6 @@ struct LocalMediaSourcesView: View {
             ForEach(versions) { version in
                 versionRow(version)
             }
-            if let actionError {
-                Text(actionError).font(.caption).foregroundStyle(.red)
-            }
             #if os(macOS)
             if let error = library.storageError {
                 Text(error).font(.caption).foregroundStyle(.red)
@@ -103,6 +105,8 @@ struct LocalMediaSourcesView: View {
 
     private func versionRow(_ version: LocalMediaVersion) -> some View {
         let status = version.status
+        let progress = version.progress ?? 0
+        let progressLabel = progress > 0 && progress < 0.01 ? "<1%" : "\(Int(progress * 100))%"
         let actionLabel: String? = switch status {
         case .completed: "Play"
         case .queued, .downloading: "Pause"
@@ -133,10 +137,15 @@ struct LocalMediaSourcesView: View {
                 subtitleCount: version.subtitleTrackCount
             )
             if status == .downloading || status == .queued || status == .paused {
-                ProgressView(value: version.progress ?? 0)
-                    .tint(.white)
-                Text("\(Int((version.progress ?? 0) * 100))% • \(ByteCountFormatter.string(fromByteCount: version.downloadedBytes ?? 0, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: version.totalBytes ?? 0, countStyle: .file))")
-                    .font(.caption).foregroundStyle(.white.opacity(0.62))
+                if let totalBytes = version.totalBytes, totalBytes > 0 {
+                    ProgressView(value: version.progress ?? 0)
+                        .tint(.white)
+                    Text("\(progressLabel) • \(ByteCountFormatter.string(fromByteCount: version.downloadedBytes ?? 0, countStyle: .file)) / \(ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file))")
+                        .font(.caption).foregroundStyle(.white.opacity(0.62))
+                } else {
+                    Text("Waiting for torrent metadata…")
+                        .font(.caption).foregroundStyle(.white.opacity(0.62))
+                }
             }
             if let failure = version.failureMessage, status == .failed {
                 Text(failure).font(.caption).foregroundStyle(.red)
@@ -205,17 +214,7 @@ struct LocalMediaSourcesView: View {
             LocalMediaTrackBadges(audio: inferred.audio, subtitles: inferred.subtitles,
                 verified: false, audioCount: nil, subtitleCount: nil)
         } actions: {
-            Button { download(result) } label: {
-                Image(systemName: "arrow.down.to.line")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.1), in: Circle())
-            }
-                .buttonStyle(.plain)
-                .disabled(!canDownload)
-                .accessibilityLabel("Download \(result.title)")
-                .help("Download torrent")
+            EmptyView()
         }
     }
 
@@ -334,62 +333,58 @@ private struct LocalMediaSourceCard<Details: View, Actions: View>: View {
     @ViewBuilder let actions: () -> Actions
 
     var body: some View {
-        HStack(alignment: .top, spacing: rowSpacing) {
-            if let onSelect {
-                Button(action: onSelect) { mainContent }
-                    .buttonStyle(.plain)
-                    .disabled(!isEnabled)
-                    .accessibilityLabel("\(actionLabel ?? "Open"), \(title)")
-            } else {
-                mainContent
-            }
+        Group {
+        #if os(iOS)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .top, spacing: rowSpacing) {
+                    if let onSelect {
+                        Button(action: onSelect) { headerContent }
+                            .buttonStyle(.plain)
+                            .disabled(!isEnabled)
+                            .accessibilityLabel("\(actionLabel ?? "Open"), \(title)")
+                    } else {
+                        headerContent
+                    }
+                    actions()
+                }
 
-            actions()
+                if let onSelect {
+                    details()
+                        .contentShape(Rectangle())
+                        .onTapGesture { if isEnabled { onSelect() } }
+                } else {
+                    details()
+                }
+            }
+        #else
+            HStack(alignment: .top, spacing: rowSpacing) {
+                primaryContent
+                actions()
+            }
+        #endif
         }
         .padding(rowPadding)
         .frame(minHeight: minimumHeight, alignment: .top)
         .sourceRowBackground()
     }
 
+    @ViewBuilder
+    private var primaryContent: some View {
+        if let onSelect {
+            Button(action: onSelect) { mainContent }
+                .buttonStyle(.plain)
+                .disabled(!isEnabled)
+                .accessibilityLabel("\(actionLabel ?? "Open"), \(title)")
+        } else {
+            mainContent
+        }
+    }
+
     private var mainContent: some View {
         HStack(alignment: .top, spacing: rowSpacing) {
-            ZStack {
-                if let artworkURL {
-                    CachedRemoteImage(url: artworkURL) { image in
-                        image.resizable().scaledToFill()
-                    } placeholder: { _ in
-                        OrzenArtworkPlaceholder(style: .backdrop)
-                    }
-                } else {
-                    OrzenArtworkPlaceholder(style: .backdrop)
-                }
-
-                Image(systemName: systemImage)
-                    .font(.system(size: iconSize, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: iconSize + 20, height: iconSize + 20)
-                    .background(Color.black.opacity(0.55), in: Circle())
-            }
-            .frame(width: artworkWidth, height: artworkHeight)
-            .clipShape(SourceRowStyle.cardShape)
-            .overlay {
-                SourceRowStyle.cardShape
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-            }
-
+            artwork
             VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(titleFont)
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-
-                if !metadata.isEmpty {
-                    Text(metadata)
-                        .font(metadataFont)
-                        .foregroundStyle(.white.opacity(0.62))
-                        .lineLimit(1)
-                }
-
+                heading
                 details()
             }
 
@@ -397,6 +392,56 @@ private struct LocalMediaSourceCard<Details: View, Actions: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
+    }
+
+    private var headerContent: some View {
+        HStack(alignment: .top, spacing: rowSpacing) {
+            artwork
+            heading
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private var artwork: some View {
+        ZStack {
+            if let artworkURL {
+                CachedRemoteImage(url: artworkURL) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: { _ in
+                    OrzenArtworkPlaceholder(style: .backdrop)
+                }
+            } else {
+                OrzenArtworkPlaceholder(style: .backdrop)
+            }
+
+            Image(systemName: systemImage)
+                .font(.system(size: iconSize, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.8))
+        }
+        .frame(width: artworkWidth, height: artworkHeight)
+        .clipShape(SourceRowStyle.cardShape)
+        .overlay {
+            SourceRowStyle.cardShape
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        }
+    }
+
+    private var heading: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(titleFont)
+                .foregroundStyle(.white)
+                .lineLimit(2)
+
+            if !metadata.isEmpty {
+                Text(metadata)
+                    .font(metadataFont)
+                    .foregroundStyle(.white.opacity(0.62))
+                    .lineLimit(1)
+            }
+        }
     }
 
     private var artworkWidth: CGFloat {
@@ -472,22 +517,31 @@ private struct LocalMediaTrackBadges: View {
     let subtitleCount: Int?
 
     var body: some View {
+        #if os(iOS)
+        if !audio.isEmpty || !subtitles.isEmpty || (verified && subtitleCount == 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(audio, id: \.self) { badge("Audio \($0)") }
+                    ForEach(subtitles, id: \.self) { badge("Subs \($0)") }
+                    if verified && subtitles.isEmpty && subtitleCount == 0 {
+                        badge("Subs None")
+                    }
+                }
+            }
+        }
+        #else
         HStack(spacing: 6) {
             badge("Audio", languages: audio, count: audioCount)
             badge("Subs", languages: subtitles, count: subtitleCount)
         }
+        #endif
     }
 
-    private func badge(_ label: String, languages: [String], count: Int?) -> some View {
-        let value: String
-        if !languages.isEmpty {
-            value = languages.joined(separator: " · ") + (verified ? "" : "?")
-        } else if verified && count == 0 {
-            value = "None"
-        } else {
-            value = "?"
-        }
-        return Text("\(label) \(value)")
+    #if os(iOS)
+    private func badge(_ value: String) -> some View {
+        Text(value)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .font(.caption2.weight(.medium))
             .foregroundStyle(verified ? Color.white.opacity(0.82) : Color.white.opacity(0.60))
             .padding(.horizontal, 8)
@@ -495,4 +549,24 @@ private struct LocalMediaTrackBadges: View {
             .background(Color.white.opacity(verified ? 0.12 : 0.07), in: Capsule())
             .help(verified ? "Read from the video file" : "Estimated from the torrent title")
     }
+    #else
+    @ViewBuilder
+    private func badge(_ label: String, languages: [String], count: Int?) -> some View {
+        if let value = badgeValue(languages: languages, count: count) {
+            Text("\(label) \(value)")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(verified ? Color.white.opacity(0.82) : Color.white.opacity(0.60))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.white.opacity(verified ? 0.12 : 0.07), in: Capsule())
+                .help(verified ? "Read from the video file" : "Estimated from the torrent title")
+        }
+    }
+
+    private func badgeValue(languages: [String], count: Int?) -> String? {
+        if !languages.isEmpty { return languages.joined(separator: " · ") }
+        if verified && count == 0 { return "None" }
+        return nil
+    }
+    #endif
 }

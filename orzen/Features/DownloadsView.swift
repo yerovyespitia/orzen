@@ -35,11 +35,13 @@ struct DownloadsView: View {
                 Color.black.ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 20) {
+                    #if os(macOS)
                     Text("Downloads")
-                        .font(headerTitleFont)
+                        .font(.title)
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
+                    #endif
 
                     if entries.isEmpty {
                         emptyContent
@@ -97,14 +99,6 @@ struct DownloadsView: View {
                 }
             }
         }
-    }
-
-    private var headerTitleFont: Font {
-        #if os(iOS)
-        .title2
-        #else
-        .title
-        #endif
     }
 
     private var emptyContent: some View {

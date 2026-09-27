@@ -201,11 +201,26 @@ final class LocalMediaServer: ObservableObject {
         var partial = false
         if let range, range.lowercased().hasPrefix("bytes=") {
             let values = range.dropFirst(6).split(separator: "-", omittingEmptySubsequences: false)
-            guard values.count == 2, !values[0].isEmpty, let parsed = Int64(values[0]), parsed >= 0, parsed < size else {
+            guard values.count == 2 else {
                 try? file.close(); send(status: 416, headers: ["Content-Range": "bytes */\(size)"], body: Data(), to: connection); return
             }
-            start = parsed
-            if !values[1].isEmpty { end = min(Int64(values[1]) ?? end, end) }
+            if values[0].isEmpty {
+                guard let suffixLength = Int64(values[1]), suffixLength > 0 else {
+                    try? file.close(); send(status: 416, headers: ["Content-Range": "bytes */\(size)"], body: Data(), to: connection); return
+                }
+                start = size - min(suffixLength, size)
+            } else {
+                guard let parsed = Int64(values[0]), parsed >= 0, parsed < size else {
+                    try? file.close(); send(status: 416, headers: ["Content-Range": "bytes */\(size)"], body: Data(), to: connection); return
+                }
+                start = parsed
+                if !values[1].isEmpty {
+                    guard let requestedEnd = Int64(values[1]) else {
+                        try? file.close(); send(status: 416, headers: ["Content-Range": "bytes */\(size)"], body: Data(), to: connection); return
+                    }
+                    end = min(requestedEnd, end)
+                }
+            }
             guard end >= start else { try? file.close(); sendError(416, "Invalid range.", to: connection); return }
             partial = true
         }
