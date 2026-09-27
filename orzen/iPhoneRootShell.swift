@@ -36,7 +36,9 @@ struct iPhoneRootShell: View {
         }
         .background(Color.black.ignoresSafeArea())
         .onChange(of: localMediaModeEnabled) { _, enabled in
-            if !enabled && selectedTab == .downloads { selectedTab = .home }
+            if (enabled && selectedTab == .addons) || (!enabled && selectedTab == .downloads) {
+                selectedTab = .home
+            }
         }
     }
 
@@ -51,8 +53,10 @@ struct iPhoneRootShell: View {
                 collectionsView
             }
 
-            Tab("Addons", systemImage: "puzzlepiece.extension", value: RootTab.addons) {
-                addonsView
+            if !localMediaModeEnabled {
+                Tab("Addons", systemImage: "puzzlepiece.extension", value: RootTab.addons) {
+                    addonsView
+                }
             }
 
             if localMediaModeEnabled {
@@ -83,9 +87,11 @@ struct iPhoneRootShell: View {
                 .tabItem { Label("Collections", systemImage: "square.stack") }
                 .tag(RootTab.collections)
 
-            addonsView
-                .tabItem { Label("Addons", systemImage: "puzzlepiece.extension") }
-                .tag(RootTab.addons)
+            if !localMediaModeEnabled {
+                addonsView
+                    .tabItem { Label("Addons", systemImage: "puzzlepiece.extension") }
+                    .tag(RootTab.addons)
+            }
 
             if localMediaModeEnabled {
                 downloadsView
