@@ -91,7 +91,7 @@ final class RemoteLocalMediaClient: ObservableObject {
         guard let baseURL else { throw LocalMediaError.macUnavailable }
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
-        request.timeoutInterval = 30
+        request.timeoutInterval = path == "search" ? 120 : 12
         if authenticated {
             guard let token else { throw LocalMediaError.unauthorized }
             request.setValue(token, forHTTPHeaderField: "X-Orzen-Token")
@@ -100,7 +100,13 @@ final class RemoteLocalMediaClient: ObservableObject {
             request.httpBody = body
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch let error as URLError where error.code != .cancelled {
+            throw LocalMediaError.macUnavailable
+        }
         guard let response = response as? HTTPURLResponse else { throw LocalMediaError.macUnavailable }
         guard (200..<300).contains(response.statusCode) else {
             if response.statusCode == 401 { throw LocalMediaError.unauthorized }

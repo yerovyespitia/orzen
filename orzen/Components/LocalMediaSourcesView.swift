@@ -13,6 +13,7 @@ struct LocalMediaSourcesView: View {
     @State private var handledSearchRevision = 0
     @State private var results: [TorrentSearchResult] = []
     @State private var isSearching = false
+    @State private var activeSearchID: UUID?
     @State private var hasSearched = false
     @State private var searchError: String?
     @State private var actionError: String?
@@ -219,26 +220,40 @@ struct LocalMediaSourcesView: View {
     }
 
     private func search(request: SearchRequest) async {
+        let searchID = UUID()
+        activeSearchID = searchID
         let forceRefresh = request.revision > handledSearchRevision
         handledSearchRevision = max(handledSearchRevision, request.revision)
         isSearching = true
         searchError = nil
+        defer {
+            if activeSearchID == searchID {
+                isSearching = false
+                activeSearchID = nil
+            }
+        }
         do {
             #if os(macOS)
             let found = try await LocalTorrentSearchClient.search(item: item, episode: episode,
                 includeSpanish: true, forceRefresh: forceRefresh)
             #else
-            let found = try await RemoteLocalMediaClient.shared.search(item: item, episode: episode,
+            let client = RemoteLocalMediaClient.shared
+            guard client.isPaired else { throw LocalMediaError.unauthorized }
+            let found = try await client.search(item: item, episode: episode,
                 includeSpanish: true, forceRefresh: forceRefresh)
             #endif
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, request == searchRequest else { return }
             results = found
+            hasSearched = true
         } catch {
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !isCancellation(error), request == searchRequest else { return }
             searchError = error.localizedDescription
+            hasSearched = true
         }
-        isSearching = false
-        hasSearched = true
+    }
+
+    private func isCancellation(_ error: Error) -> Bool {
+        error is CancellationError || (error as? URLError)?.code == .cancelled
     }
 
     private func download(_ result: TorrentSearchResult) {

@@ -236,8 +236,8 @@ enum LocalMediaError: LocalizedError {
         case .missingTorrent: "This result has no magnet or torrent download."
         case .invalidTorrent: "The torrent file could not be downloaded."
         case .engine(let message): message.isEmpty ? "Could not start the torrent." : message
-        case .macUnavailable: "Connect to your Mac in Settings to use Local Media."
-        case .unauthorized: "Pair with your Mac again in Settings."
+        case .macUnavailable: "Orzen on your Mac isn't available. Open it and pair this iPhone in Settings to browse torrents."
+        case .unauthorized: "This iPhone isn't paired with your Mac. Pair it in Settings to browse torrents."
         }
     }
 }

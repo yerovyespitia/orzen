@@ -4,6 +4,13 @@ struct CollectionsView: View {
     // MARK: - Properties
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
+    @ObservedObject private var playbackProgressStore = PlaybackProgressStore.shared
+    @AppStorage(LocalMediaModePreference.storageKey) private var localMediaModeEnabled = false
+    #if os(macOS)
+    @ObservedObject private var downloadLibrary = LocalMediaLibraryStore.shared
+    #else
+    @State private var remoteDownloadVersions: [LocalMediaVersion] = []
+    #endif
     var ownsNavigationStack = true
     var popToRootRequest = 0
     private let contentHorizontalPadding: CGFloat = 16
@@ -12,16 +19,30 @@ struct CollectionsView: View {
     
     // MARK: - Body
     var body: some View {
-        if ownsNavigationStack {
-            NavigationStack {
+        Group {
+            if ownsNavigationStack {
+                NavigationStack {
+                    content
+                        #if os(iOS)
+                        .popNavigationToRoot(on: popToRootRequest)
+                        #endif
+                }
+            } else {
                 content
-                    #if os(iOS)
-                    .popNavigationToRoot(on: popToRootRequest)
-                    #endif
             }
-        } else {
-            content
         }
+        #if os(iOS)
+        .task(id: localMediaModeEnabled) {
+            guard localMediaModeEnabled else {
+                remoteDownloadVersions = []
+                return
+            }
+            while !Task.isCancelled {
+                remoteDownloadVersions = (try? await RemoteLocalMediaClient.shared.versions()) ?? []
+                try? await Task.sleep(for: .seconds(3))
+            }
+        }
+        #endif
     }
 
     @ViewBuilder
@@ -88,7 +109,26 @@ struct CollectionsView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
             }
+            if localMediaModeEnabled {
+                NavigationLink {
+                    DownloadsView(ownsNavigationStack: false)
+                } label: {
+                    CollectionCard(collection: MediaCollection(
+                        id: "downloads", name: "Downloads", systemImage: "arrow.down.to.line", count: downloadCount
+                    ))
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
         }
+    }
+
+    private var downloadCount: Int {
+        #if os(macOS)
+        let versions = downloadLibrary.versions
+        #else
+        let versions = remoteDownloadVersions
+        #endif
+        return Set(versions.map { "\($0.contentType.rawValue):\($0.catalogID)" }).count
     }
 }
 

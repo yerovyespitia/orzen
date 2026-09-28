@@ -124,7 +124,6 @@ struct SidebarItem: Identifiable, Hashable {
 
 struct SidebarView<DetailContent: View>: View {
     @State private var selection: SidebarItem? = items.first(where: { $0.title == "Home" })
-    @AppStorage(LocalMediaModePreference.storageKey) private var localMediaModeEnabled = false
     @ObservedObject private var bannerArtworkStore = HomeBannerArtworkStore.shared
     @ObservedObject private var homeBannerScrollStore = HomeBannerScrollStore.shared
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
@@ -149,7 +148,7 @@ struct SidebarView<DetailContent: View>: View {
 
                 NavigationSplitView {
                     List(selection: $selection) {
-                        ForEach(Array(visibleItems.enumerated()), id: \.element.id) { index, item in
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             Button {
                                 select(item)
                             } label: {
@@ -213,15 +212,6 @@ struct SidebarView<DetailContent: View>: View {
         .frame(minWidth: 700, minHeight: 500)
         .toolbar(playbackStore.request == nil ? .visible : .hidden, for: .windowToolbar)
         #endif
-        .onChange(of: localMediaModeEnabled) { _, enabled in
-            if !enabled && selection?.title == "Downloads" {
-                selection = items.first(where: { $0.title == "Home" })
-            }
-        }
-    }
-
-    private var visibleItems: [SidebarItem] {
-        items.filter { localMediaModeEnabled || $0.title != "Downloads" }
     }
 
     private func select(_ item: SidebarItem) {
@@ -292,7 +282,6 @@ let items: [SidebarItem] = [
     SidebarItem(title: "Movies", systemImage: "film"),
     SidebarItem(title: "Collections", systemImage: "square.stack"),
     SidebarItem(title: "Addons", systemImage: "puzzlepiece.extension"),
-    SidebarItem(title: "Downloads", systemImage: "arrow.down.to.line"),
     SidebarItem(title: "Settings", systemImage: "gearshape"),
 ]
 

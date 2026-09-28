@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DownloadsView: View {
     var popToRootRequest = 0
+    var ownsNavigationStack = true
 
     #if os(macOS)
     @ObservedObject private var library = LocalMediaLibraryStore.shared
@@ -30,7 +31,46 @@ struct DownloadsView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        Group {
+            if ownsNavigationStack {
+                NavigationStack { content }
+            } else {
+                content
+            }
+        }
+        #if os(iOS)
+        .toolbar(ownsNavigationStack ? .hidden : .visible, for: .navigationBar)
+        .interactivePopGestureEnabled()
+        .task {
+            while !Task.isCancelled {
+                do {
+                    remoteVersions = try await RemoteLocalMediaClient.shared.versions()
+                    connectionError = nil
+                } catch {
+                    connectionError = error.localizedDescription
+                }
+                try? await Task.sleep(for: .seconds(3))
+            }
+        }
+        #endif
+        .task(id: entries.map(\.id)) {
+            for entry in entries where entry.versions.allSatisfy({ $0.catalogItem == nil }) {
+                guard fetchedItems[entry.id] == nil, !Task.isCancelled else { continue }
+                if let item = try? await CinemetaClient.fetchItem(type: entry.type, id: entry.catalogID) {
+                    fetchedItems[entry.id] = item
+                    #if os(macOS)
+                    for version in entry.versions {
+                        var updated = version
+                        updated.catalogItem = item
+                        try? library.update(updated)
+                    }
+                    #endif
+                }
+            }
+        }
+    }
+
+    private var content: some View {
             ZStack {
                 Color.black.ignoresSafeArea()
 
@@ -68,37 +108,6 @@ struct DownloadsView: View {
             #if os(iOS)
             .popNavigationToRoot(on: popToRootRequest)
             #endif
-        }
-        #if os(iOS)
-        .toolbar(.hidden, for: .navigationBar)
-        .interactivePopGestureEnabled()
-        .task {
-            while !Task.isCancelled {
-                do {
-                    remoteVersions = try await RemoteLocalMediaClient.shared.versions()
-                    connectionError = nil
-                } catch {
-                    connectionError = error.localizedDescription
-                }
-                try? await Task.sleep(for: .seconds(3))
-            }
-        }
-        #endif
-        .task(id: entries.map(\.id)) {
-            for entry in entries where entry.versions.allSatisfy({ $0.catalogItem == nil }) {
-                guard fetchedItems[entry.id] == nil, !Task.isCancelled else { continue }
-                if let item = try? await CinemetaClient.fetchItem(type: entry.type, id: entry.catalogID) {
-                    fetchedItems[entry.id] = item
-                    #if os(macOS)
-                    for version in entry.versions {
-                        var updated = version
-                        updated.catalogItem = item
-                        try? library.update(updated)
-                    }
-                    #endif
-                }
-            }
-        }
     }
 
     private var emptyContent: some View {
