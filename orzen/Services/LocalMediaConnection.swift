@@ -18,6 +18,35 @@ struct LocalMediaPairRequest: Codable { let code: String }
 struct LocalMediaPairResponse: Codable { let token: String }
 struct LocalMediaActionResponse: Codable { let success: Bool }
 
+struct LocalMediaProgressRecord: Codable {
+    let key: String
+    let entry: PlaybackProgressEntry?
+    let updatedAt: Date
+    let isDeleted: Bool
+
+    init(entry: PlaybackProgressEntry) {
+        key = entry.id
+        self.entry = entry
+        updatedAt = entry.updatedAt
+        isDeleted = false
+    }
+
+    init(deletedKey key: String, updatedAt: Date) {
+        self.key = key
+        entry = nil
+        self.updatedAt = updatedAt
+        isDeleted = true
+    }
+}
+
+struct LocalMediaProgressSyncRequest: Codable {
+    let records: [LocalMediaProgressRecord]
+}
+
+struct LocalMediaProgressSyncResponse: Codable {
+    let records: [LocalMediaProgressRecord]
+}
+
 #if os(macOS)
 @MainActor
 final class LocalMediaServer: ObservableObject {
@@ -134,6 +163,10 @@ final class LocalMediaServer: ObservableObject {
         do {
             if request.method == "GET" && parts == ["library"] {
                 sendJSON(LocalMediaLibraryStore.shared.versions, to: connection)
+            } else if request.method == "POST" && parts == ["progress"] {
+                let input = try JSONDecoder().decode(LocalMediaProgressSyncRequest.self, from: request.body)
+                let records = PlaybackProgressStore.shared.mergeLocalProgress(input.records)
+                sendJSON(LocalMediaProgressSyncResponse(records: records), to: connection)
             } else if request.method == "POST" && parts == ["search"] {
                 let input = try JSONDecoder().decode(LocalMediaSearchRequest.self, from: request.body)
                 let results = try await LocalTorrentSearchClient.search(item: input.item,

@@ -84,9 +84,15 @@ final class PlaybackProgressStore: ObservableObject {
     private let userDefaults: UserDefaults
 
     private static let storageKey = "OrzenPlaybackProgressJSON"
+    private static let localProgressTombstonesStorageKey = "OrzenLocalPlaybackProgressTombstonesJSON"
     private static let minimumResumePosition: Double = 1
     private static let seriesCompletionRemainingSeconds: Double = 180
     private static let movieCompletionRemainingSeconds: Double = 420
+
+    private var localProgressTombstones: [String: Date] = [:]
+    #if os(iOS)
+    private var localMediaSyncTask: Task<Void, Never>?
+    #endif
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -121,6 +127,67 @@ final class PlaybackProgressStore: ObservableObject {
             )
         }
     }
+
+    var localProgressSyncRecords: [LocalMediaProgressRecord] {
+        let entryRecords = entries
+            .filter { $0.source.playbackMediaKind == .local }
+            .map(LocalMediaProgressRecord.init(entry:))
+        let tombstoneRecords = localProgressTombstones.map { key, updatedAt in
+            LocalMediaProgressRecord(deletedKey: key, updatedAt: updatedAt)
+        }
+        return (entryRecords + tombstoneRecords).sorted { lhs, rhs in
+            if lhs.updatedAt != rhs.updatedAt {
+                return lhs.updatedAt > rhs.updatedAt
+            }
+            return lhs.key < rhs.key
+        }
+    }
+
+    @discardableResult
+    func mergeLocalProgress(_ records: [LocalMediaProgressRecord]) -> [LocalMediaProgressRecord] {
+        var mergedByKey = Dictionary(
+            uniqueKeysWithValues: localProgressSyncRecords.map { ($0.key, $0) }
+        )
+        var didChange = false
+
+        for record in records {
+            guard isValidLocalProgressRecord(record) else { continue }
+            guard shouldPrefer(record, over: mergedByKey[record.key]) else { continue }
+            mergedByKey[record.key] = record
+            didChange = true
+        }
+
+        if didChange {
+            for record in mergedByKey.values {
+                applyLocalProgressRecord(record)
+            }
+            save()
+        }
+
+        return localProgressSyncRecords
+    }
+
+    #if os(iOS)
+    func synchronizeLocalProgress() async {
+        let client = RemoteLocalMediaClient.shared
+        guard client.isPaired else { return }
+
+        do {
+            let records = try await client.syncLocalProgress(localProgressSyncRecords)
+            guard !Task.isCancelled else { return }
+            _ = mergeLocalProgress(records)
+        } catch {
+            // Local playback remains available when the Mac is temporarily unreachable.
+        }
+    }
+
+    func scheduleLocalProgressSync() {
+        localMediaSyncTask?.cancel()
+        localMediaSyncTask = Task { [weak self] in
+            await self?.synchronizeLocalProgress()
+        }
+    }
+    #endif
 
     func resumePosition(for request: StreamPlaybackRequest) -> Double? {
         guard let entry = entry(for: request),
@@ -251,8 +318,20 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     func clearProgress(for item: CatalogItem) {
+        let localKeys = entries
+            .filter { $0.item.id == item.id && $0.source.playbackMediaKind == .local }
+            .map(\.id)
+        let deletionDate = Date()
+        for key in localKeys {
+            localProgressTombstones[key] = deletionDate
+        }
         entries.removeAll { $0.item.id == item.id }
         save()
+        #if os(iOS)
+        if !localKeys.isEmpty {
+            scheduleLocalProgressSync()
+        }
+        #endif
     }
 
     func clearProgress(contentID: String, contentType: CinemetaType) {
@@ -264,14 +343,21 @@ final class PlaybackProgressStore: ObservableObject {
         contentType: CinemetaType,
         mediaKind: PlaybackMediaKind
     ) {
-        entries.removeAll {
-            $0.id == PlaybackProgressEntry.key(
-                contentID: contentID,
-                contentType: contentType,
-                mediaKind: mediaKind
-            )
+        let key = PlaybackProgressEntry.key(
+            contentID: contentID,
+            contentType: contentType,
+            mediaKind: mediaKind
+        )
+        if mediaKind == .local {
+            localProgressTombstones[key] = Date()
         }
+        entries.removeAll { $0.id == key }
         save()
+        #if os(iOS)
+        if mediaKind == .local {
+            scheduleLocalProgressSync()
+        }
+        #endif
     }
 
     func clearProgress(for request: StreamPlaybackRequest) {
@@ -280,8 +366,16 @@ final class PlaybackProgressStore: ObservableObject {
             contentType: request.contentType,
             mediaKind: request.source.playbackMediaKind
         )
+        if request.source.playbackMediaKind == .local {
+            localProgressTombstones[key] = Date()
+        }
         entries.removeAll { $0.id == key }
         save()
+        #if os(iOS)
+        if request.source.playbackMediaKind == .local {
+            scheduleLocalProgressSync()
+        }
+        #endif
     }
 
     func advanceWatchingProgressIfNeeded(
@@ -378,7 +472,40 @@ final class PlaybackProgressStore: ObservableObject {
     private func saveEntry(_ entry: PlaybackProgressEntry) {
         entries.removeAll { $0.id == entry.id }
         entries.insert(entry, at: 0)
+        if entry.source.playbackMediaKind == .local {
+            localProgressTombstones.removeValue(forKey: entry.id)
+        }
         save()
+    }
+
+    private func isValidLocalProgressRecord(_ record: LocalMediaProgressRecord) -> Bool {
+        guard record.key.hasPrefix("\(PlaybackMediaKind.local.rawValue):") else { return false }
+        if let entry = record.entry {
+            return entry.source.playbackMediaKind == .local && entry.id == record.key
+        }
+        return record.isDeleted
+    }
+
+    private func shouldPrefer(
+        _ candidate: LocalMediaProgressRecord,
+        over current: LocalMediaProgressRecord?
+    ) -> Bool {
+        guard let current else { return true }
+        if candidate.updatedAt != current.updatedAt {
+            return candidate.updatedAt > current.updatedAt
+        }
+        return candidate.isDeleted && !current.isDeleted
+    }
+
+    private func applyLocalProgressRecord(_ record: LocalMediaProgressRecord) {
+        if record.isDeleted {
+            entries.removeAll { $0.id == record.key }
+            localProgressTombstones[record.key] = record.updatedAt
+        } else if let entry = record.entry {
+            entries.removeAll { $0.id == record.key }
+            entries.insert(entry, at: 0)
+            localProgressTombstones.removeValue(forKey: record.key)
+        }
     }
 
     private func sourcesMatch(_ lhs: StreamSource, _ rhs: StreamSource) -> Bool {
@@ -416,14 +543,28 @@ final class PlaybackProgressStore: ObservableObject {
     private func load() {
         guard let data = userDefaults.data(forKey: Self.storageKey),
               let storedEntries = try? JSONDecoder().decode([PlaybackProgressEntry].self, from: data) else {
+            loadLocalProgressTombstones()
             return
         }
 
         entries = storedEntries
+        loadLocalProgressTombstones()
     }
 
     private func save() {
-        guard let data = try? JSONEncoder().encode(entries) else { return }
-        userDefaults.set(data, forKey: Self.storageKey)
+        if let data = try? JSONEncoder().encode(entries) {
+            userDefaults.set(data, forKey: Self.storageKey)
+        }
+        if let tombstoneData = try? JSONEncoder().encode(localProgressTombstones) {
+            userDefaults.set(tombstoneData, forKey: Self.localProgressTombstonesStorageKey)
+        }
+    }
+
+    private func loadLocalProgressTombstones() {
+        guard let data = userDefaults.data(forKey: Self.localProgressTombstonesStorageKey),
+              let tombstones = try? JSONDecoder().decode([String: Date].self, from: data) else {
+            return
+        }
+        localProgressTombstones = tombstones
     }
 }

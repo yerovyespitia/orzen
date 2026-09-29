@@ -1,6 +1,41 @@
 import AVFoundation
 
 extension StreamPlayerView {
+    func preparePlaybackIfNeeded() {
+        guard !hasStartedPlaybackPreparation else { return }
+        hasStartedPlaybackPreparation = true
+
+        #if os(iOS)
+        if request.source.isLocalMedia {
+            Task {
+                await progressStore.synchronizeLocalProgress()
+                guard !Task.isCancelled,
+                      !isClosing,
+                      StreamPlaybackStore.shared.request?.id == request.id else {
+                    return
+                }
+                configurePlaybackFromSavedProgress()
+            }
+            return
+        }
+        #endif
+
+        configurePlaybackFromSavedProgress()
+    }
+
+    func configurePlaybackFromSavedProgress() {
+        pendingResumePosition = progressStore.resumePosition(for: request)
+        pendingTrackSelections = request.initialTrackSelections ?? progressStore.trackSelections(for: request)
+        subtitleDelay = request.initialSubtitleDelay ?? progressStore.subtitleDelay(for: request)
+        progressStore.beginPlayback(for: request)
+        #if os(iOS)
+        beginNowPlayingSession()
+        #endif
+        if !request.requiresSourceRefresh {
+            startPlaybackIfPossible()
+        }
+    }
+
     func refreshSourceBeforePlaybackIfNeeded() async {
         guard request.requiresSourceRefresh, !request.source.isLocalMedia else { return }
 

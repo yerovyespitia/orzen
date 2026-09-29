@@ -74,6 +74,30 @@ final class PlaybackProgressStoreTests: XCTestCase {
         XCTAssertEqual(source.playbackMediaKind, .local)
     }
 
+    func testLocalProgressSyncUsesNewestRecordAndPropagatesDeletion() {
+        let item = TestFixtures.item(id: "sync-item")
+        let request = TestFixtures.request(
+            source: TestFixtures.source(id: "local:version-1", addonName: "Local Media"),
+            item: item,
+            contentID: item.id
+        )
+        store.saveProgress(for: request, position: 120, duration: 7_200)
+
+        var newerEntry = store.entry(for: item, mediaKind: .local)!
+        newerEntry.position = 480
+        newerEntry.updatedAt = Date(timeIntervalSinceNow: 60)
+        let mergedRecords = store.mergeLocalProgress([LocalMediaProgressRecord(entry: newerEntry)])
+
+        XCTAssertEqual(store.entry(for: item, mediaKind: .local)?.position, 480)
+        XCTAssertEqual(mergedRecords.first(where: { $0.key == newerEntry.id })?.entry?.position, 480)
+
+        store.clearProgress(for: request)
+
+        let deletion = store.localProgressSyncRecords.first { $0.key == newerEntry.id }
+        XCTAssertTrue(deletion?.isDeleted == true)
+        XCTAssertNil(store.entry(for: item, mediaKind: .local))
+    }
+
     func testSavedProgressPersistsExactSourceAddonIdentity() {
         let addonID = UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!
         let request = TestFixtures.request(

@@ -37,6 +37,7 @@ struct StreamPlayerView: View {
     @State var pendingResumePosition: Double?
     @State var pendingTrackSelections: PlaybackTrackSelections?
     @State var hasAppliedSavedProgress = false
+    @State var hasStartedPlaybackPreparation = false
     @State var appliedSavedAudioTrackID: String?
     @State var appliedSavedSubtitleTrackID: String?
     @State var lastSavedProgressPosition: Double = 0
@@ -103,16 +104,7 @@ struct StreamPlayerView: View {
         }
         #endif
         .onAppear {
-            pendingResumePosition = progressStore.resumePosition(for: request)
-            pendingTrackSelections = request.initialTrackSelections ?? progressStore.trackSelections(for: request)
-            subtitleDelay = request.initialSubtitleDelay ?? progressStore.subtitleDelay(for: request)
-            progressStore.beginPlayback(for: request)
-            #if os(iOS)
-            beginNowPlayingSession()
-            #endif
-            if !request.requiresSourceRefresh {
-                startPlaybackIfPossible()
-            }
+            preparePlaybackIfNeeded()
             refreshFullscreenState()
             scheduleChromeHideIfNeeded()
         }

@@ -59,6 +59,7 @@ extension StreamPlayerView {
             force: force
         )
         lastSavedProgressPosition = currentTime
+        scheduleLocalProgressSyncIfNeeded()
     }
 
     func saveProgressOnDisappearIfNeeded() {
@@ -76,6 +77,7 @@ extension StreamPlayerView {
 
         guard let item = request.item else {
             progressStore.clearProgress(for: request)
+            scheduleLocalProgressSyncIfNeeded()
             return
         }
 
@@ -107,6 +109,7 @@ extension StreamPlayerView {
         }
 
         progressStore.clearProgress(for: request)
+        scheduleLocalProgressSyncIfNeeded()
         chromeVisibility.keepVisible()
     }
 
@@ -151,6 +154,14 @@ extension StreamPlayerView {
 
     func clearCurrentPlaybackProgress() {
         progressStore.clearProgress(for: request)
+        scheduleLocalProgressSyncIfNeeded()
+    }
+
+    func scheduleLocalProgressSyncIfNeeded() {
+        #if os(iOS)
+        guard request.source.isLocalMedia else { return }
+        progressStore.scheduleLocalProgressSync()
+        #endif
     }
 
     func savePendingNextEpisodeProgress(

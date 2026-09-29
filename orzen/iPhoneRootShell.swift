@@ -39,6 +39,10 @@ struct iPhoneRootShell: View {
                 selectedTab = .home
             }
         }
+        .task(id: localMediaModeEnabled) {
+            guard localMediaModeEnabled else { return }
+            await PlaybackProgressStore.shared.synchronizeLocalProgress()
+        }
     }
 
     @available(iOS 26, *)
