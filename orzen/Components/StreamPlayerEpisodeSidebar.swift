@@ -9,6 +9,7 @@ struct StreamPlayerEpisodeSidebar: View {
     let item: CatalogItem
     let currentEpisodeID: CatalogEpisode.ID?
     let currentSourceID: StreamSource.ID
+    let mediaKind: PlaybackMediaKind
     let currentTrackSelections: PlaybackTrackSelections
     let onClose: () -> Void
 
@@ -22,12 +23,14 @@ struct StreamPlayerEpisodeSidebar: View {
         item: CatalogItem,
         currentEpisodeID: CatalogEpisode.ID?,
         currentSourceID: StreamSource.ID,
+        mediaKind: PlaybackMediaKind,
         currentTrackSelections: PlaybackTrackSelections,
         onClose: @escaping () -> Void
     ) {
         self.item = item
         self.currentEpisodeID = currentEpisodeID
         self.currentSourceID = currentSourceID
+        self.mediaKind = mediaKind
         self.currentTrackSelections = currentTrackSelections
         self.onClose = onClose
         _viewModel = StateObject(wrappedValue: InfoViewModel(item: item))
@@ -243,7 +246,8 @@ struct StreamPlayerEpisodeSidebar: View {
                     await playbackProgressStore.advanceWatchingProgressIfNeeded(
                         afterMarkingWatched: episode,
                         in: item,
-                        trackSelections: currentTrackSelections
+                        trackSelections: currentTrackSelections,
+                        mediaKind: mediaKind
                     )
                 }
             } label: {

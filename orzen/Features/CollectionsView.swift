@@ -101,7 +101,7 @@ struct CollectionsView: View {
             alignment: .leading,
             spacing: OrzenLayout.current.gridVerticalSpacing
         ) {
-            ForEach(collectionStore.collections) { collection in
+            ForEach(collectionStore.collections(for: playbackMediaKind)) { collection in
                 NavigationLink {
                     CollectionDetailView(collection: collection)
                 } label: {
@@ -120,6 +120,10 @@ struct CollectionsView: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
+    }
+
+    private var playbackMediaKind: PlaybackMediaKind {
+        localMediaModeEnabled ? .local : .remote
     }
 
     private var downloadCount: Int {

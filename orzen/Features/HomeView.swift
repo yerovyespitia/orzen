@@ -9,7 +9,13 @@ struct HomeView: View {
     @ObservedObject private var progressStore = PlaybackProgressStore.shared
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var bannerScrollStore = HomeBannerScrollStore.shared
+    @AppStorage(LocalMediaModePreference.storageKey)
+    private var localMediaModeEnabled = false
     private let scrollTopID = "home-scroll-top"
+
+    private var playbackMediaKind: PlaybackMediaKind {
+        localMediaModeEnabled ? .local : .remote
+    }
 
     var body: some View {
         NavigationStack {
@@ -32,12 +38,13 @@ struct HomeView: View {
                                         .padding(.bottom, 12)
                                 }
 
-                                if !progressStore.watchingItems.isEmpty {
+                                if !progressStore.watchingItems(for: playbackMediaKind).isEmpty {
                                     CatalogSectionView(
                                         title: "Watching",
-                                        items: progressStore.watchingItems,
+                                        items: progressStore.watchingItems(for: playbackMediaKind),
                                         cardStyle: .watching,
                                         showsDroppedContextAction: true,
+                                        playbackMediaKind: playbackMediaKind,
                                         onItemSelected: playSavedProgress
                                     )
                                 }
@@ -89,7 +96,7 @@ struct HomeView: View {
     }
 
     private func playSavedProgress(_ item: CatalogItem) {
-        guard let entry = progressStore.entry(for: item) else { return }
+        guard let entry = progressStore.entry(for: item, mediaKind: playbackMediaKind) else { return }
         playbackStore.request = entry.playbackRequest.requiringSourceRefresh()
     }
 

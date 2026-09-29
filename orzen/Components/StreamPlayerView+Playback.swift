@@ -2,7 +2,7 @@ import AVFoundation
 
 extension StreamPlayerView {
     func refreshSourceBeforePlaybackIfNeeded() async {
-        guard request.requiresSourceRefresh else { return }
+        guard request.requiresSourceRefresh, !request.source.isLocalMedia else { return }
 
         let refreshedSource = await StreamSourceResolver.continuingSource(
             after: request.source,

@@ -28,6 +28,10 @@ final class CollectionStore: ObservableObject {
     }
 
     var collections: [MediaCollection] {
+        collections(for: .remote)
+    }
+
+    func collections(for mediaKind: PlaybackMediaKind) -> [MediaCollection] {
         [
             MediaCollection(
                 id: Self.favoritesID,
@@ -45,7 +49,7 @@ final class CollectionStore: ObservableObject {
                 id: Self.watchingID,
                 name: "Watching",
                 systemImage: "play.fill",
-                count: PlaybackProgressStore.shared.watchingItems.count
+                count: PlaybackProgressStore.shared.watchingItems(for: mediaKind).count
             ),
             MediaCollection(
                 id: Self.watchedID,
@@ -66,14 +70,17 @@ final class CollectionStore: ObservableObject {
         collections.first { $0.id == id }
     }
 
-    func items(in collectionID: MediaCollection.ID) -> [CatalogItem] {
+    func items(
+        in collectionID: MediaCollection.ID,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> [CatalogItem] {
         switch collectionID {
         case Self.favoritesID:
             return favoriteItems
         case Self.planToWatchID:
             return planToWatchItems
         case Self.watchingID:
-            return PlaybackProgressStore.shared.watchingItems
+            return PlaybackProgressStore.shared.watchingItems(for: mediaKind)
         case Self.watchedID:
             return watchedItems
         case Self.droppedID:
@@ -83,8 +90,12 @@ final class CollectionStore: ObservableObject {
         }
     }
 
-    func item(id itemID: CatalogItem.ID, in collectionID: MediaCollection.ID) -> CatalogItem? {
-        items(in: collectionID).first { $0.id == itemID }
+    func item(
+        id itemID: CatalogItem.ID,
+        in collectionID: MediaCollection.ID,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> CatalogItem? {
+        items(in: collectionID, mediaKind: mediaKind).first { $0.id == itemID }
     }
 
     func isFavorite(_ item: CatalogItem) -> Bool {
@@ -126,12 +137,18 @@ final class CollectionStore: ObservableObject {
         save()
     }
 
-    func setWatched(_ item: CatalogItem, isWatched: Bool) {
+    func setWatched(
+        _ item: CatalogItem,
+        isWatched: Bool,
+        clearPlaybackProgress: Bool = true
+    ) {
         if isWatched {
             insert(item, in: &watchedItems)
             remove(item, from: &planToWatchItems)
             remove(item, from: &droppedItems)
-            PlaybackProgressStore.shared.clearProgress(for: item)
+            if clearPlaybackProgress {
+                PlaybackProgressStore.shared.clearProgress(for: item)
+            }
         } else {
             remove(item, from: &watchedItems)
         }

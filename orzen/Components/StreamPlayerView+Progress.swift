@@ -75,7 +75,7 @@ extension StreamPlayerView {
         hasCompletedCurrentContent = true
 
         guard let item = request.item else {
-            progressStore.clearProgress(contentID: request.contentID, contentType: request.contentType)
+            progressStore.clearProgress(for: request)
             return
         }
 
@@ -84,13 +84,21 @@ extension StreamPlayerView {
 
         switch request.contentType {
         case .movie:
-            collectionStore.setWatched(item, isWatched: true)
+            collectionStore.setWatched(
+                item,
+                isWatched: true,
+                clearPlaybackProgress: false
+            )
         case .series:
             if let episode = request.episode {
                 episodeWatchStore.markWatched(episode, in: item)
             }
             collectionStore.setDropped(item, isDropped: false)
-            collectionStore.setWatched(item, isWatched: episodeWatchStore.isStoredSeriesFullyWatched(item))
+            collectionStore.setWatched(
+                item,
+                isWatched: episodeWatchStore.isStoredSeriesFullyWatched(item),
+                clearPlaybackProgress: false
+            )
             savePendingNextEpisodeProgress(
                 pendingNextEpisode,
                 in: item,
@@ -98,7 +106,7 @@ extension StreamPlayerView {
             )
         }
 
-        progressStore.clearProgress(contentID: request.contentID, contentType: request.contentType)
+        progressStore.clearProgress(for: request)
         chromeVisibility.keepVisible()
     }
 
@@ -142,7 +150,7 @@ extension StreamPlayerView {
     }
 
     func clearCurrentPlaybackProgress() {
-        progressStore.clearProgress(contentID: request.contentID, contentType: request.contentType)
+        progressStore.clearProgress(for: request)
     }
 
     func savePendingNextEpisodeProgress(
@@ -150,7 +158,8 @@ extension StreamPlayerView {
         in item: CatalogItem,
         trackSelections: PlaybackTrackSelections
     ) {
-        guard let episode,
+        guard !request.source.isLocalMedia,
+              let episode,
               !episodeWatchStore.isStoredSeriesFullyWatched(item) else {
             return
         }

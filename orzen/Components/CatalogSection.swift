@@ -10,6 +10,7 @@ struct CatalogSectionView: View {
     let items: [CatalogItem]
     var cardStyle: CardStyle = .poster
     var showsDroppedContextAction = false
+    var playbackMediaKind: PlaybackMediaKind = .remote
     var onItemSelected: ((CatalogItem) -> Void)?
     @State private var detailItemFromContextMenu: CatalogItem?
     @State private var isShowingContextMenuDetail = false
@@ -84,6 +85,7 @@ struct CatalogSectionView: View {
             WatchingCard(
                 item: item,
                 showsDroppedContextAction: showsDroppedContextAction,
+                playbackMediaKind: playbackMediaKind,
                 onViewDetails: {
                     showContextMenuDetail(for: item)
                 }
@@ -118,6 +120,7 @@ struct CatalogSectionView: View {
 private struct WatchingCard: View {
     let item: CatalogItem
     var showsDroppedContextAction = false
+    var playbackMediaKind: PlaybackMediaKind = .remote
     var onViewDetails: (() -> Void)?
 
     @ObservedObject private var progressStore = PlaybackProgressStore.shared
@@ -174,7 +177,10 @@ private struct WatchingCard: View {
 
     @ViewBuilder
     private var artwork: some View {
-        if let artworkURL = progressStore.watchingArtworkURL(for: item), artworkURL != item.backgroundURL {
+        if let artworkURL = progressStore.watchingArtworkURL(
+            for: item,
+            mediaKind: playbackMediaKind
+        ), artworkURL != item.backgroundURL {
             CachedRemoteImage(url: artworkURL) { image in
                 image
                     .resizable()
@@ -218,12 +224,12 @@ private struct WatchingCard: View {
     }
 
     private var progressFraction: Double {
-        progressStore.progressFraction(for: item)
+        progressStore.progressFraction(for: item, mediaKind: playbackMediaKind)
     }
 
     private var watchingEpisodeLabel: String? {
         guard item.cinemetaType == .series,
-              let episode = progressStore.entry(for: item)?.episode else {
+              let episode = progressStore.entry(for: item, mediaKind: playbackMediaKind)?.episode else {
             return nil
         }
 

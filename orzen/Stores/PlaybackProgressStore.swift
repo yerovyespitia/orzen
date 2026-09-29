@@ -1,5 +1,10 @@
 import Foundation
 
+enum PlaybackMediaKind: String, Codable, Sendable {
+    case remote
+    case local
+}
+
 struct PlaybackProgressEntry: Codable, Identifiable {
     let contentID: String
     let contentType: CinemetaType
@@ -17,7 +22,11 @@ struct PlaybackProgressEntry: Codable, Identifiable {
     var updatedAt: Date
 
     var id: String {
-        Self.key(contentID: contentID, contentType: contentType)
+        Self.key(
+            contentID: contentID,
+            contentType: contentType,
+            mediaKind: source.playbackMediaKind
+        )
     }
 
     var progressFraction: Double {
@@ -45,8 +54,12 @@ struct PlaybackProgressEntry: Codable, Identifiable {
         preferredSourceTitle ?? source.title
     }
 
-    static func key(contentID: String, contentType: CinemetaType) -> String {
-        "\(contentType.rawValue):\(contentID)"
+    static func key(
+        contentID: String,
+        contentType: CinemetaType,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> String {
+        "\(mediaKind.rawValue):\(contentType.rawValue):\(contentID)"
     }
 }
 
@@ -81,19 +94,36 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     var watchingItems: [CatalogItem] {
-        latestEntriesByItem.map(\.item)
+        watchingItems(for: .remote)
     }
 
-    func entry(for item: CatalogItem) -> PlaybackProgressEntry? {
-        latestEntriesByItem.first { $0.item.id == item.id }
+    func watchingItems(for mediaKind: PlaybackMediaKind) -> [CatalogItem] {
+        latestEntriesByItem(for: mediaKind).map(\.item)
     }
 
-    func entry(contentID: String, contentType: CinemetaType) -> PlaybackProgressEntry? {
-        entries.first { $0.id == PlaybackProgressEntry.key(contentID: contentID, contentType: contentType) }
+    func entry(
+        for item: CatalogItem,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> PlaybackProgressEntry? {
+        latestEntriesByItem(for: mediaKind).first { $0.item.id == item.id }
+    }
+
+    func entry(
+        contentID: String,
+        contentType: CinemetaType,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> PlaybackProgressEntry? {
+        entries.first {
+            $0.id == PlaybackProgressEntry.key(
+                contentID: contentID,
+                contentType: contentType,
+                mediaKind: mediaKind
+            )
+        }
     }
 
     func resumePosition(for request: StreamPlaybackRequest) -> Double? {
-        guard let entry = entry(contentID: request.contentID, contentType: request.contentType),
+        guard let entry = entry(for: request),
               sourcesMatch(entry.source, request.source),
               entry.position >= Self.minimumResumePosition else {
             return nil
@@ -103,7 +133,7 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     func trackSelections(for request: StreamPlaybackRequest) -> PlaybackTrackSelections? {
-        guard let entry = entry(contentID: request.contentID, contentType: request.contentType),
+        guard let entry = entry(for: request),
               sourcesMatch(entry.source, request.source) else {
             return nil
         }
@@ -112,7 +142,7 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     func subtitleDelay(for request: StreamPlaybackRequest) -> Double {
-        guard let entry = entry(contentID: request.contentID, contentType: request.contentType),
+        guard let entry = entry(for: request),
               sourcesMatch(entry.source, request.source) else {
             return 0
         }
@@ -121,7 +151,7 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     func beginPlayback(for request: StreamPlaybackRequest) {
-        if let entry = entry(contentID: request.contentID, contentType: request.contentType),
+        if let entry = entry(for: request),
            sourcesMatch(entry.source, request.source) {
             saveProgress(
                 for: request,
@@ -181,7 +211,7 @@ final class PlaybackProgressStore: ObservableObject {
         }
 
         if shouldClearProgress(position: position, duration: duration, contentType: request.contentType) {
-            clearProgress(contentID: request.contentID, contentType: request.contentType)
+            clearProgress(for: request)
             return
         }
 
@@ -226,31 +256,50 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     func clearProgress(contentID: String, contentType: CinemetaType) {
-        entries.removeAll { $0.id == PlaybackProgressEntry.key(contentID: contentID, contentType: contentType) }
+        clearProgress(contentID: contentID, contentType: contentType, mediaKind: .remote)
+    }
+
+    func clearProgress(
+        contentID: String,
+        contentType: CinemetaType,
+        mediaKind: PlaybackMediaKind
+    ) {
+        entries.removeAll {
+            $0.id == PlaybackProgressEntry.key(
+                contentID: contentID,
+                contentType: contentType,
+                mediaKind: mediaKind
+            )
+        }
         save()
     }
 
     func clearProgress(for request: StreamPlaybackRequest) {
-        entries.removeAll { entry in
-            entry.id == PlaybackProgressEntry.key(contentID: request.contentID, contentType: request.contentType)
-                && sourcesMatch(entry.source, request.source)
-        }
+        let key = PlaybackProgressEntry.key(
+            contentID: request.contentID,
+            contentType: request.contentType,
+            mediaKind: request.source.playbackMediaKind
+        )
+        entries.removeAll { $0.id == key }
         save()
     }
 
     func advanceWatchingProgressIfNeeded(
         afterMarkingWatched episode: CatalogEpisode,
         in item: CatalogItem,
-        trackSelections: PlaybackTrackSelections? = nil
+        trackSelections: PlaybackTrackSelections? = nil,
+        mediaKind: PlaybackMediaKind = .remote
     ) async {
         guard item.cinemetaType == .series,
-              let currentEntry = entry(for: item),
+              let currentEntry = entry(for: item, mediaKind: mediaKind),
               currentEntry.contentType == .series,
               currentEntry.episode?.id == episode.id else {
             return
         }
 
-        clearProgress(contentID: episode.id, contentType: .series)
+        clearProgress(contentID: episode.id, contentType: .series, mediaKind: mediaKind)
+
+        guard mediaKind == .remote else { return }
 
         guard let nextEpisode = EpisodeWatchStore.shared.nextUnwatchedEpisode(for: item),
               !EpisodeWatchStore.shared.isStoredSeriesFullyWatched(item) else {
@@ -290,12 +339,18 @@ final class PlaybackProgressStore: ObservableObject {
         )
     }
 
-    func progressFraction(for item: CatalogItem) -> Double {
-        entry(for: item)?.progressFraction ?? 0
+    func progressFraction(
+        for item: CatalogItem,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> Double {
+        entry(for: item, mediaKind: mediaKind)?.progressFraction ?? 0
     }
 
-    func watchingArtworkURL(for item: CatalogItem) -> URL? {
-        guard let entry = entry(for: item) else {
+    func watchingArtworkURL(
+        for item: CatalogItem,
+        mediaKind: PlaybackMediaKind = .remote
+    ) -> URL? {
+        guard let entry = entry(for: item, mediaKind: mediaKind) else {
             return item.backgroundURL ?? item.posterURL
         }
 
@@ -307,10 +362,11 @@ final class PlaybackProgressStore: ObservableObject {
         }
     }
 
-    private var latestEntriesByItem: [PlaybackProgressEntry] {
+    private func latestEntriesByItem(for mediaKind: PlaybackMediaKind) -> [PlaybackProgressEntry] {
         var seenItemIDs = Set<CatalogItem.ID>()
 
         return entries
+            .filter { $0.source.playbackMediaKind == mediaKind }
             .sorted { $0.updatedAt > $1.updatedAt }
             .filter { entry in
                 guard !seenItemIDs.contains(entry.item.id) else { return false }
@@ -342,11 +398,19 @@ final class PlaybackProgressStore: ObservableObject {
     }
 
     private func existingTrackSelections(for request: StreamPlaybackRequest) -> PlaybackTrackSelections? {
-        entry(contentID: request.contentID, contentType: request.contentType)?.trackSelections
+        entry(for: request)?.trackSelections
     }
 
     private func existingSubtitleDelay(for request: StreamPlaybackRequest) -> Double? {
-        entry(contentID: request.contentID, contentType: request.contentType)?.subtitleDelay
+        entry(for: request)?.subtitleDelay
+    }
+
+    private func entry(for request: StreamPlaybackRequest) -> PlaybackProgressEntry? {
+        entry(
+            contentID: request.contentID,
+            contentType: request.contentType,
+            mediaKind: request.source.playbackMediaKind
+        )
     }
 
     private func load() {

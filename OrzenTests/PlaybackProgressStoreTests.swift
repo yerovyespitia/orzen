@@ -37,6 +37,43 @@ final class PlaybackProgressStoreTests: XCTestCase {
         XCTAssertEqual(store.resumePosition(for: request), 120)
     }
 
+    func testLocalAndRemoteProgressAreStoredAndShownSeparately() {
+        let item = TestFixtures.item(id: "shared-item")
+        let remoteRequest = TestFixtures.request(
+            source: TestFixtures.source(id: "remote-source"),
+            item: item,
+            contentID: item.id
+        )
+        let localRequest = TestFixtures.request(
+            source: TestFixtures.source(id: "local:version-1", addonName: "Local Media"),
+            item: item,
+            contentID: item.id
+        )
+
+        store.saveProgress(for: remoteRequest, position: 120, duration: 7_200)
+        store.saveProgress(for: localRequest, position: 240, duration: 7_200)
+
+        XCTAssertEqual(store.entries.count, 2)
+        XCTAssertEqual(store.entry(for: item, mediaKind: .remote)?.position, 120)
+        XCTAssertEqual(store.entry(for: item, mediaKind: .local)?.position, 240)
+        XCTAssertEqual(store.watchingItems(for: .remote).map(\.id), [item.id])
+        XCTAssertEqual(store.watchingItems(for: .local).map(\.id), [item.id])
+        XCTAssertEqual(store.resumePosition(for: remoteRequest), 120)
+        XCTAssertEqual(store.resumePosition(for: localRequest), 240)
+
+        store.clearProgress(for: localRequest)
+
+        XCTAssertNil(store.entry(for: item, mediaKind: .local))
+        XCTAssertEqual(store.entry(for: item, mediaKind: .remote)?.position, 120)
+    }
+
+    func testLocalMediaSourceIsClassifiedAsLocalPlayback() {
+        let source = TestFixtures.source(id: "local:version-1", addonName: "Local Media")
+
+        XCTAssertTrue(source.isLocalMedia)
+        XCTAssertEqual(source.playbackMediaKind, .local)
+    }
+
     func testSavedProgressPersistsExactSourceAddonIdentity() {
         let addonID = UUID(uuidString: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")!
         let request = TestFixtures.request(

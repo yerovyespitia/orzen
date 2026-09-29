@@ -5,6 +5,9 @@ struct CollectionDetailView: View {
     let collection: MediaCollection
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
+    @ObservedObject private var playbackProgressStore = PlaybackProgressStore.shared
+    @AppStorage(LocalMediaModePreference.storageKey)
+    private var localMediaModeEnabled = false
     @State private var selectedRoute: CollectionDetailRoute?
     @Environment(\.dismiss) private var dismiss
     private let contentHorizontalPadding: CGFloat = 16
@@ -93,7 +96,11 @@ struct CollectionDetailView: View {
     private func destination(for route: CollectionDetailRoute) -> some View {
         switch route {
         case let .item(itemID):
-            if let item = collectionStore.item(id: itemID, in: collection.id) {
+            if let item = collectionStore.item(
+                id: itemID,
+                in: collection.id,
+                mediaKind: playbackMediaKind
+            ) {
                 InfoView(item: item)
             } else {
                 DetailUnavailableView(
@@ -114,11 +121,15 @@ struct CollectionDetailView: View {
     }
 
     private var currentCollection: MediaCollection {
-        collectionStore.collection(id: collection.id) ?? collection
+        collectionStore.collections(for: playbackMediaKind).first { $0.id == collection.id } ?? collection
     }
 
     private var items: [CatalogItem] {
-        collectionStore.items(in: collection.id)
+        collectionStore.items(in: collection.id, mediaKind: playbackMediaKind)
+    }
+
+    private var playbackMediaKind: PlaybackMediaKind {
+        localMediaModeEnabled ? .local : .remote
     }
 
     private var showsDroppedContextAction: Bool {

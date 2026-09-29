@@ -219,6 +219,7 @@ extension StreamPlayerView {
                     item: item,
                     currentEpisodeID: request.episode?.id,
                     currentSourceID: request.source.id,
+                    mediaKind: request.source.playbackMediaKind,
                     currentTrackSelections: currentTrackSelections,
                     onClose: closeEpisodeSidebar
                 )

@@ -60,7 +60,9 @@ extension StreamPlayerView {
     }
 
     func nextSource(for episode: CatalogEpisode) async -> StreamSource? {
-        await StreamSourceResolver.continuingSource(
+        guard !request.source.isLocalMedia else { return nil }
+
+        return await StreamSourceResolver.continuingSource(
             after: request.source,
             preferredTitle: request.preferredSourceTitle,
             from: addonStore.streamAddons,

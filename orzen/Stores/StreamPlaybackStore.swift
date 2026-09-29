@@ -64,7 +64,9 @@ struct StreamPlaybackRequest: Identifiable {
     }
 
     func requiringSourceRefresh() -> StreamPlaybackRequest {
-        StreamPlaybackRequest(
+        guard !source.isLocalMedia else { return self }
+
+        return StreamPlaybackRequest(
             source: source,
             title: title,
             subtitle: subtitle,

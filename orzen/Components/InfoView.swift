@@ -185,7 +185,8 @@ struct InfoView: View {
                                     Task {
                                         await playbackProgressStore.advanceWatchingProgressIfNeeded(
                                             afterMarkingWatched: episode,
-                                            in: item
+                                            in: item,
+                                            mediaKind: localMediaModeEnabled ? .local : .remote
                                         )
                                     }
                                 } label: {
@@ -278,11 +279,16 @@ struct InfoView: View {
     }
 
     private var currentWatchingEpisodeID: CatalogEpisode.ID? {
-        if playbackStore.request?.item?.id == item.id {
+        let mediaKind: PlaybackMediaKind = localMediaModeEnabled ? .local : .remote
+        if playbackStore.request?.item?.id == item.id,
+           playbackStore.request?.source.playbackMediaKind == mediaKind {
             return playbackStore.request?.episode?.id
         }
 
-        return playbackProgressStore.entry(for: item)?.episode?.id
+        return playbackProgressStore.entry(
+            for: item,
+            mediaKind: mediaKind
+        )?.episode?.id
     }
 
     private var currentWatchingEpisode: CatalogEpisode? {

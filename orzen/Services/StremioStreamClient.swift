@@ -102,6 +102,15 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         return .mpv
     }
 
+    var isLocalMedia: Bool {
+        id.lowercased().hasPrefix("local:")
+            || addonName.caseInsensitiveCompare("Local Media") == .orderedSame
+    }
+
+    var playbackMediaKind: PlaybackMediaKind {
+        isLocalMedia ? .local : .remote
+    }
+
     var playbackURLError: String? {
         guard let playbackURL else {
             if torrentInfoHash != nil {

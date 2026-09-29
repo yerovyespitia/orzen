@@ -30,6 +30,13 @@ final class StreamPlayerPlaybackPolicyTests: XCTestCase {
         XCTAssertEqual(refreshingRequest.contentID, request.contentID)
     }
 
+    func testLocalPlaybackRequestDoesNotRefreshThroughRemoteAddons() {
+        let source = TestFixtures.source(id: "local:version-1", addonName: "Local Media")
+        let request = TestFixtures.request(source: source)
+
+        XCTAssertFalse(request.requiringSourceRefresh().requiresSourceRefresh)
+    }
+
     func testCompletingSavedPlaybackRefreshUsesResolvedSource() {
         let request = TestFixtures.request(initialSubtitleDelay: -0.75).requiringSourceRefresh()
         let refreshedSource = TestFixtures.source(
