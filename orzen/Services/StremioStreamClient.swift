@@ -97,6 +97,23 @@ struct StreamSource: Identifiable, Codable, Hashable, Sendable {
         )
     }
 
+    func replacingPlaybackURL(_ playbackURL: URL) -> StreamSource {
+        StreamSource(
+            id: id,
+            addonID: addonID,
+            addonName: addonName,
+            title: title,
+            description: description,
+            metadata: metadata,
+            compatibilityHints: compatibilityHints,
+            sourceCategory: sourceCategory,
+            addonSourceIndex: addonSourceIndex,
+            playbackURL: playbackURL,
+            torrentInfoHash: torrentInfoHash,
+            torrentFileIndex: torrentFileIndex
+        )
+    }
+
     var preferredPlaybackEngine: StreamPlaybackEngine {
         guard playbackURL != nil else { return .native }
         return .mpv

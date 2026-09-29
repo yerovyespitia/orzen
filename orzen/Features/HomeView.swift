@@ -97,7 +97,13 @@ struct HomeView: View {
 
     private func playSavedProgress(_ item: CatalogItem) {
         guard let entry = progressStore.entry(for: item, mediaKind: playbackMediaKind) else { return }
-        playbackStore.request = entry.playbackRequest.requiringSourceRefresh()
+        var request = entry.playbackRequest
+        #if os(iOS)
+        if let remoteURL = RemoteLocalMediaClient.shared.mediaURL(forLocalSource: request.source) {
+            request = request.replacingSource(request.source.replacingPlaybackURL(remoteURL))
+        }
+        #endif
+        playbackStore.request = request.requiringSourceRefresh()
     }
 
     private func scrollToTop(with scrollProxy: ScrollViewProxy) {

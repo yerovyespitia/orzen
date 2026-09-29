@@ -85,8 +85,20 @@ final class RemoteLocalMediaClient: ObservableObject {
     }
 
     func mediaURL(for version: LocalMediaVersion) -> URL? {
-        guard version.status == .completed, let baseURL, let token else { return nil }
-        return baseURL.appending(path: "media/\(version.id.uuidString)").appending(queryItems: [URLQueryItem(name: "token", value: token)])
+        guard version.status == .completed else { return nil }
+        return mediaURL(for: version.id)
+    }
+
+    func mediaURL(forLocalSource source: StreamSource) -> URL? {
+        guard source.isLocalMedia,
+              let pathComponent = source.playbackURL?.lastPathComponent,
+              let id = UUID(uuidString: pathComponent) else { return nil }
+        return mediaURL(for: id)
+    }
+
+    private func mediaURL(for id: UUID) -> URL? {
+        guard let baseURL, let token else { return nil }
+        return baseURL.appending(path: "media/\(id.uuidString)").appending(queryItems: [URLQueryItem(name: "token", value: token)])
     }
 
     private func request<Response: Decodable>(_ path: String, method: String = "GET", authenticated: Bool = true) async throws -> Response {
