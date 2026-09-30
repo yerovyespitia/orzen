@@ -54,8 +54,8 @@ struct CollectionDetailView: View {
                             spacing: OrzenLayout.current.gridVerticalSpacing
                         ) {
                             ForEach(items) { item in
-                                NavigationLink {
-                                    InfoView(item: item)
+                                Button {
+                                    selectedRoute = .item(item.id)
                                 } label: {
                                     posterCard(for: item)
                                 }
