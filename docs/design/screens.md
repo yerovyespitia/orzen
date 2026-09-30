@@ -18,6 +18,12 @@ which is rendered by `CollectionDetailView`.
 - `OrzenCollectionScreen`: collection heading on macOS, inline navigation title
   on iOS, and the existing back/escape interaction. Use it for every collection
   detail, including Downloads.
+- `DetailUnavailableView`: shared empty and unavailable states. Use `.card` for
+  inline states, `.centered` for page-level states, and the optional retry title
+  and action for recoverable errors.
+- `OrzenSectionHeading`: consistent section labels with optional leading and
+  trailing controls. Pass the existing section font and insets when a screen
+  already has platform-specific metrics.
 
 Screen insets live in `OrzenScreenLayout`: horizontal 16, macOS top 8, bottom 20,
 and spacing 20. Do not add another horizontal inset around a grid or heading.
@@ -44,6 +50,14 @@ OrzenCollectionScreen(title: title) {
     }
 }
 ```
+
+## Empty and error states
+
+Keep the existing screen-specific title and message, and use
+`DetailUnavailableView` for the presentation. Catalog and Search errors use the
+centered style with a Retry action; Search's no-results state uses the centered
+style without an action. Collection, episode, source, and playback messages keep
+using the compact card style.
 
 ## Platform behavior and verification
 

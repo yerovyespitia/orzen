@@ -160,3 +160,83 @@ extension View {
         #endif
     }
 }
+
+/// A section label with optional leading and trailing controls kept on one row.
+struct OrzenSectionHeading<Leading: View, Trailing: View>: View {
+    let title: String
+    var font: Font = .headline
+    var leadingPadding: CGFloat = 0
+    var trailingPadding: CGFloat = 0
+    private let leading: Leading
+    private let trailing: Trailing
+
+    init(
+        title: String,
+        font: Font = .headline,
+        leadingPadding: CGFloat = 0,
+        trailingPadding: CGFloat = 0,
+        @ViewBuilder leading: () -> Leading,
+        @ViewBuilder trailing: () -> Trailing
+    ) {
+        self.title = title
+        self.font = font
+        self.leadingPadding = leadingPadding
+        self.trailingPadding = trailingPadding
+        self.leading = leading()
+        self.trailing = trailing()
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            leading
+
+            Text(title)
+                .font(font)
+                .fontWeight(.bold)
+                .foregroundStyle(.white)
+
+            Spacer(minLength: 8)
+            trailing
+        }
+        .padding(.leading, leadingPadding)
+        .padding(.trailing, trailingPadding)
+        .accessibilityElement(children: .contain)
+    }
+}
+
+extension OrzenSectionHeading where Leading == EmptyView, Trailing == EmptyView {
+    init(
+        title: String,
+        font: Font = .headline,
+        leadingPadding: CGFloat = 0,
+        trailingPadding: CGFloat = 0
+    ) {
+        self.init(
+            title: title,
+            font: font,
+            leadingPadding: leadingPadding,
+            trailingPadding: trailingPadding,
+            leading: { EmptyView() },
+            trailing: { EmptyView() }
+        )
+    }
+}
+
+extension OrzenSectionHeading where Leading == EmptyView {
+    init(
+        title: String,
+        font: Font = .headline,
+        leadingPadding: CGFloat = 0,
+        trailingPadding: CGFloat = 0,
+        @ViewBuilder trailing: () -> Trailing
+    ) {
+        self.init(
+            title: title,
+            font: font,
+            leadingPadding: leadingPadding,
+            trailingPadding: trailingPadding,
+            leading: { EmptyView() },
+            trailing: trailing
+        )
+    }
+}

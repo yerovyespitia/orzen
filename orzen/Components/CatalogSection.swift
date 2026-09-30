@@ -21,11 +21,11 @@ struct CatalogSectionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.headline).bold()
-                .foregroundColor(.white)
-                .padding(.leading, metrics.contentLeadingInset)
-                .padding(.trailing, metrics.contentTrailingInset)
+            OrzenSectionHeading(
+                title: title,
+                leadingPadding: metrics.contentLeadingInset,
+                trailingPadding: metrics.contentTrailingInset
+            )
             
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .top, spacing: 14) {

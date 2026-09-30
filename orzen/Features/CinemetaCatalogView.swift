@@ -97,17 +97,16 @@ struct CinemetaCatalogView: View {
     @ViewBuilder
     private var content: some View {
         if let errorMessage = catalogStore.errorMessage, catalogStore.items.isEmpty {
-            ContentUnavailableView {
-                Label("Catalog unavailable", systemImage: "wifi.exclamationmark")
-            } description: {
-                Text(errorMessage)
-            } actions: {
-                Button("Retry") {
+            DetailUnavailableView(
+                systemImage: "wifi.exclamationmark",
+                title: "Catalog unavailable",
+                message: errorMessage,
+                style: .centered,
+                retryTitle: "Retry",
+                retryAction: {
                     Task { await catalogStore.loadCatalog(forceRefresh: true) }
                 }
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            )
         } else {
             ScrollViewReader { scrollProxy in
                 OrzenScreenScrollView {

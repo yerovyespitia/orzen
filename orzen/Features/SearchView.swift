@@ -137,33 +137,26 @@ struct SearchView: View {
         } else if trimmedSearchText.isEmpty {
             emptySearchContent
         } else if let errorMessage = searchStore.errorMessage {
-            ContentUnavailableView {
-                Label("Search unavailable", systemImage: "wifi.exclamationmark")
-            } description: {
-                Text(errorMessage)
-            } actions: {
-                Button("Retry") {
+            DetailUnavailableView(
+                systemImage: "wifi.exclamationmark",
+                title: "Search unavailable",
+                message: errorMessage,
+                style: .centered,
+                retryTitle: "Retry",
+                retryAction: {
                     Task {
                         await searchStore.forceReload()
                         await searchStore.updateSearch(for: searchTextValue)
                     }
                 }
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            )
         } else if searchStore.shouldShowEmptyState(for: trimmedSearchText) {
-            VStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .font(.largeTitle)
-                    .foregroundColor(.gray)
-
-                Text("No results found")
-                    .foregroundColor(.gray)
-
-                Text("Try another title, genre, or year.")
-                    .foregroundColor(.gray.opacity(0.75))
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            DetailUnavailableView(
+                systemImage: "magnifyingglass",
+                title: "No results found",
+                message: "Try another title, genre, or year.",
+                style: .centered
+            )
         } else {
             ScrollViewReader { scrollProxy in
                 OrzenScreenScrollView {

@@ -139,12 +139,7 @@ struct InfoView: View {
     @ViewBuilder
     private var seriesEpisodesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 12) {
-                Text("Episodes")
-                    .font(sectionTitleFont)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-
+            OrzenSectionHeading(title: "Episodes", font: sectionTitleFont) {
                 if viewModel.isLoadingDetail {
                     ProgressView()
                         .controlSize(.small)
@@ -367,23 +362,22 @@ struct InfoView: View {
     private var sourcesSection: some View {
         if item.cinemetaType != nil {
             VStack(alignment: .leading, spacing: 16) {
-                HStack(spacing: 12) {
-                    Text(localMediaModeEnabled ? "Local Media" : "Sources")
-                        .font(sectionTitleFont)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-
-                    if viewModel.isLoadingSources {
-                        ProgressView()
-                            .controlSize(.small)
-                            .tint(.white)
+                OrzenSectionHeading(
+                    title: localMediaModeEnabled ? "Local Media" : "Sources",
+                    font: sectionTitleFont,
+                    trailing: {
+                        HStack(spacing: 12) {
+                            if viewModel.isLoadingSources {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(.white)
+                            }
+                            if !localMediaModeEnabled {
+                                sourceAddonPicker
+                            }
+                        }
                     }
-
-                    Spacer(minLength: 8)
-                    if !localMediaModeEnabled {
-                        sourceAddonPicker
-                    }
-                }
+                )
 
                 sourcesList
             }
