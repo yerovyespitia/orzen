@@ -11,6 +11,9 @@ struct HomeView: View {
     @ObservedObject private var bannerScrollStore = HomeBannerScrollStore.shared
     @AppStorage(LocalMediaModePreference.storageKey)
     private var localMediaModeEnabled = false
+#if os(iOS)
+    @State private var downloadActivityExpanded = false
+#endif
     private let scrollTopID = "home-scroll-top"
 
     private var playbackMediaKind: PlaybackMediaKind {
@@ -75,6 +78,26 @@ struct HomeView: View {
                         }
                         .ignoresSafeArea(.container, edges: .top)
                         .orzenTopScrollEdgeEffect()
+                        #if os(iOS)
+                        .overlay {
+                            if downloadActivityExpanded {
+                                Color.clear
+                                    .contentShape(Rectangle())
+                                    .ignoresSafeArea()
+                                    .onTapGesture {
+                                        withAnimation(.easeInOut(duration: 0.18)) {
+                                            downloadActivityExpanded = false
+                                        }
+                                    }
+                            }
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            HomeDownloadActivityBanner(isExpanded: $downloadActivityExpanded)
+                                .padding(.top, 36)
+                                .safeAreaPadding(.top)
+                                .padding(.trailing, 16)
+                        }
+                        #endif
                     )
                     .onChange(of: scrollToTopRequest) { _, _ in
                         scrollToTop(with: scrollProxy)

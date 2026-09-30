@@ -12,33 +12,21 @@ struct CollectionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     private let contentHorizontalPadding: CGFloat = 16
     private let contentTopPadding: CGFloat = 8
-    private let contentBottomPadding: CGFloat = 30
-    private let contentSpacing: CGFloat = 12
+    private let contentBottomPadding: CGFloat = 20
     
     // MARK: - Body
     var body: some View {
         ZStack(alignment: .topLeading) {
             Color.black.ignoresSafeArea()
             
-            VStack(alignment: .leading, spacing: contentSpacing) {
-                // Header
-                HStack {
-                    Image(systemName: currentCollection.systemImage)
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                    
-                    Text(currentCollection.name)
-                        .font(headerTitleFont)
-                        .foregroundColor(.white)
-                        .fontWeight(.bold)
-                    
-                    Spacer()
-                    
-                    Text("\(currentCollection.count) items")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                
+            VStack(alignment: .leading, spacing: 20) {
+                #if os(macOS)
+                Text(currentCollection.name)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                #endif
+
                 // CatalogItem Grid
                 if items.isEmpty {
                     DetailUnavailableView(
@@ -62,14 +50,19 @@ struct CollectionDetailView: View {
                                 .buttonStyle(.plain)
                             }
                         }
+                        #if os(iOS)
+                        .padding(.horizontal, contentHorizontalPadding)
+                        #endif
                         .padding(.bottom, contentBottomPadding)
                     }
                     .orzenTopScrollEdgeEffect()
                 }
             }
+            #if os(macOS)
             .padding(.horizontal, contentHorizontalPadding)
             .padding(.top, contentTopPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            #endif
         }
         .navigationDestination(item: $selectedRoute) { route in
             destination(for: route)
@@ -112,14 +105,6 @@ struct CollectionDetailView: View {
                 )
             }
         }
-    }
-
-    private var headerTitleFont: Font {
-        #if os(iOS)
-        return .title3
-        #else
-        return .title
-        #endif
     }
 
     private var currentCollection: MediaCollection {

@@ -3,6 +3,7 @@ import SwiftUI
 struct DownloadsView: View {
     var popToRootRequest = 0
     var ownsNavigationStack = true
+    private let contentHorizontalPadding: CGFloat = 16
 
     #if os(macOS)
     @ObservedObject private var library = LocalMediaLibraryStore.shared
@@ -80,7 +81,7 @@ struct DownloadsView: View {
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, contentHorizontalPadding)
                     #endif
 
                     if entries.isEmpty {
@@ -97,7 +98,7 @@ struct DownloadsView: View {
                                     .buttonStyle(.plain)
                                 }
                             }
-                            .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
+                            .padding(.horizontal, contentHorizontalPadding)
                             .padding(.bottom, 24)
                         }
                         .orzenTopScrollEdgeEffect()
@@ -106,6 +107,7 @@ struct DownloadsView: View {
             }
             .navigationTitle("Downloads")
             #if os(iOS)
+            .navigationBarTitleDisplayMode(ownsNavigationStack ? .large : .inline)
             .popNavigationToRoot(on: popToRootRequest)
             #endif
     }
