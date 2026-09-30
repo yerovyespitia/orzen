@@ -12,6 +12,7 @@ struct CollectionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     private let contentHorizontalPadding: CGFloat = 16
     private let contentTopPadding: CGFloat = 8
+    private let contentBottomPadding: CGFloat = 30
     private let contentSpacing: CGFloat = 12
     
     // MARK: - Body
@@ -61,6 +62,7 @@ struct CollectionDetailView: View {
                                 .buttonStyle(.plain)
                             }
                         }
+                        .padding(.bottom, contentBottomPadding)
                     }
                     .orzenTopScrollEdgeEffect()
                 }
