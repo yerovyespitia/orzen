@@ -9,7 +9,6 @@ struct CollectionDetailView: View {
     @AppStorage(LocalMediaModePreference.storageKey)
     private var localMediaModeEnabled = false
     @State private var selectedRoute: CollectionDetailRoute?
-    @Environment(\.dismiss) private var dismiss
     private let contentHorizontalPadding: CGFloat = 16
     private let contentTopPadding: CGFloat = 8
     private let contentBottomPadding: CGFloat = 20
@@ -67,14 +66,12 @@ struct CollectionDetailView: View {
         .navigationDestination(item: $selectedRoute) { route in
             destination(for: route)
         }
+        .escapeKeyDismissShortcut()
         .navigationTitle(currentCollection.name)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .interactivePopGestureEnabled()
         #endif
-        .escapeKeyShortcut {
-            dismiss()
-        }
     }
 
     private func posterCard(for item: CatalogItem) -> some View {

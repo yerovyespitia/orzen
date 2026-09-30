@@ -87,7 +87,32 @@ struct PlaybackKeyboardShortcutView: View {
 }
 #endif
 
+#if os(macOS)
+// Keep the dismiss environment dependency in a leaf view. Reading it in a
+// screen that also presents a navigation destination can repeatedly invalidate
+// that screen during a push and hang SwiftUI's navigation update cycle.
+private struct NavigationDismissShortcutView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .escapeKeyShortcut { dismiss() }
+    }
+}
+#endif
+
 extension View {
+    func escapeKeyDismissShortcut() -> some View {
+        #if os(macOS)
+        overlay(alignment: .bottomLeading) {
+            NavigationDismissShortcutView()
+        }
+        #else
+        self
+        #endif
+    }
+
     func escapeKeyShortcut(_ action: @escaping () -> Void) -> some View {
         #if os(macOS)
         overlay(alignment: .bottomLeading) {
