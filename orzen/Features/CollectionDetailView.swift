@@ -9,69 +9,34 @@ struct CollectionDetailView: View {
     @AppStorage(LocalMediaModePreference.storageKey)
     private var localMediaModeEnabled = false
     @State private var selectedRoute: CollectionDetailRoute?
-    private let contentHorizontalPadding: CGFloat = 16
-    private let contentTopPadding: CGFloat = 8
-    private let contentBottomPadding: CGFloat = 20
-    
     // MARK: - Body
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color.black.ignoresSafeArea()
-            
-            VStack(alignment: .leading, spacing: 20) {
-                #if os(macOS)
-                Text(currentCollection.name)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                #endif
-
-                // CatalogItem Grid
-                if items.isEmpty {
-                    DetailUnavailableView(
-                        systemImage: currentCollection.systemImage,
-                        title: "No items yet",
-                        message: emptyMessage
-                    )
-                } else {
-                    ScrollView {
-                        LazyVGrid(
-                            columns: OrzenLayout.posterGridColumns,
-                            alignment: .leading,
-                            spacing: OrzenLayout.current.gridVerticalSpacing
-                        ) {
-                            ForEach(items) { item in
-                                Button {
-                                    selectedRoute = .item(item.id)
-                                } label: {
-                                    posterCard(for: item)
-                                }
-                                .buttonStyle(.plain)
+        OrzenCollectionScreen(title: currentCollection.name) {
+            if items.isEmpty {
+                DetailUnavailableView(
+                    systemImage: currentCollection.systemImage,
+                    title: "No items yet",
+                    message: emptyMessage
+                )
+                .orzenScreenContentInset()
+            } else {
+                OrzenScreenScrollView {
+                    OrzenPosterGrid {
+                        ForEach(items) { item in
+                            Button {
+                                selectedRoute = .item(item.id)
+                            } label: {
+                                posterCard(for: item)
                             }
+                            .buttonStyle(.plain)
                         }
-                        #if os(iOS)
-                        .padding(.horizontal, contentHorizontalPadding)
-                        #endif
-                        .padding(.bottom, contentBottomPadding)
                     }
-                    .orzenTopScrollEdgeEffect()
                 }
             }
-            #if os(macOS)
-            .padding(.horizontal, contentHorizontalPadding)
-            .padding(.top, contentTopPadding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            #endif
         }
         .navigationDestination(item: $selectedRoute) { route in
             destination(for: route)
         }
-        .escapeKeyDismissShortcut()
-        .navigationTitle(currentCollection.name)
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        .interactivePopGestureEnabled()
-        #endif
     }
 
     private func posterCard(for item: CatalogItem) -> some View {

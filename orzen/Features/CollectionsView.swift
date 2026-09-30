@@ -13,9 +13,6 @@ struct CollectionsView: View {
     #endif
     var ownsNavigationStack = true
     var popToRootRequest = 0
-    private let contentHorizontalPadding: CGFloat = 16
-    private let contentTopPadding: CGFloat = 8
-    private let contentSpacing: CGFloat = 12
     
     // MARK: - Body
     var body: some View {
@@ -45,36 +42,26 @@ struct CollectionsView: View {
         #endif
     }
 
-    @ViewBuilder
     private var screenContent: some View {
-        #if os(iOS)
-        ScrollView {
-            collectionGrid
-                .padding(.horizontal, contentHorizontalPadding)
-                .padding(.top, contentTopPadding)
-        }
-        .scrollBounceBehavior(.always, axes: .vertical)
-        .orzenTopScrollEdgeEffect()
-        .background(Color.black.ignoresSafeArea())
-        #else
-        ZStack(alignment: .topLeading) {
-            Color.black.ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: contentSpacing) {
-                Text("Collections")
-                    .font(headerTitleFont)
-                    .foregroundColor(.white)
-                    .fontWeight(.bold)
-
-                ScrollView {
-                    collectionGrid
-                }
-                .orzenTopScrollEdgeEffect()
+        OrzenScreen {
+            #if os(macOS)
+            OrzenScreenHeading(title: "Collections")
+            #endif
+        } content: {
+            OrzenScreenScrollView(topPadding: collectionTopPadding) {
+                collectionGrid
             }
-            .padding(.horizontal, contentHorizontalPadding)
-            .padding(.top, contentTopPadding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            #if os(iOS)
+            .scrollBounceBehavior(.always, axes: .vertical)
+            #endif
         }
+    }
+
+    private var collectionTopPadding: CGFloat {
+        #if os(iOS)
+        OrzenScreenLayout.topPadding
+        #else
+        0
         #endif
     }
 
@@ -87,20 +74,8 @@ struct CollectionsView: View {
         #endif
     }
 
-    private var headerTitleFont: Font {
-        #if os(iOS)
-        return .title2
-        #else
-        return .title
-        #endif
-    }
-
     private var collectionGrid: some View {
-        LazyVGrid(
-            columns: OrzenLayout.posterGridColumns,
-            alignment: .leading,
-            spacing: OrzenLayout.current.gridVerticalSpacing
-        ) {
+        OrzenPosterGrid {
             ForEach(collectionStore.collections(for: playbackMediaKind)) { collection in
                 NavigationLink {
                     CollectionDetailView(collection: collection)

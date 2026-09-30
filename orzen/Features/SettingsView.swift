@@ -51,112 +51,108 @@ struct SettingsView: View {
     #if os(macOS)
     private var macSettings: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    Text("Settings")
-                        .font(.largeTitle.bold())
+            OrzenScreen(title: "Settings") {
+                OrzenScreenScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        SettingsCardSection(title: "General") {
+                            SettingsRow(
+                                title: "Language",
+                                systemImage: "globe",
+                                value: "English",
+                                cardStyle: true,
+                                showsDivider: true
+                            )
 
-                    SettingsCardSection(title: "General") {
-                        SettingsRow(
-                            title: "Language",
-                            systemImage: "globe",
-                            value: "English",
-                            cardStyle: true,
-                            showsDivider: true
-                        )
+                            SettingsRow(
+                                title: "Start Screen",
+                                systemImage: "rectangle.inset.filled",
+                                value: "Home",
+                                cardStyle: true,
+                                showsDivider: true
+                            )
 
-                        SettingsRow(
-                            title: "Start Screen",
-                            systemImage: "rectangle.inset.filled",
-                            value: "Home",
-                            cardStyle: true,
-                            showsDivider: true
-                        )
+                            SettingsToggleRow(
+                                title: "Local Media",
+                                systemImage: "externaldrive",
+                                isOn: $localMediaModeEnabled,
+                                cardStyle: true
+                            )
+                        }
 
-                        SettingsToggleRow(
-                            title: "Local Media",
-                            systemImage: "externaldrive",
-                            isOn: $localMediaModeEnabled,
-                            cardStyle: true
-                        )
-                    }
+                        if localMediaModeEnabled {
+                            SettingsCardSection(title: "Local Media") {
+                                NavigationLink {
+                                    macLibraryDetails
+                                } label: {
+                                    SettingsRow(
+                                        title: "Mac Library",
+                                        systemImage: "externaldrive",
+                                        cardStyle: true,
+                                        showsDivider: true,
+                                        showsChevron: true
+                                    )
+                                }
+                                .buttonStyle(.plain)
 
-                    if localMediaModeEnabled {
-                        SettingsCardSection(title: "Local Media") {
-                            NavigationLink {
-                                macLibraryDetails
-                            } label: {
-                                SettingsRow(
-                                    title: "Mac Library",
-                                    systemImage: "externaldrive",
-                                    cardStyle: true,
-                                    showsDivider: true,
-                                    showsChevron: true
-                                )
+                                NavigationLink {
+                                    torrentSearchDetails
+                                } label: {
+                                    SettingsRow(
+                                        title: "Torrent Search",
+                                        systemImage: "magnifyingglass",
+                                        cardStyle: true,
+                                        showsChevron: true
+                                    )
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
+                        }
 
-                            NavigationLink {
-                                torrentSearchDetails
-                            } label: {
-                                SettingsRow(
-                                    title: "Torrent Search",
-                                    systemImage: "magnifyingglass",
-                                    cardStyle: true,
-                                    showsChevron: true
-                                )
-                            }
-                            .buttonStyle(.plain)
+                        SettingsCardSection(title: "Playback") {
+                            SettingsRow(
+                                title: "Preferred Player",
+                                systemImage: "play.rectangle",
+                                value: "Automatic",
+                                cardStyle: true,
+                                showsDivider: true
+                            )
+
+                            SettingsRow(
+                                title: "Streaming Quality",
+                                systemImage: "4k.tv",
+                                value: "Best Available",
+                                cardStyle: true,
+                                showsDivider: true
+                            )
+
+                            SettingsRow(
+                                title: "Autoplay Next Episode",
+                                systemImage: "forward.end",
+                                value: "On",
+                                cardStyle: true,
+                                showsDivider: true
+                            )
+
+                            SettingsPickerRow(
+                                title: "Seek Interval",
+                                systemImage: "gobackward",
+                                selection: seekIntervalBinding,
+                                cardStyle: true
+                            )
+                        }
+
+                        SettingsCardSection(title: "About") {
+                            SettingsRow(
+                                title: "Version",
+                                systemImage: "info.circle",
+                                value: currentVersion,
+                                cardStyle: true
+                            )
                         }
                     }
-
-                    SettingsCardSection(title: "Playback") {
-                        SettingsRow(
-                            title: "Preferred Player",
-                            systemImage: "play.rectangle",
-                            value: "Automatic",
-                            cardStyle: true,
-                            showsDivider: true
-                        )
-
-                        SettingsRow(
-                            title: "Streaming Quality",
-                            systemImage: "4k.tv",
-                            value: "Best Available",
-                            cardStyle: true,
-                            showsDivider: true
-                        )
-
-                        SettingsRow(
-                            title: "Autoplay Next Episode",
-                            systemImage: "forward.end",
-                            value: "On",
-                            cardStyle: true,
-                            showsDivider: true
-                        )
-
-                        SettingsPickerRow(
-                            title: "Seek Interval",
-                            systemImage: "gobackward",
-                            selection: seekIntervalBinding,
-                            cardStyle: true
-                        )
-                    }
-
-                    SettingsCardSection(title: "About") {
-                        SettingsRow(
-                            title: "Version",
-                            systemImage: "info.circle",
-                            value: currentVersion,
-                            cardStyle: true
-                        )
-                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 28)
             }
-            .background(Color.black)
             .navigationTitle("Settings")
         }
         .background(Color.black)

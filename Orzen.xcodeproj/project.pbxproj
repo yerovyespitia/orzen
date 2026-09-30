@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C4000013000000000000001 /* OrzenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4000023000000000000001 /* OrzenScreen.swift */; };
 		1D15EBDE4FF105437CA47B4A /* libPods-Orzen.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A02060550CF52A2BCE73A3F3 /* libPods-Orzen.a */; platformFilter = ios; };
 		6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */; };
 		6D1AD92B2E03A9A100BFF0DE /* MPVPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */; };
@@ -129,6 +130,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C4000023000000000000001 /* OrzenScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrzenScreen.swift; sourceTree = "<group>"; };
 		0BA59AD1B3A942C798EE03E2 /* Pods-Orzen.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Orzen.release.xcconfig"; path = "Target Support Files/Pods-Orzen/Pods-Orzen.release.xcconfig"; sourceTree = "<group>"; };
 		6D1AD9282DD7BAD200BFF0DE /* InfoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
 		6D1AD92A2E03A9A100BFF0DE /* MPVPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MPVPlayerView.swift; sourceTree = "<group>"; };
@@ -362,6 +364,7 @@
 				6DAA20122E04000000B5D7A1 /* PlaybackKeyboardShortcutView.swift */,
 				6DAA200B2E04000000B5D7A1 /* SeasonButton.swift */,
 				6D90553F2E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift */,
+				7C4000023000000000000001 /* OrzenScreen.swift */,
 				6DAA20172E04000000B5D7A1 /* SourceAddonPicker.swift */,
 				6DAA200C2E04000000B5D7A1 /* SourceRow.swift */,
 				6DAA20102E04000000B5D7A1 /* StreamPlayerChrome.swift */,
@@ -683,6 +686,7 @@
 				6DAA10132E04000000B5D7A1 /* InfoHeroView.swift in Sources */,
 				6D1AD9292DD7BAD200BFF0DE /* InfoView.swift in Sources */,
 				6D9055402E1C000000BFF0DE /* ScrollEdgeEffectModifier.swift in Sources */,
+				7C4000013000000000000001 /* OrzenScreen.swift in Sources */,
 				6DAA10172E04000000B5D7A1 /* SourceAddonPicker.swift in Sources */,
 				6DAA100C2E04000000B5D7A1 /* SourceRow.swift in Sources */,
 				6D1AD92B2E03A9A100BFF0DE /* MPVPlayerView.swift in Sources */,

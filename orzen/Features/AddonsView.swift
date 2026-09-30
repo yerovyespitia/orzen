@@ -8,8 +8,6 @@ struct AddonsView: View {
     @State private var addonPendingRemoval: LocalAddon?
     var ownsNavigationStack = true
     var popToRootRequest = 0
-    private let contentHorizontalPadding: CGFloat = 16
-    private let contentTopPadding: CGFloat = 8
 
     var body: some View {
         if ownsNavigationStack {
@@ -24,35 +22,26 @@ struct AddonsView: View {
         }
     }
 
-    @ViewBuilder
     private var screenContent: some View {
-        #if os(iOS)
-        ScrollView {
-            addonList
-                .padding(.horizontal, contentHorizontalPadding)
-                .padding(.top, contentTopPadding)
-                .padding(.bottom, 24)
-        }
-        .scrollBounceBehavior(.always, axes: .vertical)
-        .orzenTopScrollEdgeEffect()
-        .background(Color.black.ignoresSafeArea())
-        #else
-        ZStack {
-            Color.black.ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: contentSpacing) {
-                header
-
-                ScrollView {
-                    addonList
-                        .padding(.bottom, 24)
-                }
-                .orzenTopScrollEdgeEffect()
+        OrzenScreen {
+            #if os(macOS)
+            header
+            #endif
+        } content: {
+            OrzenScreenScrollView(topPadding: addonTopPadding) {
+                addonList
             }
-            .padding(.horizontal, contentHorizontalPadding)
-            .padding(.top, contentTopPadding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            #if os(iOS)
+            .scrollBounceBehavior(.always, axes: .vertical)
+            #endif
         }
+    }
+
+    private var addonTopPadding: CGFloat {
+        #if os(iOS)
+        OrzenScreenLayout.topPadding
+        #else
+        0
         #endif
     }
 
@@ -93,41 +82,15 @@ struct AddonsView: View {
     }
 
     private var header: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Addons")
-                    .font(headerTitleFont)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-            }
-
-            Spacer()
-
+        OrzenScreenHeading(title: "Addons") {
             AddonActionButton(
                 systemName: "plus",
                 isEnabled: true,
-                help: "Add addon",
-                buttonSize: 44
+                help: "Add addon"
             ) {
                 isAddingAddon = true
             }
         }
-    }
-
-    private var contentSpacing: CGFloat {
-        #if os(iOS)
-        return 16
-        #else
-        return 24
-        #endif
-    }
-
-    private var headerTitleFont: Font {
-        #if os(iOS)
-        return .title2
-        #else
-        return .title
-        #endif
     }
 
     private var addonList: some View {

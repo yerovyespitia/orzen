@@ -34,14 +34,9 @@ struct CinemetaCatalogView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                VStack(alignment: .leading, spacing: 20) {
-                    header
-                    filterBar
-                    content
-                }
+            OrzenScreen(header: { header }) {
+                filterBar
+                content
             }
             .navigationDestination(isPresented: $isShowingContextMenuDetail) {
                 if let detailItemFromContextMenu {
@@ -59,38 +54,25 @@ struct CinemetaCatalogView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(title)
-                .font(headerTitleFont)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
+        OrzenScreenHeading(title: title) {
+            HStack(spacing: 12) {
+                if catalogStore.isLoading {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(.white)
+                }
 
-            if catalogStore.isLoading {
-                ProgressView()
-                    .controlSize(.small)
-                    .tint(.white)
+                Button {
+                    Task { await catalogStore.loadCatalog(forceRefresh: true) }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.white.opacity(0.82))
+                .help("Reload catalog")
+                .accessibilityLabel("Reload catalog")
             }
-
-            Spacer()
-
-            Button {
-                Task { await catalogStore.loadCatalog(forceRefresh: true) }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .buttonStyle(.plain)
-            .foregroundColor(.white.opacity(0.82))
-            .help("Reload catalog")
         }
-        .padding(.horizontal)
-    }
-
-    private var headerTitleFont: Font {
-        #if os(iOS)
-        return .title2
-        #else
-        return .title
-        #endif
     }
 
     private var filterBar: some View {
@@ -108,7 +90,7 @@ struct CinemetaCatalogView: View {
                     )
                 }
             }
-            .padding(.horizontal)
+            .orzenScreenContentInset()
         }
     }
 
@@ -128,16 +110,12 @@ struct CinemetaCatalogView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollViewReader { scrollProxy in
-                ScrollView {
+                OrzenScreenScrollView {
                     Color.clear
                         .frame(height: 0)
                         .id(scrollTopID)
 
-                    LazyVGrid(
-                        columns: OrzenLayout.posterGridColumns,
-                        alignment: .leading,
-                        spacing: OrzenLayout.current.gridVerticalSpacing
-                    ) {
+                    OrzenPosterGrid {
                         ForEach(displayItems) { item in
                             NavigationLink(destination: InfoView(item: item)) {
                                 CatalogPosterCard(
@@ -150,10 +128,7 @@ struct CinemetaCatalogView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
-                    .padding(.bottom, 24)
                 }
-                .orzenTopScrollEdgeEffect()
                 .onChange(of: scrollToTopRequest) { _, _ in
                     scrollToTop(with: scrollProxy)
                 }

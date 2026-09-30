@@ -3,7 +3,6 @@ import SwiftUI
 struct DownloadsView: View {
     var popToRootRequest = 0
     var ownsNavigationStack = true
-    private let contentHorizontalPadding: CGFloat = 16
 
     #if os(macOS)
     @ObservedObject private var library = LocalMediaLibraryStore.shared
@@ -72,58 +71,43 @@ struct DownloadsView: View {
     }
 
     private var content: some View {
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                VStack(alignment: .leading, spacing: 20) {
-                    #if os(macOS)
-                    Text("Downloads")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, contentHorizontalPadding)
-                    #endif
-
-                    if entries.isEmpty {
-                        emptyContent
-                    } else {
-                        ScrollView {
-                            LazyVGrid(columns: OrzenLayout.posterGridColumns,
-                                alignment: .leading, spacing: OrzenLayout.current.gridVerticalSpacing) {
-                                ForEach(entries) { entry in
-                                    let item = item(for: entry)
-                                    NavigationLink(destination: InfoView(item: item)) {
-                                        CatalogPosterCard(item: item)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
+        OrzenCollectionScreen(title: "Downloads") {
+            if entries.isEmpty {
+                emptyContent
+                    .orzenScreenContentInset()
+            } else {
+                OrzenScreenScrollView {
+                    OrzenPosterGrid {
+                        ForEach(entries) { entry in
+                            let item = item(for: entry)
+                            NavigationLink(destination: InfoView(item: item)) {
+                                CatalogPosterCard(item: item)
                             }
-                            .padding(.horizontal, contentHorizontalPadding)
-                            .padding(.bottom, 24)
+                            .buttonStyle(.plain)
                         }
-                        .orzenTopScrollEdgeEffect()
                     }
                 }
             }
-            .navigationTitle("Downloads")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(ownsNavigationStack ? .large : .inline)
-            .popNavigationToRoot(on: popToRootRequest)
-            #endif
+        }
+        #if os(iOS)
+        .popNavigationToRoot(on: popToRootRequest)
+        #endif
     }
 
     private var emptyContent: some View {
-        ContentUnavailableView {
-            Label("No downloads yet", systemImage: "arrow.down.to.line")
-        } description: {
-            #if os(iOS)
-            Text(connectionError ?? "Download a movie or episode on your Mac to see it here.")
-            #else
-            Text("Download a movie or episode to see it here.")
-            #endif
-        }
-        .foregroundStyle(.white)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        DetailUnavailableView(
+            systemImage: "arrow.down.to.line",
+            title: "No downloads yet",
+            message: emptyMessage
+        )
+    }
+
+    private var emptyMessage: String {
+        #if os(iOS)
+        connectionError ?? "Download a movie or episode on your Mac to see it here."
+        #else
+        "Download a movie or episode to see it here."
+        #endif
     }
 
     private func item(for entry: DownloadCatalogEntry) -> CatalogItem {

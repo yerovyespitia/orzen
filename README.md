@@ -86,6 +86,9 @@ orzen/
 └── OrzenApp.swift    App entry point and platform window configuration
 ```
 
+Sidebar and collection screens share layout components documented in
+[Screen layout](docs/design/screens.md).
+
 ## Technology
 
 - Swift and SwiftUI

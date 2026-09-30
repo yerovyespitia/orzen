@@ -71,18 +71,19 @@ struct SearchView: View {
 
     private var navigationContent: some View {
         NavigationStack {
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                VStack(spacing: 20) {
-                    if showsSearchBar {
-                        searchBar
-                    }
-
-                    content
+            OrzenScreen {
+                #if os(macOS)
+                OrzenScreenHeading(title: "Search")
+                #endif
+            } content: {
+                if showsSearchBar {
+                    searchBar
+                        #if os(iOS)
+                        .padding(.top, OrzenScreenLayout.topPadding)
+                        #endif
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.top, showsSearchBar ? 20 : 0)
+
+                content
             }
             .navigationDestination(isPresented: $isShowingContextMenuDetail) {
                 if let detailItemFromContextMenu {
@@ -121,7 +122,7 @@ struct SearchView: View {
         .padding()
         .background(Color.white.opacity(0.1))
         .clipShape(Capsule())
-        .padding(.horizontal)
+        .orzenScreenContentInset()
     }
 
     @ViewBuilder
@@ -165,16 +166,12 @@ struct SearchView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollViewReader { scrollProxy in
-                ScrollView {
+                OrzenScreenScrollView {
                     Color.clear
                         .frame(height: 0)
                         .id(scrollTopID)
 
-                    LazyVGrid(
-                        columns: OrzenLayout.posterGridColumns,
-                        alignment: .leading,
-                        spacing: OrzenLayout.current.gridVerticalSpacing
-                    ) {
+                    OrzenPosterGrid {
                         ForEach(searchStore.results) { item in
                             NavigationLink(destination: InfoView(item: item)) {
                                 CatalogPosterCard(
@@ -187,11 +184,8 @@ struct SearchView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
-                    .padding(.bottom, 22)
                 }
                 .frame(maxHeight: .infinity)
-                .orzenTopScrollEdgeEffect()
                 .onChange(of: scrollToTopRequest) { _, _ in
                     scrollToTop(with: scrollProxy)
                 }
@@ -204,7 +198,7 @@ struct SearchView: View {
             Text("Popular Searches")
                 .font(.title2)
                 .foregroundColor(.white)
-                .padding(.horizontal)
+                .orzenScreenContentInset()
                 .fontWeight(.medium)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -223,7 +217,7 @@ struct SearchView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal)
+                .orzenScreenContentInset()
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -262,7 +256,7 @@ struct SearchView: View {
             Text("Your recent searches will appear here.")
                 .foregroundColor(.gray.opacity(0.75))
         }
-        .padding(.horizontal, OrzenLayout.current.contentLeadingInset)
+        .orzenScreenContentInset()
     }
 
     private func showContextMenuDetail(for item: CatalogItem) {
