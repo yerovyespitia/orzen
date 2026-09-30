@@ -47,6 +47,14 @@ struct LocalMediaProgressSyncResponse: Codable {
     let records: [LocalMediaProgressRecord]
 }
 
+struct LocalMediaCollectionsSyncRequest: Codable {
+    let collections: LocalMediaCollections
+}
+
+struct LocalMediaCollectionsSyncResponse: Codable {
+    let collections: LocalMediaCollections
+}
+
 #if os(macOS)
 @MainActor
 final class LocalMediaServer: ObservableObject {
@@ -130,7 +138,7 @@ final class LocalMediaServer: ObservableObject {
                 guard let self else { connection.cancel(); return }
                 var data = accumulated
                 if let chunk { data.append(chunk) }
-                guard data.count <= 1_000_000, error == nil else { connection.cancel(); return }
+                guard data.count <= 16_000_000, error == nil else { connection.cancel(); return }
                 if let request = HTTPRequest(data: data) {
                     await self.respond(to: request, connection: connection)
                 } else if !isComplete {
@@ -167,6 +175,10 @@ final class LocalMediaServer: ObservableObject {
                 let input = try JSONDecoder().decode(LocalMediaProgressSyncRequest.self, from: request.body)
                 let records = PlaybackProgressStore.shared.mergeLocalProgress(input.records)
                 sendJSON(LocalMediaProgressSyncResponse(records: records), to: connection)
+            } else if request.method == "POST" && parts == ["collections"] {
+                let input = try JSONDecoder().decode(LocalMediaCollectionsSyncRequest.self, from: request.body)
+                let collections = CollectionStore.shared.mergeLocalCollections(input.collections)
+                sendJSON(LocalMediaCollectionsSyncResponse(collections: collections), to: connection)
             } else if request.method == "POST" && parts == ["search"] {
                 let input = try JSONDecoder().decode(LocalMediaSearchRequest.self, from: request.body)
                 let results = try await LocalTorrentSearchClient.search(item: input.item,

@@ -49,10 +49,10 @@ struct HomeView: View {
                                     )
                                 }
 
-                                if !collectionStore.planToWatchItems.isEmpty {
+                                if !collectionStore.planToWatchItems(for: playbackMediaKind).isEmpty {
                                     CatalogSectionView(
                                         title: "Watchlist",
-                                        items: collectionStore.planToWatchItems
+                                        items: collectionStore.planToWatchItems(for: playbackMediaKind)
                                     )
                                 }
 

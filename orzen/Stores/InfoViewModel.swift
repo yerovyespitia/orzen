@@ -90,12 +90,17 @@ final class InfoViewModel: ObservableObject {
         guard item.cinemetaType == .series else { return }
 
         if episodeWatchStore.hasWatchedEpisodes(for: item) {
-            collectionStore.setDropped(item, isDropped: false)
+            collectionStore.setDropped(
+                item,
+                isDropped: false,
+                mediaKind: localMediaModeEnabled ? .local : .remote
+            )
         }
 
         collectionStore.setWatched(
             item,
-            isWatched: episodeWatchStore.isSeriesFullyWatched(item, episodes: detail.episodes)
+            isWatched: episodeWatchStore.isSeriesFullyWatched(item, episodes: detail.episodes),
+            mediaKind: localMediaModeEnabled ? .local : .remote
         )
     }
 

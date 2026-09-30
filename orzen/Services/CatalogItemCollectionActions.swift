@@ -9,13 +9,19 @@ enum CatalogItemCollectionWatchedResult {
 struct CatalogItemCollectionActions {
     let item: CatalogItem
     let episodes: [CatalogEpisode]
+    let mediaKind: PlaybackMediaKind
 
     private let collectionStore: CollectionStore
     private let episodeWatchStore: EpisodeWatchStore
 
-    init(item: CatalogItem, episodes: [CatalogEpisode] = []) {
+    init(
+        item: CatalogItem,
+        episodes: [CatalogEpisode] = [],
+        mediaKind: PlaybackMediaKind = .remote
+    ) {
         self.item = item
         self.episodes = episodes
+        self.mediaKind = mediaKind
         self.collectionStore = .shared
         self.episodeWatchStore = .shared
     }
@@ -41,36 +47,36 @@ struct CatalogItemCollectionActions {
     }
 
     var isAddedToList: Bool {
-        collectionStore.isInPlanToWatch(item)
+        collectionStore.isInPlanToWatch(item, mediaKind: mediaKind)
     }
 
     var isFavorite: Bool {
-        collectionStore.isFavorite(item)
+        collectionStore.isFavorite(item, mediaKind: mediaKind)
     }
 
     var isWatched: Bool {
         guard item.cinemetaType == .series, !episodes.isEmpty else {
-            return collectionStore.isWatched(item)
+            return collectionStore.isWatched(item, mediaKind: mediaKind)
         }
 
         return episodeWatchStore.isSeriesFullyWatched(item, episodes: episodes)
     }
 
     var isDropped: Bool {
-        collectionStore.isDropped(item)
+        collectionStore.isDropped(item, mediaKind: mediaKind)
     }
 
     func togglePlanToWatch() {
-        collectionStore.togglePlanToWatch(item)
+        collectionStore.togglePlanToWatch(item, mediaKind: mediaKind)
     }
 
     func toggleFavorite() {
-        collectionStore.toggleFavorite(item)
+        collectionStore.toggleFavorite(item, mediaKind: mediaKind)
     }
 
     func applyWatchedAction() -> CatalogItemCollectionWatchedResult {
         guard item.cinemetaType == .series else {
-            collectionStore.toggleWatched(item)
+            collectionStore.toggleWatched(item, mediaKind: mediaKind)
             return .none
         }
 
@@ -78,7 +84,7 @@ struct CatalogItemCollectionActions {
 
         if episodeWatchStore.isSeriesFullyWatched(item, episodes: episodes) {
             episodeWatchStore.clearWatched(item, episodes: episodes)
-            collectionStore.setWatched(item, isWatched: false)
+            collectionStore.setWatched(item, isWatched: false, mediaKind: mediaKind)
             return .none
         }
 
@@ -92,12 +98,12 @@ struct CatalogItemCollectionActions {
 
     func markSeriesWatched(episodes: [CatalogEpisode]) {
         episodeWatchStore.markAllWatched(item, episodes: episodes)
-        collectionStore.setWatched(item, isWatched: true)
+        collectionStore.setWatched(item, isWatched: true, mediaKind: mediaKind)
     }
 
     func applyDroppedAction() {
         guard item.cinemetaType == .series, !isDropped else {
-            collectionStore.toggleDropped(item)
+            collectionStore.toggleDropped(item, mediaKind: mediaKind)
             return
         }
 
@@ -107,6 +113,6 @@ struct CatalogItemCollectionActions {
             episodeWatchStore.clearWatched(item, episodes: episodes)
         }
 
-        collectionStore.toggleDropped(item)
+        collectionStore.toggleDropped(item, mediaKind: mediaKind)
     }
 }

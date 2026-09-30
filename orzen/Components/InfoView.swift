@@ -14,6 +14,10 @@ struct InfoView: View {
         OrzenLayout.current.detailHorizontalPadding
     }
 
+    private var playbackMediaKind: PlaybackMediaKind {
+        localMediaModeEnabled ? .local : .remote
+    }
+
     init(item: CatalogItem) {
         self.item = item
         _viewModel = StateObject(wrappedValue: InfoViewModel(item: item))
@@ -39,7 +43,8 @@ struct InfoView: View {
                         InfoHeroView(
                             item: item,
                             detail: viewModel.detail,
-                            horizontalPadding: contentHorizontalPadding
+                            horizontalPadding: contentHorizontalPadding,
+                            playbackMediaKind: playbackMediaKind
                         )
                         detailListSection
                     }

@@ -4,6 +4,7 @@ struct InfoHeroView: View {
     let item: CatalogItem
     var detail = CatalogDetail.empty
     let horizontalPadding: CGFloat
+    var playbackMediaKind: PlaybackMediaKind = .remote
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
     @State private var isListButtonHovered = false
@@ -13,7 +14,11 @@ struct InfoHeroView: View {
     @State private var isConfirmingMarkAllWatched = false
 
     private var collectionActions: CatalogItemCollectionActions {
-        CatalogItemCollectionActions(item: item, episodes: detail.episodes)
+        CatalogItemCollectionActions(
+            item: item,
+            episodes: detail.episodes,
+            mediaKind: playbackMediaKind
+        )
     }
 
     var body: some View {

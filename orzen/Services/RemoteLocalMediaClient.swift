@@ -42,6 +42,7 @@ final class RemoteLocalMediaClient: ObservableObject {
             pairingCode = ""
             message = nil
             await PlaybackProgressStore.shared.synchronizeLocalProgress()
+            await CollectionStore.shared.synchronizeLocalCollections()
         } catch {
             if case LocalMediaError.unauthorized = error {
                 message = "Incorrect pairing code."
@@ -68,6 +69,15 @@ final class RemoteLocalMediaClient: ObservableObject {
             body: LocalMediaProgressSyncRequest(records: records)
         )
         return response.records
+    }
+
+    func syncLocalCollections(_ collections: LocalMediaCollections) async throws -> LocalMediaCollections {
+        let response: LocalMediaCollectionsSyncResponse = try await request(
+            "collections",
+            method: "POST",
+            body: LocalMediaCollectionsSyncRequest(collections: collections)
+        )
+        return response.collections
     }
 
     func search(item: CatalogItem, episode: CatalogEpisode?, includeSpanish: Bool, forceRefresh: Bool = false) async throws -> [TorrentSearchResult] {
@@ -113,7 +123,7 @@ final class RemoteLocalMediaClient: ObservableObject {
         guard let baseURL else { throw LocalMediaError.macUnavailable }
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
-        request.timeoutInterval = path == "search" ? 120 : 12
+        request.timeoutInterval = path == "search" ? 120 : (path == "collections" ? 30 : 12)
         if authenticated {
             guard let token else { throw LocalMediaError.unauthorized }
             request.setValue(token, forHTTPHeaderField: "X-Orzen-Token")

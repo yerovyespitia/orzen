@@ -89,17 +89,23 @@ extension StreamPlayerView {
             collectionStore.setWatched(
                 item,
                 isWatched: true,
-                clearPlaybackProgress: false
+                clearPlaybackProgress: false,
+                mediaKind: request.source.playbackMediaKind
             )
         case .series:
             if let episode = request.episode {
                 episodeWatchStore.markWatched(episode, in: item)
             }
-            collectionStore.setDropped(item, isDropped: false)
+            collectionStore.setDropped(
+                item,
+                isDropped: false,
+                mediaKind: request.source.playbackMediaKind
+            )
             collectionStore.setWatched(
                 item,
                 isWatched: episodeWatchStore.isStoredSeriesFullyWatched(item),
-                clearPlaybackProgress: false
+                clearPlaybackProgress: false,
+                mediaKind: request.source.playbackMediaKind
             )
             savePendingNextEpisodeProgress(
                 pendingNextEpisode,

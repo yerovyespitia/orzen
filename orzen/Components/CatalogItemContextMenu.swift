@@ -4,13 +4,18 @@ struct CatalogItemContextMenuModifier: ViewModifier {
     let item: CatalogItem
     let showsDroppedAction: Bool
     var onViewDetails: (() -> Void)?
+    @AppStorage(LocalMediaModePreference.storageKey) private var localMediaModeEnabled = false
     @ObservedObject private var collectionStore = CollectionStore.shared
     @ObservedObject private var episodeWatchStore = EpisodeWatchStore.shared
     @State private var isConfirmingMarkAllWatched = false
     @State private var pendingWatchedEpisodes: [CatalogEpisode] = []
 
     private var collectionActions: CatalogItemCollectionActions {
-        CatalogItemCollectionActions(item: item)
+        CatalogItemCollectionActions(item: item, mediaKind: playbackMediaKind)
+    }
+
+    private var playbackMediaKind: PlaybackMediaKind {
+        localMediaModeEnabled ? .local : .remote
     }
 
     func body(content: Content) -> some View {
@@ -23,13 +28,13 @@ struct CatalogItemContextMenuModifier: ViewModifier {
                 }
 
                 Button {
-                    collectionStore.togglePlanToWatch(item)
+                    collectionStore.togglePlanToWatch(item, mediaKind: playbackMediaKind)
                 } label: {
                     Label(listToggleTitle, systemImage: isAddedToList ? "checkmark" : "text.badge.plus")
                 }
 
                 Button {
-                    collectionStore.toggleFavorite(item)
+                    collectionStore.toggleFavorite(item, mediaKind: playbackMediaKind)
                 } label: {
                     Label(favoriteToggleTitle, systemImage: isFavorite ? "heart.fill" : "heart")
                 }
@@ -92,7 +97,7 @@ struct CatalogItemContextMenuModifier: ViewModifier {
 
     private func handleWatchedAction() {
         guard item.cinemetaType == .series else {
-            collectionStore.toggleWatched(item)
+            collectionStore.toggleWatched(item, mediaKind: playbackMediaKind)
             return
         }
 
@@ -104,7 +109,7 @@ struct CatalogItemContextMenuModifier: ViewModifier {
 
     private func handleDroppedAction() {
         guard item.cinemetaType == .series, !isDropped else {
-            collectionStore.toggleDropped(item)
+            collectionStore.toggleDropped(item, mediaKind: playbackMediaKind)
             return
         }
 
@@ -128,7 +133,7 @@ struct CatalogItemContextMenuModifier: ViewModifier {
 
     @MainActor
     private func applySeriesWatchedAction(episodes: [CatalogEpisode]) {
-        let actions = CatalogItemCollectionActions(item: item, episodes: episodes)
+        let actions = CatalogItemCollectionActions(item: item, episodes: episodes, mediaKind: playbackMediaKind)
         if case let .confirmMarkAll(episodesToConfirm) = actions.applyWatchedAction() {
             pendingWatchedEpisodes = episodesToConfirm
             isConfirmingMarkAllWatched = true
@@ -141,13 +146,13 @@ struct CatalogItemContextMenuModifier: ViewModifier {
     }
 
     private func markSeriesWatched(episodes: [CatalogEpisode]) {
-        CatalogItemCollectionActions(item: item, episodes: episodes)
+        CatalogItemCollectionActions(item: item, episodes: episodes, mediaKind: playbackMediaKind)
             .markSeriesWatched(episodes: episodes)
     }
 
     @MainActor
     private func clearWatchedEpisodesBeforeDropping(episodes: [CatalogEpisode]) {
-        CatalogItemCollectionActions(item: item, episodes: episodes)
+        CatalogItemCollectionActions(item: item, episodes: episodes, mediaKind: playbackMediaKind)
             .applyDroppedAction()
     }
 }

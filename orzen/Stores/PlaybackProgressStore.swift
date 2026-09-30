@@ -289,7 +289,11 @@ final class PlaybackProgressStore: ObservableObject {
            let episode = request.episode,
            EpisodeWatchStore.shared.isWatched(episode) {
             EpisodeWatchStore.shared.markUnwatched(episode, in: item)
-            CollectionStore.shared.setWatched(item, isWatched: false)
+            CollectionStore.shared.setWatched(
+                item,
+                isWatched: false,
+                mediaKind: request.source.playbackMediaKind
+            )
         }
 
         saveEntry(
@@ -317,15 +321,22 @@ final class PlaybackProgressStore: ObservableObject {
         return shouldClearProgress(position: position, duration: duration, contentType: contentType)
     }
 
-    func clearProgress(for item: CatalogItem) {
+    func clearProgress(for item: CatalogItem, mediaKind: PlaybackMediaKind? = nil) {
         let localKeys = entries
-            .filter { $0.item.id == item.id && $0.source.playbackMediaKind == .local }
+            .filter {
+                $0.item.id == item.id
+                    && (mediaKind == nil || $0.source.playbackMediaKind == mediaKind)
+                    && $0.source.playbackMediaKind == .local
+            }
             .map(\.id)
         let deletionDate = Date()
         for key in localKeys {
             localProgressTombstones[key] = deletionDate
         }
-        entries.removeAll { $0.item.id == item.id }
+        entries.removeAll {
+            $0.item.id == item.id
+                && (mediaKind == nil || $0.source.playbackMediaKind == mediaKind)
+        }
         save()
         #if os(iOS)
         if !localKeys.isEmpty {
