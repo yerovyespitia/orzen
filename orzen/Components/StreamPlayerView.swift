@@ -48,6 +48,8 @@ struct StreamPlayerView: View {
     @State var isAdjustingTimeline = false
     @AppStorage(PlaybackSeekInterval.storageKey)
     var seekIntervalSeconds = PlaybackSeekInterval.defaultValue.rawValue
+    @AppStorage(PlaybackEstimatedEndTimePreference.storageKey)
+    var showsEstimatedPlaybackEndTime = false
     @State var prefetchedNextEpisodeID: CatalogEpisode.ID?
     @State var prefetchedNextSource: StreamSource?
     @StateObject var playbackObserver = StreamPlaybackObserver()
@@ -90,6 +92,9 @@ struct StreamPlayerView: View {
             externalSubtitleOverlay
             nextEpisodeBanner
             playerChrome
+            #if os(iOS)
+            playbackEndTimeOverlay
+            #endif
             doubleTapSeekFeedbackOverlay
             episodeSidebar
             startingOverlay

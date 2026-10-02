@@ -130,6 +130,45 @@ extension StreamPlayerView {
         .animation(.easeInOut(duration: 0.24), value: isChromePresented)
     }
 
+    #if os(iOS)
+    @ViewBuilder
+    var playbackEndTimeOverlay: some View {
+        if showsEstimatedPlaybackEndTime,
+           !isChromePresented,
+           !isEpisodeSidebarPresented,
+           duration.isFinite,
+           duration > 0,
+           currentTime.isFinite {
+            TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                Text(estimatedPlaybackEndTime(at: timeline.date))
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.44), in: Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(.white.opacity(0.12), lineWidth: 1)
+                    }
+                    .padding(.top, 17)
+                    .padding(.trailing, 18)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            }
+            .allowsHitTesting(false)
+            .transition(.opacity)
+            .zIndex(3.25)
+            .animation(.easeInOut(duration: 0.24), value: isChromePresented)
+        }
+    }
+
+    private func estimatedPlaybackEndTime(at date: Date) -> String {
+        let remainingPlaybackTime = max(duration - currentTime, 0)
+        return date
+            .addingTimeInterval(remainingPlaybackTime)
+            .formatted(date: .omitted, time: .shortened)
+    }
+    #endif
+
     @ViewBuilder
     var doubleTapSeekFeedbackOverlay: some View {
         #if os(iOS)

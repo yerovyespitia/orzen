@@ -14,6 +14,8 @@ struct SettingsView: View {
     private var seekIntervalSeconds = PlaybackSeekInterval.defaultValue.rawValue
     @AppStorage(PlaybackRemainingTimePreference.storageKey)
     private var showsRemainingPlaybackTime = false
+    @AppStorage(PlaybackEstimatedEndTimePreference.storageKey)
+    private var showsEstimatedPlaybackEndTime = false
 
     private var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
@@ -239,6 +241,12 @@ struct SettingsView: View {
                         title: "Show Time Remaining",
                         systemImage: "clock",
                         isOn: $showsRemainingPlaybackTime
+                    )
+
+                    SettingsToggleRow(
+                        title: "Show Estimated End Time",
+                        systemImage: "clock",
+                        isOn: $showsEstimatedPlaybackEndTime
                     )
                 }
 

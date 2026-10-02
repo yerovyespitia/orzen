@@ -8,6 +8,10 @@ enum PlaybackRemainingTimePreference {
     static let storageKey = "playback.showRemainingTime"
 }
 
+enum PlaybackEstimatedEndTimePreference {
+    static let storageKey = "playback.showEstimatedEndTime"
+}
+
 enum PlaybackSeekInterval: Int, CaseIterable, Identifiable, Sendable {
     case five = 5
     case ten = 10
