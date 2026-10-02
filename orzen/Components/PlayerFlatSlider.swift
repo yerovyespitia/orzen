@@ -5,6 +5,7 @@ struct PlayerFlatSlider: View {
 
     let bounds: ClosedRange<Double>
     let accessibilityLabel: String
+    let trackHeight: CGFloat
     let expandsWhileInteracting: Bool
     let onInteractionChange: (Bool) -> Void
 
@@ -17,12 +18,14 @@ struct PlayerFlatSlider: View {
         value: Binding<Double>,
         in bounds: ClosedRange<Double>,
         accessibilityLabel: String,
+        trackHeight: CGFloat = 7,
         expandsWhileInteracting: Bool = false,
         onInteractionChange: @escaping (Bool) -> Void = { _ in }
     ) {
         _value = value
         self.bounds = bounds
         self.accessibilityLabel = accessibilityLabel
+        self.trackHeight = trackHeight
         self.expandsWhileInteracting = expandsWhileInteracting
         self.onInteractionChange = onInteractionChange
     }
@@ -92,7 +95,7 @@ struct PlayerFlatSlider: View {
     }
 
     private var currentTrackHeight: CGFloat {
-        isExpanded ? 12 : 7
+        isExpanded ? trackHeight + 5 : trackHeight
     }
 
     private var interactionHeight: CGFloat {

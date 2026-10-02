@@ -12,6 +12,8 @@ struct SettingsView: View {
 
     @AppStorage(PlaybackSeekInterval.storageKey)
     private var seekIntervalSeconds = PlaybackSeekInterval.defaultValue.rawValue
+    @AppStorage(PlaybackRemainingTimePreference.storageKey)
+    private var showsRemainingPlaybackTime = false
 
     private var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
@@ -232,6 +234,12 @@ struct SettingsView: View {
                         systemImage: "externaldrive",
                         isOn: $localMediaModeEnabled
                     )
+
+                    SettingsToggleRow(
+                        title: "Show Time Remaining",
+                        systemImage: "clock",
+                        isOn: $showsRemainingPlaybackTime
+                    )
                 }
 
                 if localMediaModeEnabled {
@@ -383,15 +391,24 @@ private struct SettingsToggleRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Label {
-                Text(title)
-            } icon: {
-                Image(systemName: systemImage)
-                    .foregroundStyle(.blue)
-            }
-            .font(cardStyle ? .system(size: 15) : .body)
+            Button {
+                isOn.toggle()
+            } label: {
+                HStack(spacing: 12) {
+                    Label {
+                        Text(title)
+                    } icon: {
+                        Image(systemName: systemImage)
+                            .foregroundStyle(.blue)
+                    }
+                    .font(cardStyle ? .system(size: 15) : .body)
 
-            Spacer(minLength: 16)
+                    Spacer(minLength: 16)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(isOn ? "On" : "Off")
 
             Toggle(title, isOn: $isOn)
                 .labelsHidden()

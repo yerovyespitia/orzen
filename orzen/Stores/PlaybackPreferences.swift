@@ -4,6 +4,10 @@ enum LocalMediaModePreference {
     static let storageKey = "media.localModeEnabled"
 }
 
+enum PlaybackRemainingTimePreference {
+    static let storageKey = "playback.showRemainingTime"
+}
+
 enum PlaybackSeekInterval: Int, CaseIterable, Identifiable, Sendable {
     case five = 5
     case ten = 10

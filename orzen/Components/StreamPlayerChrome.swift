@@ -37,6 +37,8 @@ struct StreamPlayerChrome: View {
     let onDoubleTapSeek: (CGPoint, CGFloat) -> Void
     @State private var hoveredCircularButton: String?
     @State private var timelinePreviewTime: Double?
+    @AppStorage(PlaybackRemainingTimePreference.storageKey)
+    private var showsRemainingPlaybackTime = false
 
     var body: some View {
         ZStack {
@@ -275,7 +277,12 @@ struct StreamPlayerChrome: View {
                 mobileTrackOptions
             }
 
-            VStack(spacing: 5) {
+            HStack(spacing: 8) {
+                Text(formatTime(displayedTimelineTime))
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundColor(.white.opacity(0.86))
+                    .fixedSize()
+
                 PlayerFlatSlider(
                     value: Binding(
                         get: { displayedTimelineTime },
@@ -283,25 +290,23 @@ struct StreamPlayerChrome: View {
                     ),
                     in: 0...max(duration, 1),
                     accessibilityLabel: "Playback position",
+                    trackHeight: 8,
                     expandsWhileInteracting: true,
                     onInteractionChange: handleTimelineInteraction
                 )
+                .padding(.horizontal, 8)
 
-                HStack {
-                    Text(formatTime(displayedTimelineTime))
-                        .font(.caption.monospacedDigit().weight(.semibold))
-                        .foregroundColor(.white.opacity(0.86))
-
-                    Spacer(minLength: 0)
-
-                    Text(formatTime(duration))
-                        .font(.caption.monospacedDigit().weight(.semibold))
-                        .foregroundColor(.white.opacity(0.58))
-                }
-                // Compensate for the slider's 44-point touch target around its visible track.
-                .padding(.top, -18)
+                Text(rightTimelineLabel)
+                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .foregroundColor(.white.opacity(0.58))
+                    .fixedSize()
             }
         }
+    }
+
+    private var rightTimelineLabel: String {
+        guard showsRemainingPlaybackTime else { return formatTime(duration) }
+        return "−\(formatTime(max(duration - displayedTimelineTime, 0)))"
     }
 
     @ViewBuilder
