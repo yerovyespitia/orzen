@@ -185,3 +185,25 @@ python3 scripts/test-local-media-service.py /tmp/orzen-tests-derived/Build/Produ
 
 These checks use a temporary media directory, preferences suite and TCP port;
 they do not stop an existing Orzen server or modify the user's library.
+
+## Player interaction regression tests
+
+The shared `OrzenPlayerUITests` scheme includes unit and interaction tests on iOS. These tests pinch
+to expand and restore the video with controls visible and hidden, and verify
+that single taps still toggle controls and double taps still seek on both
+touch layers. They launch the production `StreamPlayerView` with a deterministic
+paused native player; they test touch routing, not media decoding or streaming.
+The fixture and state readout are compiled only in Debug and activated only by
+the UI test launch argument.
+
+Run the full iOS suite before merging changes to player surfaces, overlays,
+controls, or gestures:
+
+```sh
+xcodebuild -workspace Orzen.xcworkspace -scheme OrzenPlayerUITests -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath /tmp/orzen-ios-tests-derived CODE_SIGNING_ALLOWED=NO test
+```
+
+For a focused interaction run, add `-only-testing:OrzenPlayerUITests`. macOS keeps
+its existing unit tests in the `Orzen` scheme; the iOS gesture tests do not run on macOS.
+Run `sh scripts/test-player-regressions.sh` to check both platforms, including
+the iOS gesture tests. The script stops if either suite fails.

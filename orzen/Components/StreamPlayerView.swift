@@ -84,6 +84,18 @@ struct StreamPlayerView: View {
         self.onBack = onBack
     }
 
+    #if DEBUG && os(iOS)
+    init(interactionTestRequest request: StreamPlaybackRequest) {
+        self.init(request: request, onBack: {})
+        _player = State(initialValue: AVPlayer())
+        _activePlaybackEngine = State(initialValue: .native)
+        _nativeIsPaused = State(initialValue: true)
+        _nativeTime = State(initialValue: 60)
+        _nativeDuration = State(initialValue: 1200)
+        _hasStartedPlaybackPreparation = State(initialValue: true)
+    }
+    #endif
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -111,6 +123,13 @@ struct StreamPlayerView: View {
             errorOverlay
         }
         .background(Color.black)
+        #if os(iOS)
+        // Recognize pinches above the video and touch overlays, alongside tap gestures.
+        .simultaneousGesture(videoPinchGesture)
+        #endif
+        #if DEBUG && os(iOS)
+        .overlay(alignment: .bottomLeading) { interactionTestState }
+        #endif
         #if os(macOS)
         .onContinuousHover { phase in
             guard case .active = phase else { return }

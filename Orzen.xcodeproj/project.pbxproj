@@ -19,6 +19,7 @@
 		122DD75D1D20C2C924ACFB50 /* CatalogItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055282DCE3FCF0023DEAE /* CatalogItem.swift */; };
 		14032210A62696685D6D5773 /* iPhoneRootShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9055392E1450010023DEAE /* iPhoneRootShell.swift */; };
 		14797D7B8DF5B4DCAD845B6A /* ExpandableDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201D2E19010000B5D7A1 /* ExpandableDescriptionText.swift */; };
+		152C9585E014189FF846F057 /* PlayerGestureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124E286AD25226E58DD0BBCA /* PlayerGestureTests.swift */; };
 		155B56D5C28CB147008809D6 /* CatalogFilterButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20052E04000000B5D7A1 /* CatalogFilterButton.swift */; };
 		1693BC6D5278027374520E65 /* PlayerTrackMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA201C2E10000000B5D7A1 /* PlayerTrackMenu.swift */; };
 		16D05182753B47CC853F00C1 /* CollectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5648102DD0F57D003D7144 /* CollectionsView.swift */; };
@@ -35,6 +36,7 @@
 		3B4AA2780782E23B5A7619C8 /* StreamPlayerView+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2100013000000000000001 /* StreamPlayerView+Presentation.swift */; };
 		3C922C9109A4227E1B93B2D9 /* IOSNowPlayingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B0000023000000000000001 /* IOSNowPlayingController.swift */; };
 		3FC2BA397956199C7A8C1C7D /* OrzenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4000023000000000000001 /* OrzenScreen.swift */; };
+		402056C2EE625F8A1C4E2996 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90B64494495EFE257926CCD1 /* Foundation.framework */; };
 		4AF5AF8A04EF571722EBBE81 /* PlaybackProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D28720E2E08100100B5D7A1 /* PlaybackProgressStore.swift */; };
 		508092D7903EAFEA839DC165 /* CatalogItemContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DAA20182E04000000B5D7A1 /* CatalogItemContextMenu.swift */; };
 		5081F9F6F7AEE098AEC6B38F /* StreamPlayerEpisodeSidebarRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF00D032E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift */; };
@@ -168,6 +170,7 @@
 		7C2100043000000000000001 /* OrzenTorrentBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7C2000043000000000000001 /* OrzenTorrentBridge.mm */; };
 		7C3000013000000000000001 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3000023000000000000001 /* DownloadsView.swift */; };
 		7C4000013000000000000001 /* OrzenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C4000023000000000000001 /* OrzenScreen.swift */; };
+		7CACB39C6048277E89DB2E53 /* PlayerInteractionTestFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E2AA77DF0241F10D5B22320 /* PlayerInteractionTestFixture.swift */; };
 		8077139D8A999D5220A0722B /* ServiceMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9E59D1412701B81D8BA4DD /* ServiceMain.swift */; };
 		811D23C18111B2245211383F /* PlayerMediaTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC0DE062E09000000B5D7A1 /* PlayerMediaTrack.swift */; };
 		82BCFEB2257F09383A43A092 /* StremioSubtitleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D2872062E034A0200B5D7A1 /* StremioSubtitleClient.swift */; };
@@ -239,6 +242,13 @@
 			remoteGlobalIDString = 6D9055142DCE3D480023DEAE;
 			remoteInfo = Orzen;
 		};
+		B8509E553EA2247E62C837C8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6D90550D2DCE3D480023DEAE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6D9055142DCE3D480023DEAE;
+			remoteInfo = Orzen;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -257,6 +267,7 @@
 
 /* Begin PBXFileReference section */
 		0BA59AD1B3A942C798EE03E2 /* Pods-Orzen.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Orzen.release.xcconfig"; path = "Target Support Files/Pods-Orzen/Pods-Orzen.release.xcconfig"; sourceTree = "<group>"; };
+		124E286AD25226E58DD0BBCA /* PlayerGestureTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerGestureTests.swift; sourceTree = "<group>"; };
 		2DEF5F068B34DEFDA5962857 /* LocalMediaServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalMediaServiceTests.swift; sourceTree = "<group>"; };
 		3C39F540492CE2961AB05156 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		6408B71A6F1A417CDE1DB5A5 /* LocalMediaServiceRuntime.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalMediaServiceRuntime.swift; sourceTree = "<group>"; };
@@ -340,6 +351,7 @@
 		6DC0DE0C2E09000000B5D7A1 /* ExternalSubtitleResolver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExternalSubtitleResolver.swift; sourceTree = "<group>"; };
 		6DF00D012E0A00000B5D7A1 /* StreamPlayerEpisodeSidebar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerEpisodeSidebar.swift; sourceTree = "<group>"; };
 		6DF00D032E0A00000B5D7A1 /* StreamPlayerEpisodeSidebarRows.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerEpisodeSidebarRows.swift; sourceTree = "<group>"; };
+		6E2AA77DF0241F10D5B22320 /* PlayerInteractionTestFixture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlayerInteractionTestFixture.swift; sourceTree = "<group>"; };
 		6FAA570F7E9F37AA8F1990B6 /* LocalMediaServiceController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalMediaServiceController.swift; sourceTree = "<group>"; };
 		7A0000023000000000000001 /* StreamPlayerPolicies.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StreamPlayerPolicies.swift; sourceTree = "<group>"; };
 		7A1100013000000000000001 /* TestFixtures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
@@ -375,13 +387,23 @@
 		7C2000053000000000000001 /* OrzenTorrentBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OrzenTorrentBridge.h; sourceTree = "<group>"; };
 		7C3000023000000000000001 /* DownloadsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		7C4000023000000000000001 /* OrzenScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrzenScreen.swift; sourceTree = "<group>"; };
+		90B64494495EFE257926CCD1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		A02060550CF52A2BCE73A3F3 /* libPods-Orzen.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Orzen.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE9E59D1412701B81D8BA4DD /* ServiceMain.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ServiceMain.swift; sourceTree = "<group>"; };
 		B960F5B080F54887687FBB72 /* Pods-Orzen.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Orzen.debug.xcconfig"; path = "Target Support Files/Pods-Orzen/Pods-Orzen.debug.xcconfig"; sourceTree = "<group>"; };
 		BD99B2574C14964BB0C63D8C /* OrzenLocalMedia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OrzenLocalMedia.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB9D2BEF12435A58696DBCB7 /* OrzenPlayerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OrzenPlayerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1262212A765976743C4A5C5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				402056C2EE625F8A1C4E2996 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1DEBAAD98A6D55E533292D21 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -408,6 +430,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5EFC8F96EA9650A2E42B230D /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				90B64494495EFE257926CCD1 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		6D1AD92F2E03D33A00BFF0DE /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -530,6 +560,7 @@
 				6D90553D2E1900000023DEAE /* FeaturedCarouselPageIndicator.swift */,
 				6D9055312DCE56650023DEAE /* CatalogSection.swift */,
 				6D9055292DCE3FCF0023DEAE /* CatalogCardView.swift */,
+				6E2AA77DF0241F10D5B22320 /* PlayerInteractionTestFixture.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -555,6 +586,7 @@
 				FCC31DCBE4B5B896CBE109D3 /* Pods */,
 				FF6B521A2854F76669820417 /* Frameworks */,
 				EAA0C7301F8017B0268C6C55 /* OrzenLocalMedia */,
+				6F88F30E9F214D6E54FBAAA2 /* OrzenPlayerUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -564,6 +596,7 @@
 				6D9055152DCE3D490023DEAE /* Orzen.app */,
 				7A1200013000000000000001 /* OrzenTests.xctest */,
 				BD99B2574C14964BB0C63D8C /* OrzenLocalMedia.app */,
+				CB9D2BEF12435A58696DBCB7 /* OrzenPlayerUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -595,6 +628,15 @@
 				6D90551F2DCE3D4D0023DEAE /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		6F88F30E9F214D6E54FBAAA2 /* OrzenPlayerUITests */ = {
+			isa = PBXGroup;
+			children = (
+				124E286AD25226E58DD0BBCA /* PlayerGestureTests.swift */,
+			);
+			name = OrzenPlayerUITests;
+			path = OrzenPlayerUITests;
 			sourceTree = "<group>";
 		};
 		7A1600013000000000000001 /* OrzenTests */ = {
@@ -647,6 +689,7 @@
 			children = (
 				A02060550CF52A2BCE73A3F3 /* libPods-Orzen.a */,
 				87195E8FBA4265DE22DC7A73 /* OS X */,
+				5EFC8F96EA9650A2E42B230D /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -654,6 +697,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		20E1678A5B24A3CC0D517817 /* OrzenPlayerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3A6C43B1F73F0C0ED289D3CD /* Build configuration list for PBXNativeTarget "OrzenPlayerUITests" */;
+			buildPhases = (
+				F82934587770CDA59C879663 /* Sources */,
+				1262212A765976743C4A5C5E /* Frameworks */,
+				7A08316F52563DDF6EBA34B4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				06AA059DC564499666C2CC41 /* PBXTargetDependency */,
+			);
+			name = OrzenPlayerUITests;
+			productName = OrzenPlayerUITests;
+			productReference = CB9D2BEF12435A58696DBCB7 /* OrzenPlayerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		6D9055142DCE3D480023DEAE /* Orzen */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6D9055242DCE3D4D0023DEAE /* Build configuration list for PBXNativeTarget "Orzen" */;
@@ -745,6 +806,7 @@
 				6D9055142DCE3D480023DEAE /* Orzen */,
 				7A1400013000000000000001 /* OrzenTests */,
 				A81F18CFE267DBB0C5DAC387 /* OrzenLocalMedia */,
+				20E1678A5B24A3CC0D517817 /* OrzenPlayerUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -763,6 +825,13 @@
 			files = (
 				6D9055202DCE3D4D0023DEAE /* Preview Assets.xcassets in Resources */,
 				6D90551D2DCE3D4D0023DEAE /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7A08316F52563DDF6EBA34B4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1028,6 +1097,7 @@
 				6D5648162DD105F8003D7144 /* SeriesView.swift in Sources */,
 				F1E14869A94C17303C9B1513 /* LocalMediaServiceRuntime.swift in Sources */,
 				A0495FD77D31705DA5FC01E4 /* LocalMediaServiceController.swift in Sources */,
+				7CACB39C6048277E89DB2E53 /* PlayerInteractionTestFixture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1049,9 +1119,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F82934587770CDA59C879663 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				152C9585E014189FF846F057 /* PlayerGestureTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		06AA059DC564499666C2CC41 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Orzen;
+			target = 6D9055142DCE3D480023DEAE /* Orzen */;
+			targetProxy = B8509E553EA2247E62C837C8 /* PBXContainerItemProxy */;
+		};
 		7A1700023000000000000001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6D9055142DCE3D480023DEAE /* Orzen */;
@@ -1126,6 +1210,43 @@
 				"SWIFT_OBJC_BRIDGING_HEADER[sdk=macosx*]" = "orzen/Orzen-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		26D8C20FAF111831F38FEBB7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8F48B8WMY3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenPlayerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Orzen;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		5377518A35D3F5AA313C4E71 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8F48B8WMY3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yerovyespitia.OrzenPlayerUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Orzen;
 			};
 			name = Debug;
 		};
@@ -1502,6 +1623,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3A6C43B1F73F0C0ED289D3CD /* Build configuration list for PBXNativeTarget "OrzenPlayerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26D8C20FAF111831F38FEBB7 /* Release */,
+				5377518A35D3F5AA313C4E71 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		6D9055102DCE3D480023DEAE /* Build configuration list for PBXProject "Orzen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

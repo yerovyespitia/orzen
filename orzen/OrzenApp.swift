@@ -33,14 +33,33 @@ struct OrzenApp: App {
         }
         #else
         WindowGroup {
-            ContentView()
+            iOSRootContent
                 .preferredColorScheme(.dark)
                 .task {
+                    #if DEBUG
+                    guard !PlayerInteractionTestFixture.isEnabled else { return }
+                    #endif
                     await LaunchCatalogPrefetcher.prefetchInitialCatalogs()
                 }
         }
         #endif
     }
+
+    #if os(iOS)
+    @ViewBuilder
+    private var iOSRootContent: some View {
+        #if DEBUG
+        if PlayerInteractionTestFixture.isEnabled {
+            PlayerInteractionTestFixture.makePlayer()
+                .onAppear { AppOrientationController.shared.lockToLandscape() }
+        } else {
+            ContentView()
+        }
+        #else
+        ContentView()
+        #endif
+    }
+    #endif
 }
 
 #if os(iOS)

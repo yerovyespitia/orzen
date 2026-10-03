@@ -34,7 +34,6 @@ extension StreamPlayerView {
                 .background(Color.black)
                 .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
-                .gesture(videoPinchGesture)
         } else if activePlaybackEngine == .native, let player {
             NativePlayerView(
                 player: player,
@@ -43,7 +42,6 @@ extension StreamPlayerView {
                 .background(Color.black)
                 .iOSVideoZoom(scale: effectiveVideoScale)
                 .ignoresSafeArea()
-                .gesture(videoPinchGesture)
         } else {
             Color.black.ignoresSafeArea()
         }
