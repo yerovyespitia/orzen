@@ -130,10 +130,10 @@ extension StreamPlayerView {
         .animation(.easeInOut(duration: 0.24), value: isChromePresented)
     }
 
-    #if os(iOS)
     @ViewBuilder
     var playbackEndTimeOverlay: some View {
         if showsEstimatedPlaybackEndTime,
+           isEstimatedPlaybackEndTimeVisible,
            !isChromePresented,
            !isEpisodeSidebarPresented,
            duration.isFinite,
@@ -155,9 +155,9 @@ extension StreamPlayerView {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             }
             .allowsHitTesting(false)
-            .transition(.opacity)
             .zIndex(3.25)
-            .animation(.easeInOut(duration: 0.24), value: isChromePresented)
+            .transition(.opacity)
+            .animation(.easeInOut(duration: 0.32), value: isEstimatedPlaybackEndTimeVisible)
         }
     }
 
@@ -167,7 +167,6 @@ extension StreamPlayerView {
             .addingTimeInterval(remainingPlaybackTime)
             .formatted(date: .omitted, time: .shortened)
     }
-    #endif
 
     @ViewBuilder
     var doubleTapSeekFeedbackOverlay: some View {
@@ -300,6 +299,78 @@ extension StreamPlayerView {
                 seek(by: seekInterval.seconds)
             }
         )
+    }
+}
+
+@MainActor
+struct EstimatedPlaybackEndTimeVisibilityModifier: ViewModifier {
+    let isPaused: Bool
+    let isChromeVisible: Bool
+    let isEnabled: Bool
+    let duration: Double
+    let currentTime: Double
+    @Binding var isVisible: Bool
+    @Binding var hideTask: Task<Void, Never>?
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                if isPaused || (isEnabled && !isChromeVisible) {
+                    reveal()
+                }
+            }
+            .onChange(of: isPaused) { _, paused in
+                if paused { reveal() }
+            }
+            .onChange(of: isChromeVisible) { _, isVisible in
+                if isVisible {
+                    hide()
+                } else {
+                    reveal()
+                }
+            }
+            .onChange(of: isEnabled) { _, enabled in
+                if enabled && (isPaused || !isChromeVisible) {
+                    reveal()
+                } else if !enabled {
+                    hide()
+                }
+            }
+            .onChange(of: duration) { _, _ in
+                if isPaused || (isEnabled && !isChromeVisible) {
+                    reveal()
+                }
+            }
+            .onDisappear(perform: hide)
+    }
+
+    private func reveal() {
+        guard isEnabled,
+              !isChromeVisible,
+              duration.isFinite,
+              duration > 0,
+              currentTime.isFinite else { return }
+
+        hideTask?.cancel()
+        withAnimation(.easeInOut(duration: 0.32)) {
+            isVisible = true
+        }
+        hideTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            guard !Task.isCancelled else { return }
+            hideTask = nil
+            withAnimation(.easeInOut(duration: 0.32)) {
+                isVisible = false
+            }
+        }
+    }
+
+    private func hide() {
+        hideTask?.cancel()
+        hideTask = nil
+        withAnimation(.easeInOut(duration: 0.32)) {
+            isVisible = false
+        }
     }
 }
 

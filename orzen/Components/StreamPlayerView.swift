@@ -50,6 +50,8 @@ struct StreamPlayerView: View {
     var seekIntervalSeconds = PlaybackSeekInterval.defaultValue.rawValue
     @AppStorage(PlaybackEstimatedEndTimePreference.storageKey)
     var showsEstimatedPlaybackEndTime = false
+    @State var isEstimatedPlaybackEndTimeVisible = false
+    @State var estimatedPlaybackEndTimeHideTask: Task<Void, Never>?
     @State var prefetchedNextEpisodeID: CatalogEpisode.ID?
     @State var prefetchedNextSource: StreamSource?
     @StateObject var playbackObserver = StreamPlaybackObserver()
@@ -88,13 +90,21 @@ struct StreamPlayerView: View {
             #if os(macOS)
             keyboardShortcuts
             #endif
-            interactivePlayerSurface
+            interactivePlayerSurface.modifier(
+                EstimatedPlaybackEndTimeVisibilityModifier(
+                    isPaused: isPaused,
+                    isChromeVisible: chromeVisibility.isVisible,
+                    isEnabled: showsEstimatedPlaybackEndTime,
+                    duration: duration,
+                    currentTime: currentTime,
+                    isVisible: $isEstimatedPlaybackEndTimeVisible,
+                    hideTask: $estimatedPlaybackEndTimeHideTask
+                )
+            )
             externalSubtitleOverlay
             nextEpisodeBanner
             playerChrome
-            #if os(iOS)
             playbackEndTimeOverlay
-            #endif
             doubleTapSeekFeedbackOverlay
             episodeSidebar
             startingOverlay
@@ -220,18 +230,20 @@ struct StreamPlayerView: View {
         .onReceive(NotificationCenter.default.publisher(for: appWillTerminateNotification)) { _ in
             saveCurrentProgress(force: true)
         }
-        .onDisappear {
-            saveProgressOnDisappearIfNeeded()
-            chromeVisibility.cancelAutoHide()
-            cancelNativeStartupTimeout()
-            player?.pause()
-            removeNativeTimeObserver()
-            playbackObserver.stop()
-            #if os(iOS)
-            nowPlayingController.end()
-            stopVLCPlaybackOnDisappear()
-            #endif
-            mpvController.stop()
-        }
+        .onDisappear(perform: handlePlayerDisappear)
+    }
+
+    private func handlePlayerDisappear() {
+        saveProgressOnDisappearIfNeeded()
+        chromeVisibility.cancelAutoHide()
+        cancelNativeStartupTimeout()
+        player?.pause()
+        removeNativeTimeObserver()
+        playbackObserver.stop()
+        #if os(iOS)
+        nowPlayingController.end()
+        stopVLCPlaybackOnDisappear()
+        #endif
+        mpvController.stop()
     }
 }

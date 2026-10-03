@@ -222,7 +222,7 @@ struct StreamPlayerChrome: View {
                 )
                 .frame(width: 92)
 
-                Text("\(formatTime(displayedTimelineTime)) / \(formatTime(duration))")
+                Text("\(formatTime(displayedTimelineTime)) / \(rightTimelineLabel)")
                     .font(.caption.monospacedDigit().weight(.semibold))
                     .foregroundColor(.white.opacity(0.86))
                     .frame(minWidth: 96, alignment: .leading)

@@ -76,6 +76,22 @@ struct SettingsView: View {
                             )
 
                             SettingsToggleRow(
+                                title: "Show Time Remaining",
+                                systemImage: "clock",
+                                isOn: $showsRemainingPlaybackTime,
+                                cardStyle: true,
+                                showsDivider: true
+                            )
+
+                            SettingsToggleRow(
+                                title: "Show Estimated End Time",
+                                systemImage: "clock",
+                                isOn: $showsEstimatedPlaybackEndTime,
+                                cardStyle: true,
+                                showsDivider: true
+                            )
+
+                            SettingsToggleRow(
                                 title: "Local Media",
                                 systemImage: "externaldrive",
                                 isOn: $localMediaModeEnabled,
@@ -232,12 +248,6 @@ struct SettingsView: View {
                     )
 
                     SettingsToggleRow(
-                        title: "Local Media",
-                        systemImage: "externaldrive",
-                        isOn: $localMediaModeEnabled
-                    )
-
-                    SettingsToggleRow(
                         title: "Show Time Remaining",
                         systemImage: "clock",
                         isOn: $showsRemainingPlaybackTime
@@ -247,6 +257,12 @@ struct SettingsView: View {
                         title: "Show Estimated End Time",
                         systemImage: "clock",
                         isOn: $showsEstimatedPlaybackEndTime
+                    )
+
+                    SettingsToggleRow(
+                        title: "Local Media",
+                        systemImage: "externaldrive",
+                        isOn: $localMediaModeEnabled
                     )
                 }
 
@@ -396,6 +412,7 @@ private struct SettingsToggleRow: View {
     let systemImage: String
     @Binding var isOn: Bool
     var cardStyle = false
+    var showsDivider = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -427,6 +444,15 @@ private struct SettingsToggleRow: View {
         .padding(.horizontal, cardStyle ? 20 : 0)
         .padding(.vertical, cardStyle ? 0 : 4)
         .frame(minHeight: cardStyle ? 58 : nil)
+        .overlay(alignment: .bottom) {
+            if cardStyle && showsDivider {
+                Rectangle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(height: 1)
+                    .padding(.leading, 58)
+                    .padding(.trailing, 20)
+            }
+        }
     }
 }
 
