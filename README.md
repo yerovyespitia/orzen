@@ -143,3 +143,45 @@ Catalog responses are cached in memory and on disk. Collections, playback
 progress, track selections, and addon configuration are stored locally;
 private addon data is mirrored through Keychain storage. Orzen does not bundle
 or host media—stream availability comes from the addons configured by the user.
+
+## Local Media background service (macOS)
+
+Local Media runs in `OrzenLocalMedia.app`, embedded inside Orzen at
+`Contents/Library/LoginItems`. It has a menu bar icon and no Dock icon. Enable
+Local Media in Settings to start it; **Start at Login** registers the helper with
+macOS Service Management. If macOS requires approval, use General → Login Items
+in System Settings. Closing or quitting Orzen leaves the helper running. Use
+**Stop Local Media** in Settings or the helper's menu to stop downloads and
+sharing. Disabling Local Media browsing in Orzen does not stop the helper.
+
+The service owns downloads and `~/Documents/Orzen/library.json`; desktop views
+send requests through the same authenticated HTTP API used by iPhone. While
+Orzen is open, it refreshes the library and synchronizes progress and collections
+about every two seconds. Snapshots carry a process identifier and revision to
+reject old responses. Disconnected views retain their last library snapshot and
+show an unavailable message. Collection removals and progress removals retain
+versioned tombstones so stale clients cannot restore deleted state.
+
+On its first launch, the helper copies existing pairing credentials, progress,
+collections and the search endpoint into its own preferences domain. Existing
+media files stay in place and paired iPhones keep their token. The desktop app
+passes saved Torznab configuration to the helper over authenticated loopback;
+the helper stores its API key in a separate Keychain item. The main app and
+helper do not write each other's preferences. This migration is one-way: older
+Orzen versions do not read subsequent helper changes. Run one version at a time.
+
+Build the shared `Orzen` scheme normally. Xcode builds, embeds and signs the
+helper only for macOS; the iOS app contains no helper. Distribute the complete
+signed Orzen app, including its existing native libmpv/libtorrent dependencies.
+The helper shares source membership with the app under
+`ORZEN_LOCAL_MEDIA_SERVICE`, but starts only the Local Media server and menu,
+without creating catalog windows or prefetching catalogs.
+
+After a Debug macOS build, run the isolated service integration checks:
+
+```sh
+python3 scripts/test-local-media-service.py /tmp/orzen-tests-derived/Build/Products/Debug/Orzen.app/Contents/Library/LoginItems/OrzenLocalMedia.app/Contents/MacOS/OrzenLocalMedia
+```
+
+These checks use a temporary media directory, preferences suite and TCP port;
+they do not stop an existing Orzen server or modify the user's library.

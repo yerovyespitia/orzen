@@ -41,10 +41,10 @@ struct iPhoneRootShell: View {
         }
         .task(id: localMediaModeEnabled) {
             guard localMediaModeEnabled else { return }
-            await PlaybackProgressStore.shared.synchronizeLocalProgress()
             while !Task.isCancelled {
+                await PlaybackProgressStore.shared.synchronizeLocalProgress()
                 await CollectionStore.shared.synchronizeLocalCollections()
-                try? await Task.sleep(for: .seconds(10))
+                try? await Task.sleep(for: .seconds(3))
             }
         }
     }

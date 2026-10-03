@@ -59,7 +59,13 @@ struct LocalMediaCollectionsSyncResponse: Codable {
 @MainActor
 final class LocalMediaServer: ObservableObject {
     static let shared = LocalMediaServer()
-    static let port: UInt16 = 8937
+    static let port: UInt16 = {
+        #if DEBUG
+        if let value = LocalMediaServiceRuntime.testValue("ORZEN_SERVICE_TEST_PORT"),
+           let port = UInt16(value), port > 1024 { return port }
+        #endif
+        return 8937
+    }()
 
     @Published private(set) var isRunning = false
     @Published private(set) var errorMessage: String?
@@ -67,38 +73,31 @@ final class LocalMediaServer: ObservableObject {
     let hostName: String
     private let token: String
     private var listener: NWListener?
+    private var downloadManager: LocalMediaDownloadManager?
     private var failedPairings: [Date] = []
     private let queue = DispatchQueue(label: "Orzen.LocalMediaServer")
 
     private init() {
-        let defaults = UserDefaults.standard
-        if let saved = defaults.string(forKey: "localMedia.pairingCode") {
-            pairingCode = saved
-        } else {
-            let code = String(format: "%06d", Int.random(in: 0...999999))
-            defaults.set(code, forKey: "localMedia.pairingCode")
-            pairingCode = code
-        }
-        if let saved = defaults.string(forKey: "localMedia.accessToken") {
-            token = saved
-        } else {
-            let generated = UUID().uuidString + UUID().uuidString
-            defaults.set(generated, forKey: "localMedia.accessToken")
-            token = generated
-        }
-        let systemHost = ProcessInfo.processInfo.hostName
-        hostName = systemHost.hasSuffix(".local") ? systemHost : systemHost + ".local"
+        let defaults = LocalMediaServiceRuntime.defaults
+        let credentials = LocalMediaServiceRuntime.credentials(defaults: defaults)
+        pairingCode = credentials.code
+        token = credentials.token
+        hostName = LocalMediaServiceRuntime.hostName
     }
 
     func start() {
-        guard listener == nil else { return }
+        guard LocalMediaServiceRuntime.isService, listener == nil else { return }
         do {
             let listener = try NWListener(using: .tcp, on: NWEndpoint.Port(rawValue: Self.port)!)
-            listener.service = NWListener.Service(name: "Orzen on \(Host.current().localizedName ?? "Mac")", type: "_orzen._tcp")
+            listener.service = NWListener.Service(name: "Orzen on \(LocalMediaServiceRuntime.computerName)", type: "_orzen._tcp")
             listener.stateUpdateHandler = { [weak self] state in
                 Task { @MainActor in
                     switch state {
-                    case .ready: self?.isRunning = true; self?.errorMessage = nil
+                    case .ready:
+                        guard let self else { return }
+                        self.isRunning = true
+                        self.errorMessage = nil
+                        self.downloadManager = LocalMediaDownloadManager.shared
                     case .failed(let error): self?.isRunning = false; self?.errorMessage = error.localizedDescription
                     case .cancelled: self?.isRunning = false
                     default: break
@@ -110,7 +109,6 @@ final class LocalMediaServer: ObservableObject {
             }
             listener.start(queue: queue)
             self.listener = listener
-            _ = LocalMediaDownloadManager.shared
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -119,6 +117,8 @@ final class LocalMediaServer: ObservableObject {
     func stop() {
         listener?.cancel()
         listener = nil
+        downloadManager?.shutdown()
+        downloadManager = nil
         isRunning = false
     }
 
@@ -169,8 +169,31 @@ final class LocalMediaServer: ObservableObject {
         guard request.token == token else { sendError(401, "Pair with the Mac again.", to: connection); return }
         let parts = request.path.split(separator: "/").map(String.init)
         do {
-            if request.method == "GET" && parts == ["library"] {
+            if request.method == "GET" && parts == ["snapshot"] {
+                sendJSON(LocalMediaLibraryStore.shared.snapshot, to: connection)
+            } else if request.method == "POST" && parts == ["configuration"],
+                      case .hostPort(let host, _) = connection.endpoint,
+                      host == NWEndpoint.Host("127.0.0.1") || host == NWEndpoint.Host("::1") {
+                let input = try JSONDecoder().decode(LocalMediaSearchConfiguration.self, from: request.body)
+                let settings = TorznabSettingsStore.shared
+                settings.endpointText = input.endpoint
+                settings.apiKey = input.apiKey
+                settings.save()
+                guard settings.saveMessage == "Search provider saved." else {
+                    throw LocalMediaError.engine(settings.saveMessage ?? "Search configuration failed.")
+                }
+                sendJSON(LocalMediaActionResponse(success: true), to: connection)
+            } else if request.method == "GET" && parts == ["library"] {
                 sendJSON(LocalMediaLibraryStore.shared.versions, to: connection)
+            } else if request.method == "POST" && parts == ["metadata"] {
+                let item = try JSONDecoder().decode(CatalogItem.self, from: request.body)
+                let library = LocalMediaLibraryStore.shared
+                for version in library.versions where version.catalogID == item.id && version.contentType == item.cinemetaType {
+                    var updated = version
+                    updated.catalogItem = item
+                    try library.update(updated)
+                }
+                sendJSON(LocalMediaActionResponse(success: true), to: connection)
             } else if request.method == "POST" && parts == ["progress"] {
                 let input = try JSONDecoder().decode(LocalMediaProgressSyncRequest.self, from: request.body)
                 let records = PlaybackProgressStore.shared.mergeLocalProgress(input.records)

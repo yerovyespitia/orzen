@@ -92,12 +92,19 @@ final class LocalMediaLibraryStore: ObservableObject {
 
     let rootURL: URL
     private let indexURL: URL
+    private let instanceID = UUID()
+    private var revision: UInt64 = 0
     private let fileManager = FileManager.default
 
-    private init() {
+    init(root: URL? = nil) {
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        rootURL = documentsURL.appending(path: "Orzen", directoryHint: .isDirectory)
+        #if DEBUG
+        let testRoot = LocalMediaServiceRuntime.testValue("ORZEN_SERVICE_TEST_ROOT").map { URL(fileURLWithPath: $0) }
+        #else
+        let testRoot: URL? = nil
+        #endif
+        rootURL = root ?? testRoot ?? documentsURL.appending(path: "Orzen", directoryHint: .isDirectory)
         indexURL = rootURL.appending(path: "library.json")
 
         #if os(macOS)
@@ -106,13 +113,23 @@ final class LocalMediaLibraryStore: ObservableObject {
             if fileManager.fileExists(atPath: indexURL.path) {
                 let data = try Data(contentsOf: indexURL)
                 versions = try JSONDecoder().decode([LocalMediaVersion].self, from: data)
-            } else {
+            } else if LocalMediaServiceRuntime.isService {
                 try persist()
             }
         } catch {
             storageError = error.localizedDescription
         }
         #endif
+    }
+
+    var snapshot: LocalMediaLibrarySnapshot {
+        LocalMediaLibrarySnapshot(instanceID: instanceID, revision: revision, versions: versions, storageError: storageError)
+    }
+
+    func applySnapshot(_ snapshot: LocalMediaLibrarySnapshot) {
+        guard !LocalMediaServiceRuntime.isService else { return }
+        if versions != snapshot.versions { versions = snapshot.versions }
+        storageError = snapshot.storageError
     }
 
     func availableVersions(for item: CatalogItem, episode: CatalogEpisode?) -> [LocalMediaVersion] {
@@ -138,6 +155,8 @@ final class LocalMediaLibraryStore: ObservableObject {
         audioLanguages: [String] = [],
         subtitleLanguages: [String] = []
     ) throws -> LocalMediaVersion {
+        guard LocalMediaServiceRuntime.isService else { throw LocalMediaError.macUnavailable }
+        if let storageError { throw LocalMediaError.engine(storageError) }
         let version = LocalMediaVersion(
             item: item,
             episode: episode,
@@ -161,7 +180,8 @@ final class LocalMediaLibraryStore: ObservableObject {
     }
 
     func update(_ version: LocalMediaVersion) throws {
-        guard let index = versions.firstIndex(where: { $0.id == version.id }) else { return }
+        guard LocalMediaServiceRuntime.isService else { throw LocalMediaError.macUnavailable }
+        guard let index = versions.firstIndex(where: { $0.id == version.id }), versions[index] != version else { return }
         let previous = versions[index]
         versions[index] = version
         do {
@@ -178,6 +198,7 @@ final class LocalMediaLibraryStore: ObservableObject {
     }
 
     func remove(_ version: LocalMediaVersion) throws {
+        guard LocalMediaServiceRuntime.isService else { throw LocalMediaError.macUnavailable }
         versions.removeAll { $0.id == version.id }
         try persist()
         try fileManager.removeItem(at: rootURL.appending(path: version.folderRelativePath))
@@ -186,6 +207,7 @@ final class LocalMediaLibraryStore: ObservableObject {
     private func persist() throws {
         let data = try JSONEncoder().encode(versions)
         try data.write(to: indexURL, options: .atomic)
+        revision += 1
         storageError = nil
     }
 }

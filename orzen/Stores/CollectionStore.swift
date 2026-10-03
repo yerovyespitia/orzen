@@ -12,18 +12,29 @@ struct LocalMediaCollections: Codable {
     var planToWatchItems: [CatalogItem]
     var watchedItems: [CatalogItem]
     var droppedItems: [CatalogItem]
+    var records: [LocalMediaCollectionRecord]?
 
     init(
         favoriteItems: [CatalogItem] = [],
         planToWatchItems: [CatalogItem] = [],
         watchedItems: [CatalogItem] = [],
-        droppedItems: [CatalogItem] = []
+        droppedItems: [CatalogItem] = [],
+        records: [LocalMediaCollectionRecord]? = nil
     ) {
         self.favoriteItems = favoriteItems
         self.planToWatchItems = planToWatchItems
         self.watchedItems = watchedItems
         self.droppedItems = droppedItems
+        self.records = records
     }
+}
+
+struct LocalMediaCollectionRecord: Codable {
+    let collectionID: String
+    let item: CatalogItem
+    let updatedAt: Date
+    let isDeleted: Bool
+    var key: String { collectionID + ":" + item.id }
 }
 
 @MainActor
@@ -48,12 +59,16 @@ final class CollectionStore: ObservableObject {
     @Published private var localWatchedItems: [CatalogItem] = []
     @Published private var localDroppedItems: [CatalogItem] = []
 
-    #if os(iOS)
     private var localCollectionSyncTask: Task<Void, Never>?
-    #endif
+    private var localRecords: [String: LocalMediaCollectionRecord] = [:]
+    private var previousLocalItems: [String: CatalogItem] = [:]
 
-    private init() {
+    private let userDefaults: UserDefaults
+
+    init(userDefaults: UserDefaults = LocalMediaServiceRuntime.defaults) {
+        self.userDefaults = userDefaults
         load()
+        previousLocalItems = localMemberships
     }
 
     var collections: [MediaCollection] {
@@ -65,7 +80,8 @@ final class CollectionStore: ObservableObject {
             favoriteItems: localFavoriteItems,
             planToWatchItems: localPlanToWatchItems,
             watchedItems: localWatchedItems,
-            droppedItems: localDroppedItems
+            droppedItems: localDroppedItems,
+            records: Array(localRecords.values)
         )
     }
 
@@ -283,16 +299,57 @@ final class CollectionStore: ObservableObject {
 
     @discardableResult
     func mergeLocalCollections(_ incoming: LocalMediaCollections) -> LocalMediaCollections {
-        localFavoriteItems = merge(localFavoriteItems, with: incoming.favoriteItems)
-        localPlanToWatchItems = merge(localPlanToWatchItems, with: incoming.planToWatchItems)
-        localWatchedItems = merge(localWatchedItems, with: incoming.watchedItems)
-        localDroppedItems = merge(localDroppedItems, with: incoming.droppedItems)
+        var records = localRecords
+        // Legacy clients supply additions only. Existing tombstones take precedence.
+        let groups = [(Self.favoritesID, incoming.favoriteItems), (Self.planToWatchID, incoming.planToWatchItems),
+                      (Self.watchedID, incoming.watchedItems), (Self.droppedID, incoming.droppedItems)]
+        var candidates = incoming.records ?? []
+        for (collectionID, items) in groups {
+            for item in items where !candidates.contains(where: { $0.collectionID == collectionID && $0.item.id == item.id }) {
+                candidates.append(LocalMediaCollectionRecord(collectionID: collectionID, item: item,
+                                                            updatedAt: .distantPast, isDeleted: false))
+            }
+        }
+        for candidate in candidates {
+            guard [Self.favoritesID, Self.planToWatchID, Self.watchedID, Self.droppedID].contains(candidate.collectionID) else { continue }
+            if let current = records[candidate.key] {
+                guard candidate.updatedAt > current.updatedAt ||
+                        (candidate.updatedAt == current.updatedAt && candidate.isDeleted && !current.isDeleted) else { continue }
+            }
+            records[candidate.key] = candidate
+        }
+        // Seed legacy memberships that have not yet acquired a version.
+        for (key, item) in localMemberships where records[key] == nil {
+            let collectionID = String(key.prefix { $0 != ":" })
+            records[key] = LocalMediaCollectionRecord(collectionID: collectionID, item: item,
+                                                      updatedAt: .distantPast, isDeleted: false)
+        }
+        // Watchlist, Watched and Dropped are exclusive. A newer move removes stale membership.
+        let statusIDs = [Self.planToWatchID, Self.watchedID, Self.droppedID]
+        let activeStatuses = Dictionary(grouping: records.values.filter { statusIDs.contains($0.collectionID) && !$0.isDeleted }, by: { $0.item.id })
+        for memberships in activeStatuses.values where memberships.count > 1 {
+            let winner = memberships.sorted { $0.updatedAt == $1.updatedAt ? $0.key < $1.key : $0.updatedAt > $1.updatedAt }[0]
+            for loser in memberships where loser.key != winner.key {
+                records[loser.key] = LocalMediaCollectionRecord(collectionID: loser.collectionID, item: loser.item,
+                                                               updatedAt: winner.updatedAt, isDeleted: true)
+            }
+        }
+        localRecords = records
+        func items(_ collection: String) -> [CatalogItem] {
+            records.values.filter { $0.collectionID == collection && !$0.isDeleted }
+                .sorted { $0.updatedAt == $1.updatedAt ? $0.key < $1.key : $0.updatedAt > $1.updatedAt }.map(\.item)
+        }
+        localFavoriteItems = items(Self.favoritesID)
+        localPlanToWatchItems = items(Self.planToWatchID)
+        localWatchedItems = items(Self.watchedID)
+        localDroppedItems = items(Self.droppedID)
+        previousLocalItems = localMemberships
         save()
         return localMediaCollections
     }
 
-    #if os(iOS)
     func synchronizeLocalCollections() async {
+        guard !LocalMediaServiceRuntime.isService, userDefaults === UserDefaults.standard else { return }
         guard UserDefaults.standard.bool(forKey: LocalMediaModePreference.storageKey) else { return }
         let client = RemoteLocalMediaClient.shared
         guard client.isPaired else { return }
@@ -314,7 +371,6 @@ final class CollectionStore: ObservableObject {
             await self?.synchronizeLocalCollections()
         }
     }
-    #endif
 
     private func toggle(_ item: CatalogItem, in items: inout [CatalogItem]) {
         if let existingIndex = items.firstIndex(where: { $0.id == item.id }) {
@@ -333,17 +389,17 @@ final class CollectionStore: ObservableObject {
         items.removeAll { $0.id == item.id }
     }
 
-    private func merge(_ existing: [CatalogItem], with incoming: [CatalogItem]) -> [CatalogItem] {
-        var merged = existing
-        var knownIDs = Set(existing.map(\.id))
-        for item in incoming where knownIDs.insert(item.id).inserted {
-            merged.append(item)
+    private var localMemberships: [String: CatalogItem] {
+        var members: [String: CatalogItem] = [:]
+        for (collectionID, items) in [(Self.favoritesID, localFavoriteItems), (Self.planToWatchID, localPlanToWatchItems),
+                                       (Self.watchedID, localWatchedItems), (Self.droppedID, localDroppedItems)] {
+            for item in items { members[collectionID + ":" + item.id] = item }
         }
-        return merged
+        return members
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: Self.storageKey) else { return }
+        guard let data = userDefaults.data(forKey: Self.storageKey) else { return }
 
         do {
             let storedCollections = try JSONDecoder().decode(StoredCollections.self, from: data)
@@ -357,6 +413,7 @@ final class CollectionStore: ObservableObject {
                 localPlanToWatchItems = localCollections.planToWatchItems
                 localWatchedItems = localCollections.watchedItems
                 localDroppedItems = localCollections.droppedItems
+                localRecords = Dictionary((localCollections.records ?? []).map { ($0.key, $0) }, uniquingKeysWith: { _, new in new })
             } else {
                 // Older versions shared these lists with Local Media. Copy them so the
                 // upgrade preserves what users saw in local mode while keeping remote lists intact.
@@ -379,6 +436,16 @@ final class CollectionStore: ObservableObject {
     }
 
     private func save(syncLocalCollections: Bool = false) {
+        if syncLocalCollections {
+            let current = localMemberships
+            for key in Set(current.keys).union(previousLocalItems.keys) where (current[key] != nil) != (previousLocalItems[key] != nil) {
+                guard let item = current[key] ?? previousLocalItems[key] else { continue }
+                let collectionID = String(key.prefix { $0 != ":" })
+                localRecords[key] = LocalMediaCollectionRecord(collectionID: collectionID, item: item,
+                                                              updatedAt: Date(), isDeleted: current[key] == nil)
+            }
+            previousLocalItems = current
+        }
         let storedCollections = StoredCollections(
             favoriteItems: favoriteItems,
             planToWatchItems: planToWatchItems,
@@ -387,13 +454,11 @@ final class CollectionStore: ObservableObject {
             localMediaCollections: localMediaCollections
         )
         guard let data = try? JSONEncoder().encode(storedCollections) else { return }
-        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        userDefaults.set(data, forKey: Self.storageKey)
 
-        #if os(iOS)
         if syncLocalCollections {
             scheduleLocalCollectionSync()
         }
-        #endif
     }
 }
 

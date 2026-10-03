@@ -10,9 +10,11 @@ final class LocalMediaDownloadManager {
     private var handles: [UUID: UnsafeMutableRawPointer] = [:]
     private var inspectionsInProgress: Set<UUID> = []
     private var inspectionAttempts: [UUID: Int] = [:]
+    private var didShutDown = false
     private var pollTask: Task<Void, Never>?
 
     private init() {
+        precondition(LocalMediaServiceRuntime.isService, "Downloads belong to the Local Media service")
         session = orzen_torrent_session_create()
         for version in library.versions where version.status != .completed && version.status != .failed {
             do { try attach(version) }
@@ -24,6 +26,15 @@ final class LocalMediaDownloadManager {
                 try? await Task.sleep(for: .seconds(2))
             }
         }
+    }
+
+    func shutdown() {
+        guard !didShutDown else { return }
+        didShutDown = true
+        pollTask?.cancel()
+        pollTask = nil
+        if let session { orzen_torrent_session_destroy(session) }
+        handles.removeAll()
     }
 
     func start(item: CatalogItem, episode: CatalogEpisode?, result: TorrentSearchResult) async throws -> LocalMediaVersion {

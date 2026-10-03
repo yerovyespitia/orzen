@@ -35,16 +35,23 @@ final class TorznabSettingsStore: ObservableObject {
     @Published private(set) var saveMessage: String?
 
     private static let endpointKey = "localMedia.torznabEndpoint"
-    private static let keychainService = "com.yerovyespitia.orzen.torznab"
+    private static var keychainService: String {
+        #if DEBUG
+        if let suite = LocalMediaServiceRuntime.testValue("ORZEN_SERVICE_TEST_DEFAULTS") {
+            return suite + ".torznab" + (LocalMediaServiceRuntime.isService ? ".service" : "")
+        }
+        #endif
+        return "com.yerovyespitia.orzen.torznab" + (LocalMediaServiceRuntime.isService ? ".service" : "")
+    }
     private static let keychainAccount = "apiKey"
 
     private init() {
-        endpointText = UserDefaults.standard.string(forKey: Self.endpointKey) ?? ""
+        endpointText = LocalMediaServiceRuntime.defaults.string(forKey: Self.endpointKey) ?? ""
         apiKey = Self.loadAPIKey() ?? ""
     }
 
     var configuration: TorznabConfiguration? {
-        guard let savedEndpoint = UserDefaults.standard.string(forKey: Self.endpointKey),
+        guard let savedEndpoint = LocalMediaServiceRuntime.defaults.string(forKey: Self.endpointKey),
               let endpoint = Self.validEndpoint(savedEndpoint) else { return nil }
         return TorznabConfiguration(endpoint: endpoint, apiKey: Self.loadAPIKey() ?? "")
     }
@@ -68,12 +75,14 @@ final class TorznabSettingsStore: ObservableObject {
             try Self.saveAPIKey(resolvedKey)
             endpointText = savedEndpoint
             apiKey = resolvedKey
-            UserDefaults.standard.set(savedEndpoint, forKey: Self.endpointKey)
+            LocalMediaServiceRuntime.defaults.set(savedEndpoint, forKey: Self.endpointKey)
             saveMessage = "Search provider saved."
         } catch {
             saveMessage = error.localizedDescription
         }
     }
+
+    func reportServiceStatus(_ message: String) { saveMessage = message }
 
     private static func validEndpoint(_ value: String) -> URL? {
         guard let components = URLComponents(string: value.trimmingCharacters(in: .whitespacesAndNewlines)),

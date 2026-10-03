@@ -5,7 +5,6 @@ extension StreamPlayerView {
         guard !hasStartedPlaybackPreparation else { return }
         hasStartedPlaybackPreparation = true
 
-        #if os(iOS)
         if request.source.isLocalMedia {
             Task {
                 await progressStore.synchronizeLocalProgress()
@@ -18,7 +17,6 @@ extension StreamPlayerView {
             }
             return
         }
-        #endif
 
         configurePlaybackFromSavedProgress()
     }

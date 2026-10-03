@@ -1,11 +1,14 @@
 import SwiftUI
+#if os(macOS)
+import ServiceManagement
+#endif
 
 struct SettingsView: View {
     @AppStorage(LocalMediaModePreference.storageKey)
     private var localMediaModeEnabled = false
     @ObservedObject private var torznabSettings = TorznabSettingsStore.shared
     #if os(macOS)
-    @ObservedObject private var localServer = LocalMediaServer.shared
+    @ObservedObject private var localServer = LocalMediaServiceController.shared
     #else
     @ObservedObject private var remoteMedia = RemoteLocalMediaClient.shared
     #endif
@@ -42,12 +45,14 @@ struct SettingsView: View {
         }
         .onAppear {
             #if os(macOS)
-            if localMediaModeEnabled { localServer.start() }
+            if localMediaModeEnabled { localServer.observe() }
             #endif
         }
         .onChange(of: localMediaModeEnabled) { _, enabled in
             #if os(macOS)
-            if enabled { localServer.start() } else { localServer.stop() }
+            Task {
+                if enabled { await localServer.start() }
+            }
             #endif
         }
     }
@@ -101,6 +106,30 @@ struct SettingsView: View {
 
                         if localMediaModeEnabled {
                             SettingsCardSection(title: "Local Media") {
+                                SettingsToggleRow(
+                                    title: "Start at Login",
+                                    systemImage: "power",
+                                    isOn: Binding(get: { localServer.startsAtLogin }, set: { enabled in
+                                        Task { await localServer.setStartsAtLogin(enabled) }
+                                    }),
+                                    cardStyle: true,
+                                    showsDivider: true
+                                )
+
+                                Button {
+                                    Task {
+                                        if localServer.isRunning { await localServer.stop() }
+                                        else { await localServer.start() }
+                                    }
+                                } label: {
+                                    SettingsRow(title: localServer.isRunning ? "Stop Local Media" : "Start Local Media",
+                                                systemImage: localServer.isRunning ? "stop.circle" : "play.circle",
+                                                value: localServer.isRunning ? "Running" : "Stopped",
+                                                cardStyle: true, showsDivider: true)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(localServer.isWorking)
+
                                 NavigationLink {
                                     macLibraryDetails
                                 } label: {
@@ -189,8 +218,16 @@ struct SettingsView: View {
                         Text("Files: ~/Documents/Orzen")
                         Text("Connect iPhone to \(localServer.hostName):8937")
                         Text("Pairing code: \(localServer.pairingCode)")
-                        Text(localServer.isRunning ? "Sharing on local network" : (localServer.errorMessage ?? "Starting local server"))
+                        Text(localServer.isRunning ? "Sharing on local network. Continues when Orzen is closed." : (localServer.errorMessage ?? "Local Media is stopped."))
                             .foregroundStyle(.secondary)
+                        if let message = localServer.loginMessage {
+                            Text(message).foregroundStyle(.secondary)
+                            Button("Open Login Items Settings") {
+                                SMAppService.openSystemSettingsLoginItems()
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.blue)
+                        }
                     }
                     .padding(20)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -369,6 +406,14 @@ struct SettingsView: View {
                 Spacer()
                 Button {
                     torznabSettings.save()
+                    #if os(macOS)
+                    if torznabSettings.saveMessage == "Search provider saved." {
+                        Task {
+                            do { try await localServer.sendSearchConfiguration() }
+                            catch { torznabSettings.reportServiceStatus("Saved on this Mac. Start Local Media to apply the search provider.") }
+                        }
+                    }
+                    #endif
                 } label: {
                     Text("Save Search Provider")
                         .font(.body.weight(.semibold))

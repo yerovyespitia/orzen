@@ -90,11 +90,9 @@ final class PlaybackProgressStore: ObservableObject {
     private static let movieCompletionRemainingSeconds: Double = 420
 
     private var localProgressTombstones: [String: Date] = [:]
-    #if os(iOS)
     private var localMediaSyncTask: Task<Void, Never>?
-    #endif
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = LocalMediaServiceRuntime.defaults) {
         self.userDefaults = userDefaults
         load()
     }
@@ -167,8 +165,8 @@ final class PlaybackProgressStore: ObservableObject {
         return localProgressSyncRecords
     }
 
-    #if os(iOS)
     func synchronizeLocalProgress() async {
+        guard !LocalMediaServiceRuntime.isService, userDefaults === UserDefaults.standard else { return }
         let client = RemoteLocalMediaClient.shared
         guard client.isPaired else { return }
 
@@ -187,7 +185,6 @@ final class PlaybackProgressStore: ObservableObject {
             await self?.synchronizeLocalProgress()
         }
     }
-    #endif
 
     func resumePosition(for request: StreamPlaybackRequest) -> Double? {
         guard let entry = entry(for: request),
@@ -338,11 +335,9 @@ final class PlaybackProgressStore: ObservableObject {
                 && (mediaKind == nil || $0.source.playbackMediaKind == mediaKind)
         }
         save()
-        #if os(iOS)
         if !localKeys.isEmpty {
             scheduleLocalProgressSync()
         }
-        #endif
     }
 
     func clearProgress(contentID: String, contentType: CinemetaType) {
@@ -364,11 +359,9 @@ final class PlaybackProgressStore: ObservableObject {
         }
         entries.removeAll { $0.id == key }
         save()
-        #if os(iOS)
         if mediaKind == .local {
             scheduleLocalProgressSync()
         }
-        #endif
     }
 
     func clearProgress(for request: StreamPlaybackRequest) {
@@ -382,11 +375,9 @@ final class PlaybackProgressStore: ObservableObject {
         }
         entries.removeAll { $0.id == key }
         save()
-        #if os(iOS)
         if request.source.playbackMediaKind == .local {
             scheduleLocalProgressSync()
         }
-        #endif
     }
 
     func advanceWatchingProgressIfNeeded(
@@ -487,6 +478,7 @@ final class PlaybackProgressStore: ObservableObject {
             localProgressTombstones.removeValue(forKey: entry.id)
         }
         save()
+        if entry.source.playbackMediaKind == .local { scheduleLocalProgressSync() }
     }
 
     private func isValidLocalProgressRecord(_ record: LocalMediaProgressRecord) -> Bool {

@@ -1,6 +1,5 @@
 import Foundation
 
-#if os(iOS)
 @MainActor
 final class RemoteLocalMediaClient: ObservableObject {
     static let shared = RemoteLocalMediaClient()
@@ -18,8 +17,13 @@ final class RemoteLocalMediaClient: ObservableObject {
     } }
 
     private init() {
+        #if os(macOS)
+        host = "127.0.0.1"
+        token = LocalMediaServiceRuntime.credentials().token
+        #else
         host = UserDefaults.standard.string(forKey: "localMedia.macHost") ?? ""
         token = UserDefaults.standard.string(forKey: "localMedia.macToken")
+        #endif
         isPaired = token != nil
     }
 
@@ -29,7 +33,13 @@ final class RemoteLocalMediaClient: ObservableObject {
         let string = value.contains("://") ? value : "http://\(value)"
         guard var components = URLComponents(string: string), components.host != nil else { return nil }
         components.scheme = "http"
-        if components.port == nil { components.port = 8937 }
+        if components.port == nil {
+            #if os(macOS)
+            components.port = Int(LocalMediaServer.port)
+            #else
+            components.port = 8937
+            #endif
+        }
         components.path = ""
         components.query = nil
         return components.url
@@ -58,8 +68,29 @@ final class RemoteLocalMediaClient: ObservableObject {
         message = nil
     }
 
+    #if os(macOS)
+    private var refreshRequest: UInt64 = 0
+    private var cursor = LocalMediaSnapshotCursor()
+
+    func refreshLibrary() async throws {
+        refreshRequest += 1
+        let requestNumber = refreshRequest
+        let snapshot: LocalMediaLibrarySnapshot = try await request("snapshot")
+        guard cursor.accepts(snapshot, request: requestNumber) else { return }
+        LocalMediaLibraryStore.shared.applySnapshot(snapshot)
+    }
+
+    func configureSearch(_ configuration: LocalMediaSearchConfiguration) async throws {
+        let _: LocalMediaActionResponse = try await request("configuration", method: "POST", body: configuration)
+    }
+    #endif
+
     func versions() async throws -> [LocalMediaVersion] {
         try await request("library")
+    }
+
+    func updateMetadata(_ item: CatalogItem) async throws {
+        let _: LocalMediaActionResponse = try await request("metadata", method: "POST", body: item)
     }
 
     func syncLocalProgress(_ records: [LocalMediaProgressRecord]) async throws -> [LocalMediaProgressRecord] {
@@ -147,4 +178,3 @@ final class RemoteLocalMediaClient: ObservableObject {
         return try JSONDecoder().decode(Response.self, from: data)
     }
 }
-#endif

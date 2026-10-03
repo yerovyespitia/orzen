@@ -1,3 +1,4 @@
+#if !ORZEN_LOCAL_MEDIA_SERVICE
 import SwiftUI
 #if os(iOS)
 import AVFoundation
@@ -17,9 +18,11 @@ struct OrzenApp: App {
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1280, minHeight: 780)
                 .task {
-                    if UserDefaults.standard.bool(forKey: LocalMediaModePreference.storageKey) {
-                        LocalMediaServer.shared.start()
+                    if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil,
+                       UserDefaults.standard.bool(forKey: LocalMediaModePreference.storageKey) {
+                        await LocalMediaServiceController.shared.start()
                     }
+                    LocalMediaServiceController.shared.observe()
                     await LaunchCatalogPrefetcher.prefetchInitialCatalogs()
                 }
         }
@@ -130,3 +133,5 @@ private enum LaunchCatalogPrefetcher {
         _ = await (home, moviesAndSeries)
     }
 }
+
+#endif

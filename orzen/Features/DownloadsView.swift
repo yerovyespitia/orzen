@@ -6,6 +6,7 @@ struct DownloadsView: View {
 
     #if os(macOS)
     @ObservedObject private var library = LocalMediaLibraryStore.shared
+    @ObservedObject private var service = LocalMediaServiceController.shared
     #else
     @State private var remoteVersions: [LocalMediaVersion] = []
     @State private var connectionError: String?
@@ -58,13 +59,7 @@ struct DownloadsView: View {
                 guard fetchedItems[entry.id] == nil, !Task.isCancelled else { continue }
                 if let item = try? await CinemetaClient.fetchItem(type: entry.type, id: entry.catalogID) {
                     fetchedItems[entry.id] = item
-                    #if os(macOS)
-                    for version in entry.versions {
-                        var updated = version
-                        updated.catalogItem = item
-                        try? library.update(updated)
-                    }
-                    #endif
+                    try? await RemoteLocalMediaClient.shared.updateMetadata(item)
                 }
             }
         }
@@ -77,6 +72,13 @@ struct DownloadsView: View {
                     .orzenScreenContentInset()
             } else {
                 OrzenScreenScrollView {
+                    #if os(macOS)
+                    if let error = service.errorMessage {
+                        Text(error + " Showing the last known downloads.")
+                            .font(.callout).foregroundStyle(.secondary)
+                            .padding(.bottom, 16)
+                    }
+                    #endif
                     OrzenPosterGrid {
                         ForEach(entries) { entry in
                             let item = item(for: entry)
@@ -106,7 +108,7 @@ struct DownloadsView: View {
         #if os(iOS)
         connectionError ?? "Download a movie or episode on your Mac to see it here."
         #else
-        "Download a movie or episode to see it here."
+        service.errorMessage ?? "Download a movie or episode to see it here."
         #endif
     }
 

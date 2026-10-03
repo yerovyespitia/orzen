@@ -307,6 +307,7 @@ private struct DownloadArcIndicator: View {
 #if os(macOS)
 private struct MacDownloadActivityView: View {
     @ObservedObject private var library = LocalMediaLibraryStore.shared
+    @ObservedObject private var service = LocalMediaServiceController.shared
     @Binding private var expanded: Bool
     @State private var observedIDs = Set<UUID>()
     @State private var dismissedCompletion = false
@@ -362,9 +363,12 @@ private struct MacDownloadActivityView: View {
                 withAnimation(.easeInOut(duration: 0.18)) { expanded.toggle() }
             } label: {
                 HStack(spacing: 10) {
-                    DownloadArcIndicator()
-                        .frame(width: 22, height: 22)
-                    Text(active.count == 1 ? "Downloading" : "Downloading \(active.count)")
+                    Group {
+                        if service.isRunning { DownloadArcIndicator() }
+                        else { Image(systemName: "wifi.slash").foregroundStyle(.secondary) }
+                    }
+                    .frame(width: 22, height: 22)
+                    Text(service.isRunning ? (active.count == 1 ? "Downloading" : "Downloading \(active.count)") : "Local Media unavailable")
                         .font(.callout.weight(.medium))
                     Spacer()
                     Image(systemName: expanded ? "chevron.up" : "chevron.right")

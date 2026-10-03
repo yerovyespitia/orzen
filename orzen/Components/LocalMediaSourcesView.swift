@@ -7,6 +7,7 @@ struct LocalMediaSourcesView: View {
 
     #if os(macOS)
     @ObservedObject private var library = LocalMediaLibraryStore.shared
+    @ObservedObject private var service = LocalMediaServiceController.shared
     #endif
     @State private var remoteVersions: [LocalMediaVersion] = []
     @State private var searchRevision = 0
@@ -53,6 +54,12 @@ struct LocalMediaSourcesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
+            #if os(macOS)
+            if let error = service.errorMessage {
+                Text(error + (versions.isEmpty ? "" : " Showing the last known library."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            #endif
             if !versions.isEmpty { downloadedVersions }
             torrentSearch
             if let actionError {
@@ -77,14 +84,12 @@ struct LocalMediaSourcesView: View {
         } message: {
             Text("This will remove \(versionPendingDeletion?.torrentTitle ?? "this version") from ~/Documents/Orzen. Are you sure?")
         }
-        #if os(iOS)
         .task(id: episode?.id ?? item.id) {
             while !Task.isCancelled {
                 await refreshVersions()
                 try? await Task.sleep(for: .seconds(3))
             }
         }
-        #endif
     }
 
     private var downloadedVersions: some View {
@@ -233,15 +238,10 @@ struct LocalMediaSourcesView: View {
             }
         }
         do {
-            #if os(macOS)
-            let found = try await LocalTorrentSearchClient.search(item: item, episode: episode,
-                includeSpanish: true, forceRefresh: forceRefresh)
-            #else
             let client = RemoteLocalMediaClient.shared
             guard client.isPaired else { throw LocalMediaError.unauthorized }
             let found = try await client.search(item: item, episode: episode,
                 includeSpanish: true, forceRefresh: forceRefresh)
-            #endif
             guard !Task.isCancelled, request == searchRequest else { return }
             results = found
             hasSearched = true
@@ -262,12 +262,8 @@ struct LocalMediaSourcesView: View {
         actionError = nil
         Task {
             do {
-                #if os(macOS)
-                _ = try await LocalMediaDownloadManager.shared.start(item: item, episode: episode, result: result)
-                #else
                 _ = try await RemoteLocalMediaClient.shared.download(item: item, episode: episode, result: result)
                 await refreshVersions()
-                #endif
             } catch { actionError = error.localizedDescription }
             workingIDs.remove(result.id)
         }
@@ -295,27 +291,15 @@ struct LocalMediaSourcesView: View {
         actionError = nil
         Task {
             do {
-                #if os(macOS)
-                switch action {
-                case "pause": try LocalMediaDownloadManager.shared.pause(version.id)
-                case "resume": try LocalMediaDownloadManager.shared.resume(version.id)
-                default: try LocalMediaDownloadManager.shared.delete(version.id)
-                }
-                #else
                 try await RemoteLocalMediaClient.shared.action(action, id: version.id)
                 await refreshVersions()
-                #endif
             } catch { actionError = error.localizedDescription }
             workingIDs.remove(version.id.uuidString)
         }
     }
 
     private func playVersion(_ version: LocalMediaVersion) {
-        #if os(macOS)
-        let url = LocalMediaServer.shared.mediaURL(for: version)
-        #else
         let url = RemoteLocalMediaClient.shared.mediaURL(for: version)
-        #endif
         guard let url else { actionError = LocalMediaError.macUnavailable.localizedDescription; return }
         play(StreamSource(id: "local:\(version.id.uuidString)", addonName: "Local Media",
             title: version.torrentTitle, description: "Downloaded on Mac",
@@ -323,12 +307,17 @@ struct LocalMediaSourcesView: View {
             sourceCategory: .general, playbackURL: url))
     }
 
-    #if os(iOS)
     private func refreshVersions() async {
-        do { remoteVersions = try await RemoteLocalMediaClient.shared.versions() }
+        do {
+            #if os(macOS)
+            try await RemoteLocalMediaClient.shared.refreshLibrary()
+            #else
+            remoteVersions = try await RemoteLocalMediaClient.shared.versions()
+            #endif
+            actionError = nil
+        }
         catch { actionError = error.localizedDescription }
     }
-    #endif
 }
 
 private struct SearchRequest: Hashable {
