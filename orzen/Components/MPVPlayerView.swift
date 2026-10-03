@@ -359,6 +359,9 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
               setOption("input-default-bindings", "yes"),
               setOption("input-vo-keyboard", "yes"),
               setOption("vo", "libmpv"),
+              // AVFoundation handles system output changes. CoreAudio's default
+              // AudioUnit can stall the playback clock on USB-to-speaker switches.
+              setOption("ao", "avfoundation"),
               initialize(handle: handle),
               createRenderContext(handle: handle) else {
             shutdown()
