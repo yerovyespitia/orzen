@@ -22,6 +22,7 @@ struct StreamPlayerView: View {
     @State var nativeAudioTracks: [PlayerMediaTrack] = []
     @State var nativeSubtitleTracks: [PlayerMediaTrack] = []
     @State var externalSubtitleTracks: [ExternalSubtitleTrack] = []
+    @State var hasLoadedExternalSubtitles = false
     @State var selectedExternalSubtitleID: String?
     @State var externalSubtitleCues: [ExternalSubtitleCue] = []
     @State var loadingExternalSubtitleID: String?
@@ -38,8 +39,7 @@ struct StreamPlayerView: View {
     @State var pendingTrackSelections: PlaybackTrackSelections?
     @State var hasAppliedSavedProgress = false
     @State var hasStartedPlaybackPreparation = false
-    @State var appliedSavedAudioTrackID: String?
-    @State var appliedSavedSubtitleTrackID: String?
+    @State var trackSelectionAttempts: [String: Int] = [:]
     @State var lastSavedProgressPosition: Double = 0
     @State var hasCompletedCurrentContent = false
     @State var hasHandledPlaybackEnd = false

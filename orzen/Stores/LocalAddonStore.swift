@@ -257,7 +257,10 @@ final class LocalAddonStore: ObservableObject {
 
     func addManifestURL(_ manifestURL: URL) async throws {
         let manifest = try await StremioManifestClient.fetchManifest(from: manifestURL)
-        let addon = LocalAddon(manifestURL: manifestURL, manifest: manifest)
+        // Reinstalling keeps the addon ID, which is part of every addon
+        // subtitle ID saved with playback progress.
+        let existingID = addons.first { $0.manifestURL == manifestURL }?.id
+        let addon = LocalAddon(id: existingID ?? UUID(), manifestURL: manifestURL, manifest: manifest)
         guard addon.hasSupportedResources else {
             throw LocalAddonStoreError.unsupportedManifest
         }
@@ -300,6 +303,7 @@ final class LocalAddonStore: ObservableObject {
             if let keychainData = Self.loadKeychainAddonsData() {
                 decodeAddons(from: keychainData)
                 seedBundledAddonsIfNeeded()
+                removeDuplicateAddons()
                 return
             }
             
@@ -310,6 +314,7 @@ final class LocalAddonStore: ObservableObject {
         
         decodeAddons(from: data)
         seedBundledAddonsIfNeeded()
+        removeDuplicateAddons()
     }
     
     private func decodeAddons(from data: Data) {
@@ -339,6 +344,34 @@ final class LocalAddonStore: ObservableObject {
         let updatedSeededAddonIDs = seededAddonIDs.union(pendingAddons.map(\.id.uuidString))
         UserDefaults.standard.set(Array(updatedSeededAddonIDs), forKey: Self.seededAddonIDsKey)
         save()
+    }
+
+    private func removeDuplicateAddons() {
+        let deduplicatedAddons = Self.deduplicatedAddons(addons)
+        guard deduplicatedAddons.count != addons.count else { return }
+        addons = deduplicatedAddons
+        save()
+    }
+
+    /// Collapses addons installed more than once from the same manifest, which
+    /// otherwise list every subtitle twice. The bundled ID wins because it is
+    /// identical on every device.
+    static func deduplicatedAddons(_ addons: [LocalAddon]) -> [LocalAddon] {
+        let bundledIDs = Set(bundledAddons.map(\.id))
+        var deduplicatedAddons: [LocalAddon] = []
+
+        for addon in addons {
+            guard let index = deduplicatedAddons.firstIndex(where: { $0.manifestURL == addon.manifestURL }) else {
+                deduplicatedAddons.append(addon)
+                continue
+            }
+
+            if bundledIDs.contains(addon.id) {
+                deduplicatedAddons[index] = addon
+            }
+        }
+
+        return deduplicatedAddons
     }
 
     private func refreshMissingManifestMetadata() async {

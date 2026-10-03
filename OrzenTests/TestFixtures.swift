@@ -109,7 +109,8 @@ enum TestFixtures {
         kind: PlayerMediaTrack.Kind,
         isSelected: Bool = false,
         isOff: Bool = false,
-        externalSubtitleID: String? = nil
+        externalSubtitleID: String? = nil,
+        externalSubtitleAddonName: String? = nil
     ) -> PlayerMediaTrack {
         PlayerMediaTrack(
             id: id,
@@ -118,7 +119,8 @@ enum TestFixtures {
             kind: kind,
             isSelected: isSelected,
             isOff: isOff,
-            externalSubtitleID: externalSubtitleID
+            externalSubtitleID: externalSubtitleID,
+            externalSubtitleAddonName: externalSubtitleAddonName
         )
     }
 

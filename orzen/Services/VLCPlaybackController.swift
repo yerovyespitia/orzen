@@ -26,6 +26,11 @@ final class VLCPlaybackController: NSObject, ObservableObject {
     private var currentMedia: VLCMedia?
     private var automaticAudioSelectionAttempts = 0
     private var lastAutomaticAudioSelectionAttempt: Date?
+    // Track IDs reported by VLC selection events ("" when none is selected).
+    // VLCKit can keep a stale `isSelected` for tracks it selects on its own,
+    // which left the active audio track unmarked in the menu.
+    private var reportedSelectedAudioTrackID: String?
+    private var reportedSelectedTextTrackID: String?
     private var videoOutputNeedsRecovery = false
     private var videoTrackResetNeeded = false
     private var isRecoveringPausedVideoOutput = false
@@ -64,6 +69,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         isPaused = false
         automaticAudioSelectionAttempts = 0
         lastAutomaticAudioSelectionAttempt = nil
+        reportedSelectedAudioTrackID = nil
+        reportedSelectedTextTrackID = nil
 
         guard let media = VLCMedia(url: url) else {
             errorMessage = "VLC could not open this stream URL."
@@ -98,6 +105,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         isRenderingExternalSubtitle = false
         automaticAudioSelectionAttempts = 0
         lastAutomaticAudioSelectionAttempt = nil
+        reportedSelectedAudioTrackID = nil
+        reportedSelectedTextTrackID = nil
         videoOutputNeedsRecovery = false
         videoTrackResetNeeded = false
         cancelPausedVideoOutputRecovery()
@@ -277,6 +286,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
               player.audioTracks.indices.contains(index) else { return }
         player.selectTrack(at: index, type: .audio)
         player.audioTracks[index].isSelectedExclusively = true
+        reportedSelectedAudioTrackID = player.audioTracks[index].trackId
         automaticAudioSelectionAttempts = 10
         refreshTracks()
     }
@@ -286,6 +296,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
 
         if track.isOff {
             player.deselectAllTextTracks()
+            reportedSelectedTextTrackID = ""
             refreshTracks()
             return
         }
@@ -293,12 +304,14 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         guard let index = trackIndex(from: track.id, prefix: "vlc-subtitle", in: player.textTracks) else { return }
         player.deselectAllTextTracks()
         player.selectTrack(at: index, type: .text)
+        reportedSelectedTextTrackID = player.textTracks[index].trackId
         refreshTracks()
     }
 
     @discardableResult
     func renderExternalSubtitle(from url: URL, delay: Double) -> Bool {
         player.deselectAllTextTracks()
+        reportedSelectedTextTrackID = ""
         let result = player.addPlaybackSlave(
             url,
             type: .subtitle,
@@ -352,13 +365,15 @@ final class VLCPlaybackController: NSObject, ObservableObject {
             vlcTracks: player.audioTracks,
             kind: .audio,
             prefix: "vlc-audio",
-            includesOffOption: false
+            includesOffOption: false,
+            reportedSelectedID: reportedSelectedAudioTrackID
         )
         let refreshedSubtitleTracks = tracks(
             vlcTracks: player.textTracks,
             kind: .subtitle,
             prefix: "vlc-subtitle",
-            includesOffOption: true
+            includesOffOption: true,
+            reportedSelectedID: reportedSelectedTextTrackID
         )
 
         if audioTracks != refreshedAudioTracks {
@@ -374,7 +389,9 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         let availableTracks = player.audioTracks
         guard player.isPlaying,
               !availableTracks.isEmpty,
-              !availableTracks.contains(where: \.isSelected) else { return false }
+              !availableTracks.contains(where: {
+                  isTrackSelected($0, in: availableTracks, reportedSelectedID: reportedSelectedAudioTrackID)
+              }) else { return false }
 
         if automaticAudioSelectionAttempts >= 6 {
             // Keep the video running while testing sources whose audio codec
@@ -399,6 +416,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         } ?? 0
         player.selectTrack(at: preferredIndex, type: .audio)
         availableTracks[preferredIndex].isSelectedExclusively = true
+        reportedSelectedAudioTrackID = availableTracks[preferredIndex].trackId
         return true
     }
 
@@ -406,7 +424,8 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         vlcTracks: [VLCMediaPlayer.Track],
         kind: PlayerMediaTrack.Kind,
         prefix: String,
-        includesOffOption: Bool
+        includesOffOption: Bool,
+        reportedSelectedID: String?
     ) -> [PlayerMediaTrack] {
         var tracks: [PlayerMediaTrack] = []
 
@@ -417,7 +436,9 @@ final class VLCPlaybackController: NSObject, ObservableObject {
                     title: "Off",
                     language: nil,
                     kind: kind,
-                    isSelected: !vlcTracks.contains { $0.isSelected },
+                    isSelected: !vlcTracks.contains {
+                        isTrackSelected($0, in: vlcTracks, reportedSelectedID: reportedSelectedID)
+                    },
                     isOff: true
                 )
             )
@@ -430,7 +451,7 @@ final class VLCPlaybackController: NSObject, ObservableObject {
                     title: normalizedTrackTitle(track.trackName, fallback: "\(kind.defaultTitle) \(offset + 1)"),
                     language: track.language,
                     kind: kind,
-                    isSelected: track.isSelected,
+                    isSelected: isTrackSelected(track, in: vlcTracks, reportedSelectedID: reportedSelectedID),
                     isOff: false,
                     compatibilityWarning: kind == .audio ? audioCompatibilityWarning(for: track) : nil
                 )
@@ -438,6 +459,52 @@ final class VLCPlaybackController: NSObject, ObservableObject {
         )
 
         return tracks
+    }
+
+    private func isTrackSelected(
+        _ track: VLCMediaPlayer.Track,
+        in tracks: [VLCMediaPlayer.Track],
+        reportedSelectedID: String?
+    ) -> Bool {
+        // Only trust a reported ID that names a current track; otherwise fall
+        // back to VLCKit's own flag.
+        guard let reportedSelectedID,
+              reportedSelectedID.isEmpty || tracks.contains(where: { $0.trackId == reportedSelectedID }) else {
+            return track.isSelected
+        }
+
+        return track.trackId == reportedSelectedID
+    }
+
+    private func recordTrackSelection(
+        _ trackType: VLCMedia.TrackType,
+        selectedID: String,
+        unselectedID: String
+    ) {
+        switch trackType {
+        case .audio:
+            reportedSelectedAudioTrackID = resolvedTrackSelection(
+                current: reportedSelectedAudioTrackID,
+                selectedID: selectedID,
+                unselectedID: unselectedID
+            )
+        case .text:
+            reportedSelectedTextTrackID = resolvedTrackSelection(
+                current: reportedSelectedTextTrackID,
+                selectedID: selectedID,
+                unselectedID: unselectedID
+            )
+        default:
+            break
+        }
+    }
+
+    private func resolvedTrackSelection(current: String?, selectedID: String, unselectedID: String) -> String? {
+        if !selectedID.isEmpty {
+            return selectedID
+        }
+
+        return current == unselectedID ? "" : current
     }
 
     private func audioCompatibilityWarning(for track: VLCMediaPlayer.Track) -> String? {
@@ -562,6 +629,7 @@ extension VLCPlaybackController: VLCMediaPlayerDelegate {
         unselectedId: String
     ) {
         Task { @MainActor in
+            recordTrackSelection(trackType, selectedID: selectedId, unselectedID: unselectedId)
             refreshTracks()
         }
     }

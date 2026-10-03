@@ -25,22 +25,29 @@ enum ExternalSubtitleResolver {
         id: String,
         allowedLanguageCodes: Set<String>
     ) async -> [ExternalSubtitleTrack] {
-        await withTaskGroup(of: [ExternalSubtitleTrack].self) { group in
-            for addon in addons {
+        await withTaskGroup(of: (Int, [ExternalSubtitleTrack]).self) { group in
+            for (index, addon) in addons.enumerated() {
                 group.addTask {
-                    (try? await StremioSubtitleClient.fetchSubtitles(
+                    let subtitles = (try? await StremioSubtitleClient.fetchSubtitles(
                         from: addon,
                         type: type,
                         id: id,
                         allowedLanguageCodes: allowedLanguageCodes
                     )) ?? []
+                    return (index, subtitles)
                 }
             }
 
-            var allSubtitles: [ExternalSubtitleTrack] = []
-            for await addonSubtitles in group {
-                allSubtitles.append(contentsOf: addonSubtitles)
+            var subtitlesByAddonIndex: [Int: [ExternalSubtitleTrack]] = [:]
+            for await (index, addonSubtitles) in group {
+                subtitlesByAddonIndex[index] = addonSubtitles
             }
+
+            // Keep addon order instead of completion order so the list is the
+            // same on every load and on every device.
+            let allSubtitles = subtitlesByAddonIndex
+                .sorted { $0.key < $1.key }
+                .flatMap(\.value)
             return uniqueSubtitles(from: allSubtitles)
         }
     }
@@ -225,10 +232,11 @@ enum ExternalSubtitleResolver {
         return String(value[range])
     }
 
-    private static func uniqueSubtitles(from subtitles: [ExternalSubtitleTrack]) -> [ExternalSubtitleTrack] {
+    static func uniqueSubtitles(from subtitles: [ExternalSubtitleTrack]) -> [ExternalSubtitleTrack] {
         var seenIDs: Set<String> = []
+        var seenURLs: Set<URL> = []
         return subtitles.filter { subtitle in
-            seenIDs.insert(subtitle.id).inserted
+            seenIDs.insert(subtitle.id).inserted && seenURLs.insert(subtitle.url).inserted
         }
     }
 }

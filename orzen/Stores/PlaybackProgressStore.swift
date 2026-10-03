@@ -73,6 +73,11 @@ struct PlaybackTrackChoice: Codable, Equatable, Sendable {
     let title: String
     let language: String?
     let isOff: Bool
+    // Engine track IDs differ between mpv, VLC and AVPlayer, so these fields
+    // identify the same track across devices and engines.
+    var externalSubtitleID: String? = nil
+    var externalSubtitleAddonName: String? = nil
+    var languageOrdinal: Int? = nil
 }
 
 @MainActor

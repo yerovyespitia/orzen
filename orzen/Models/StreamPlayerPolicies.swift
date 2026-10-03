@@ -204,20 +204,96 @@ enum StreamPlayerProgressPolicy {
 }
 
 enum StreamPlayerTrackPolicy {
+    static let maximumSelectionAttempts = 3
+    private static let externalSubtitleTrackIDPrefix = "external-subtitle-"
+
+    /// Resolves a saved choice against the tracks of the current engine.
+    /// Addon subtitles are matched by their addon subtitle ID, never by the
+    /// engine track ID: mpv numbers them in load order, which is not stable.
+    /// Returns nil while an addon subtitle choice cannot be resolved yet.
     static func matchingTrack(
         for choice: PlaybackTrackChoice,
-        in tracks: [PlayerMediaTrack]
+        in tracks: [PlayerMediaTrack],
+        externalSubtitlesAreLoaded: Bool = true
     ) -> PlayerMediaTrack? {
-        tracks.first { $0.id == choice.id }
-            ?? tracks.first {
-                $0.isOff == choice.isOff
-                    && $0.language == choice.language
-                    && $0.title == choice.title
+        if choice.isOff {
+            return tracks.first(where: \.isOff)
+        }
+
+        let candidates = tracks.filter { !$0.isOff }
+        let externalSubtitleID = externalSubtitleID(for: choice)
+        let externalAddonName = externalSubtitleAddonName(for: choice, in: candidates)
+
+        if externalSubtitleID != nil || externalAddonName != nil {
+            if let externalSubtitleID,
+               let track = candidates.first(where: { $0.externalSubtitleID == externalSubtitleID }) {
+                return track
             }
+
+            guard externalSubtitlesAreLoaded else { return nil }
+
+            // A different episode or a refreshed addon response: keep the same
+            // addon and language instead of an unrelated embedded track.
+            return candidates.first { track in
+                track.externalSubtitleID != nil
+                    && (externalAddonName == nil || track.externalSubtitleAddonName == externalAddonName)
+                    && languagesMatch(track.language, choice.language)
+            }
+        }
+
+        let embeddedTracks = candidates.filter { $0.externalSubtitleID == nil }
+        if let track = embeddedTracks.first(where: {
+            $0.id == choice.id && languagesMatch($0.language, choice.language)
+        }) {
+            return track
+        }
+
+        let sameLanguageTracks = embeddedTracks.filter { languagesMatch($0.language, choice.language) }
+        if let languageOrdinal = choice.languageOrdinal,
+           sameLanguageTracks.indices.contains(languageOrdinal) {
+            return sameLanguageTracks[languageOrdinal]
+        }
+
+        if let track = sameLanguageTracks.first(where: { $0.title == choice.title }) {
+            return track
+        }
+
+        return choice.language == nil ? nil : sameLanguageTracks.first
+    }
+
+    /// The track that must be selected to honor the requested choice, or nil
+    /// when the choice is already in effect or cannot be resolved yet.
+    static func trackToSelect(
+        for choice: PlaybackTrackChoice,
+        in tracks: [PlayerMediaTrack],
+        externalSubtitlesAreLoaded: Bool
+    ) -> PlayerMediaTrack? {
+        guard let track = matchingTrack(
+            for: choice,
+            in: tracks,
+            externalSubtitlesAreLoaded: externalSubtitlesAreLoaded
+        ), !track.isSelected else {
+            return nil
+        }
+
+        return track
+    }
+
+    /// Persists what the user asked for. The engine state is only a fallback,
+    /// because engines auto-select default tracks and a saved choice may not
+    /// be resolvable on this device yet.
+    static func persistedSelections(
+        requested: PlaybackTrackSelections?,
+        engine: PlaybackTrackSelections
+    ) -> PlaybackTrackSelections {
+        PlaybackTrackSelections(
+            audio: requested?.audio ?? engine.audio,
+            subtitle: requested?.subtitle ?? engine.subtitle
+        )
     }
 
     static func externalSubtitleTrackID(for subtitle: ExternalSubtitleTrack) -> String {
-        "external-subtitle-\(subtitle.id)"
+        "\(externalSubtitleTrackIDPrefix)\(subtitle.id)"
     }
 
     static func selectedTrackChoice(
@@ -228,15 +304,61 @@ enum StreamPlayerTrackPolicy {
             return nil
         }
 
-        return trackChoice(from: track)
+        return trackChoice(from: track, in: tracks)
     }
 
-    static func trackChoice(from track: PlayerMediaTrack) -> PlaybackTrackChoice {
-        PlaybackTrackChoice(
+    static func trackChoice(
+        from track: PlayerMediaTrack,
+        in tracks: [PlayerMediaTrack] = []
+    ) -> PlaybackTrackChoice {
+        var choice = PlaybackTrackChoice(
             id: track.id,
             title: track.title,
             language: track.language,
-            isOff: track.isOff
+            isOff: track.isOff,
+            externalSubtitleID: track.externalSubtitleID,
+            externalSubtitleAddonName: track.externalSubtitleAddonName
         )
+
+        if !track.isOff, track.externalSubtitleID == nil {
+            choice.languageOrdinal = tracks
+                .filter {
+                    $0.kind == track.kind
+                        && !$0.isOff
+                        && $0.externalSubtitleID == nil
+                        && languagesMatch($0.language, track.language)
+                }
+                .firstIndex { $0.id == track.id }
+        }
+
+        return choice
+    }
+
+    static func languagesMatch(_ lhs: String?, _ rhs: String?) -> Bool {
+        PlayerTrackLanguageName.normalizedCode(for: lhs) == PlayerTrackLanguageName.normalizedCode(for: rhs)
+    }
+
+    private static func externalSubtitleID(for choice: PlaybackTrackChoice) -> String? {
+        if let externalSubtitleID = choice.externalSubtitleID {
+            return externalSubtitleID
+        }
+
+        // Choices saved before addon subtitle IDs were persisted on iOS.
+        guard choice.id.hasPrefix(externalSubtitleTrackIDPrefix) else { return nil }
+        return String(choice.id.dropFirst(externalSubtitleTrackIDPrefix.count))
+    }
+
+    private static func externalSubtitleAddonName(
+        for choice: PlaybackTrackChoice,
+        in tracks: [PlayerMediaTrack]
+    ) -> String? {
+        if let addonName = choice.externalSubtitleAddonName {
+            return addonName
+        }
+
+        // Older choices only kept the "Addon: Title" display title.
+        guard let separatorRange = choice.title.range(of: ": ") else { return nil }
+        let prefix = String(choice.title[..<separatorRange.lowerBound])
+        return tracks.contains { $0.externalSubtitleAddonName == prefix } ? prefix : nil
     }
 }

@@ -44,4 +44,36 @@ final class ExternalSubtitleResolverTests: XCTestCase {
 
         XCTAssertNil(ExternalSubtitleResolver.preferredText(in: [cue], at: 4))
     }
+
+    func testUniqueSubtitlesDropsSameFileFromDuplicateAddons() {
+        let url = URL(string: "https://example.com/subtitle.srt")!
+        let first = ExternalSubtitleTrack(id: "addon-a-1", addonName: "OpenSubtitles v3", title: "Spanish 1", language: "spa", url: url)
+        let duplicate = ExternalSubtitleTrack(id: "addon-b-1", addonName: "OpenSubtitles v3", title: "Spanish 1", language: "spa", url: url)
+
+        XCTAssertEqual(ExternalSubtitleResolver.uniqueSubtitles(from: [first, duplicate]), [first])
+    }
+
+    @MainActor
+    func testDuplicateSubtitleAddonsCollapseToBundledAddon() {
+        let manifestURL = URL(string: "https://opensubtitles-v3.strem.io/manifest.json")!
+        let bundledID = UUID(uuidString: "D17FB11D-07D2-4EBA-A6A4-67D7BB705B33")!
+        let manuallyInstalled = LocalAddon(
+            manifestURL: manifestURL,
+            name: "OpenSubtitles v3",
+            description: "",
+            resources: [.subtitles]
+        )
+        let bundled = LocalAddon(
+            id: bundledID,
+            manifestURL: manifestURL,
+            name: "OpenSubtitles v3",
+            description: "",
+            resources: [.subtitles]
+        )
+        let streamAddon = TestFixtures.addon()
+
+        let addons = LocalAddonStore.deduplicatedAddons([manuallyInstalled, streamAddon, bundled])
+
+        XCTAssertEqual(addons.map(\.id), [bundledID, streamAddon.id])
+    }
 }

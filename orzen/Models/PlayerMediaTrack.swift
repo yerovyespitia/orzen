@@ -31,6 +31,7 @@ struct PlayerMediaTrack: Identifiable, Hashable, Sendable {
     var isSelected: Bool
     let isOff: Bool
     var externalSubtitleID: String? = nil
+    var externalSubtitleAddonName: String? = nil
     var compatibilityWarning: String? = nil
 }
 
@@ -74,7 +75,9 @@ enum PlayerTrackLanguageName {
         "esp": "es", "spl": "es", "pob": "pt"
     ]
 
-    static func displayName(for language: String?) -> String? {
+    /// Two-letter code used to compare languages reported by different engines
+    /// ("spa", "es", "es-419" and "spa_ES" all normalize to "es").
+    static func normalizedCode(for language: String?) -> String? {
         guard let language else { return nil }
         let normalized = language
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -83,13 +86,37 @@ enum PlayerTrackLanguageName {
         guard !normalized.isEmpty, normalized != "und" else { return nil }
 
         let languageCode = normalized.split(separator: "-").first.map(String.init) ?? normalized
-        let twoLetterCode = iso639TwoLetterCodes[languageCode] ?? languageCode
+        return iso639TwoLetterCodes[languageCode] ?? languageCode
+    }
+
+    // Addon codes for regional variants that would otherwise share a name,
+    // e.g. OpenSubtitles "spa" and "spl" both reading "Español".
+    private static let regionalVariantIdentifiers: [String: String] = [
+        "spl": "es_419", "es-419": "es_419", "es-mx": "es_MX",
+        "pob": "pt_BR", "pt-br": "pt_BR"
+    ]
+
+    static func displayName(for language: String?) -> String? {
+        guard let twoLetterCode = normalizedCode(for: language) else { return nil }
 
         let languageLocale = Locale(identifier: twoLetterCode)
-        guard let name = languageLocale.localizedString(forLanguageCode: twoLetterCode), !name.isEmpty else {
-            return nil
+        let name: String?
+        if let variantIdentifier = regionalVariantIdentifier(for: language) {
+            name = languageLocale.localizedString(forIdentifier: variantIdentifier)
+        } else {
+            name = languageLocale.localizedString(forLanguageCode: twoLetterCode)
         }
 
+        guard let name, !name.isEmpty else { return nil }
         return name.prefix(1).uppercased() + name.dropFirst()
+    }
+
+    private static func regionalVariantIdentifier(for language: String?) -> String? {
+        guard let language else { return nil }
+        let normalized = language
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "_", with: "-")
+            .lowercased()
+        return regionalVariantIdentifiers[normalized]
     }
 }

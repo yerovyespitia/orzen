@@ -525,19 +525,24 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
             let language = stringProperty("track-list/\(index)/lang", handle: handle)
             let title = stringProperty("track-list/\(index)/title", handle: handle)
             let selected = boolProperty("track-list/\(index)/selected", handle: handle) ?? false
-            let externalSubtitleID = type == .subtitle
-                ? externalSubtitles.first(where: { "\($0.addonName): \($0.title)" == title })?.id
+            let externalSubtitle = type == .subtitle
+                ? externalSubtitle(
+                    filename: stringProperty("track-list/\(index)/external-filename", handle: handle),
+                    title: title
+                )
                 : nil
 
             tracks.append(
                 PlayerMediaTrack(
                     id: id,
-                    title: resolvedTrackTitle(title: title, language: language, id: id, type: type),
+                    title: externalSubtitle.map { "\($0.addonName): \($0.title)" }
+                        ?? resolvedTrackTitle(title: title, language: language, id: id, type: type),
                     language: language,
                     kind: type,
                     isSelected: selected,
                     isOff: false,
-                    externalSubtitleID: externalSubtitleID
+                    externalSubtitleID: externalSubtitle?.id,
+                    externalSubtitleAddonName: externalSubtitle?.addonName
                 )
             )
         }
@@ -549,6 +554,15 @@ final class MPVOpenGLPlayerView: NSOpenGLView {
         }
 
         return tracks
+    }
+
+    private func externalSubtitle(filename: String?, title: String?) -> ExternalSubtitleTrack? {
+        if let filename,
+           let subtitle = externalSubtitles.first(where: { $0.url.absoluteString == filename }) {
+            return subtitle
+        }
+
+        return externalSubtitles.first { "\($0.addonName): \($0.title)" == title }
     }
 
     private func resolvedTrackTitle(title: String?, language: String?, id: String, type: PlayerMediaTrack.Kind) -> String {

@@ -98,7 +98,8 @@ extension StreamPlayerView {
                 kind: .subtitle,
                 isSelected: selectedExternalSubtitleID == subtitle.id,
                 isOff: false,
-                externalSubtitleID: subtitle.id
+                externalSubtitleID: subtitle.id,
+                externalSubtitleAddonName: subtitle.addonName
             )
         }
 
@@ -125,7 +126,8 @@ extension StreamPlayerView {
                 kind: .subtitle,
                 isSelected: selectedExternalSubtitleID == subtitle.id,
                 isOff: false,
-                externalSubtitleID: subtitle.id
+                externalSubtitleID: subtitle.id,
+                externalSubtitleAddonName: subtitle.addonName
             )
         }
 
@@ -247,9 +249,12 @@ extension StreamPlayerView {
     #endif
 
     var currentTrackSelections: PlaybackTrackSelections {
-        PlaybackTrackSelections(
-            audio: selectedTrackChoice(from: audioTracks, kind: .audio),
-            subtitle: selectedTrackChoice(from: subtitleTracks, kind: .subtitle)
+        StreamPlayerTrackPolicy.persistedSelections(
+            requested: pendingTrackSelections,
+            engine: PlaybackTrackSelections(
+                audio: selectedTrackChoice(from: audioTracks, kind: .audio),
+                subtitle: selectedTrackChoice(from: subtitleTracks, kind: .subtitle)
+            )
         )
     }
 

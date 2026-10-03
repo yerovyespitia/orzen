@@ -136,7 +136,25 @@ struct PlayerTrackMenu: View, Equatable {
         .sorted { $0.name < $1.name }
     }
 
+    @ViewBuilder
     private func trackButton(_ track: PlayerMediaTrack, title: String) -> some View {
+        #if os(macOS)
+        // macOS menus do not draw Label icons here; a Toggle maps to the
+        // menu item's native checked state.
+        Toggle(
+            isOn: Binding(
+                get: { track.isSelected },
+                set: { _ in onSelect(track) }
+            )
+        ) {
+            if track.compatibilityWarning != nil {
+                Label(title, systemImage: "exclamationmark.triangle.fill")
+            } else {
+                Text(title)
+            }
+        }
+        .help(track.compatibilityWarning ?? title)
+        #else
         Button {
             onSelect(track)
         } label: {
@@ -152,6 +170,7 @@ struct PlayerTrackMenu: View, Equatable {
             }
         }
         .help(track.compatibilityWarning ?? title)
+        #endif
     }
 
     private func addonName(for track: PlayerMediaTrack) -> String? {

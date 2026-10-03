@@ -5,6 +5,8 @@ extension StreamPlayerView {
         guard !addonStore.subtitleAddons.isEmpty else {
             externalSubtitleTracks = []
             clearExternalSubtitleSelection()
+            hasLoadedExternalSubtitles = true
+            applySavedTrackSelectionsIfPossible()
             return
         }
 
@@ -16,68 +18,54 @@ extension StreamPlayerView {
         )
 
         externalSubtitleTracks = loadedSubtitles
+        hasLoadedExternalSubtitles = true
         if let selectedExternalSubtitleID,
            !loadedSubtitles.contains(where: { $0.id == selectedExternalSubtitleID }) {
             clearExternalSubtitleSelection()
         }
+        applySavedTrackSelectionsIfPossible()
     }
 
 
     func selectAudioTrack(_ track: PlayerMediaTrack) {
         performPlayerAction {
-            switch activePlaybackEngine {
-            case .mpv:
-                mpvController.selectAudioTrack(track)
-            case .vlc:
-                #if os(iOS)
-                vlcController.selectAudioTrack(track)
-                #endif
-            case .native:
-                selectNativeTrack(track, characteristic: .audible)
-            case nil:
-                break
-            }
+            let choice = trackChoice(from: track, in: audioTracks)
+            selectStoredTrack(track)
 
             let updatedSelections = PlaybackTrackSelections(
-                audio: trackChoice(from: track),
+                audio: choice,
                 subtitle: currentTrackSelections.subtitle
             )
             pendingTrackSelections = updatedSelections
-            appliedSavedAudioTrackID = track.id
+            resetTrackSelectionAttempts(for: .audio)
             saveCurrentProgress(force: true, trackSelections: updatedSelections)
         }
     }
 
     func selectSubtitleTrack(_ track: PlayerMediaTrack) {
         performPlayerAction {
-            switch activePlaybackEngine {
-            case .mpv:
-                if let externalSubtitleID = track.externalSubtitleID {
-                    selectedExternalSubtitleID = externalSubtitleID
-                    mpvController.setSubtitleDelay(subtitleDelay)
-                } else {
-                    clearExternalSubtitleSelection()
-                    mpvController.setSubtitleDelay(0)
-                }
-                mpvController.selectSubtitleTrack(track)
-            case .vlc:
-                #if os(iOS)
-                selectVLCSubtitleTrack(track)
-                #endif
-            case .native:
-                selectNativeSubtitleTrack(track)
-            case nil:
-                break
-            }
+            let choice = trackChoice(from: track, in: subtitleTracks)
+            selectStoredTrack(track)
 
             let updatedSelections = PlaybackTrackSelections(
                 audio: currentTrackSelections.audio,
-                subtitle: trackChoice(from: track)
+                subtitle: choice
             )
             pendingTrackSelections = updatedSelections
-            appliedSavedSubtitleTrackID = track.id
+            resetTrackSelectionAttempts(for: .subtitle)
             saveCurrentProgress(force: true, trackSelections: updatedSelections)
         }
+    }
+
+    func selectMPVSubtitleTrack(_ track: PlayerMediaTrack) {
+        if let externalSubtitleID = track.externalSubtitleID {
+            selectedExternalSubtitleID = externalSubtitleID
+            mpvController.setSubtitleDelay(subtitleDelay)
+        } else {
+            clearExternalSubtitleSelection()
+            mpvController.setSubtitleDelay(0)
+        }
+        mpvController.selectSubtitleTrack(track)
     }
 
     func selectNativeSubtitleTrack(_ track: PlayerMediaTrack) {
@@ -195,22 +183,39 @@ extension StreamPlayerView {
         refreshNativeMediaTracks()
     }
 
+    /// Keeps the requested tracks in effect. Engines may auto-select default
+    /// tracks after a saved choice was first applied, so this runs on every
+    /// track list change, with a bounded number of attempts per track.
     func applySavedTrackSelectionsIfPossible() {
         guard let pendingTrackSelections, activePlaybackEngine != nil else { return }
 
-        if let audioChoice = pendingTrackSelections.audio,
-           appliedSavedAudioTrackID != audioChoice.id,
-           let audioTrack = matchingTrack(for: audioChoice, in: audioTracks) {
-            selectStoredTrack(audioTrack)
-            appliedSavedAudioTrackID = audioChoice.id
+        if let audioChoice = pendingTrackSelections.audio {
+            enforceTrackSelection(audioChoice, in: audioTracks)
         }
 
-        if let subtitleChoice = pendingTrackSelections.subtitle,
-           appliedSavedSubtitleTrackID != subtitleChoice.id,
-           let subtitleTrack = matchingTrack(for: subtitleChoice, in: subtitleTracks) {
-            selectStoredTrack(subtitleTrack)
-            appliedSavedSubtitleTrackID = subtitleChoice.id
+        if let subtitleChoice = pendingTrackSelections.subtitle {
+            enforceTrackSelection(subtitleChoice, in: subtitleTracks)
         }
+    }
+
+    func enforceTrackSelection(_ choice: PlaybackTrackChoice, in tracks: [PlayerMediaTrack]) {
+        guard let track = StreamPlayerTrackPolicy.trackToSelect(
+            for: choice,
+            in: tracks,
+            externalSubtitlesAreLoaded: hasLoadedExternalSubtitles
+        ) else {
+            return
+        }
+
+        let attemptKey = "\(track.kind.rawValue):\(track.id)"
+        let attempts = trackSelectionAttempts[attemptKey, default: 0]
+        guard attempts < StreamPlayerTrackPolicy.maximumSelectionAttempts else { return }
+        trackSelectionAttempts[attemptKey] = attempts + 1
+        selectStoredTrack(track)
+    }
+
+    func resetTrackSelectionAttempts(for kind: PlayerMediaTrack.Kind) {
+        trackSelectionAttempts = trackSelectionAttempts.filter { !$0.key.hasPrefix("\(kind.rawValue):") }
     }
 
     func selectStoredTrack(_ track: PlayerMediaTrack) {
@@ -219,7 +224,7 @@ extension StreamPlayerView {
             if track.kind == .audio {
                 mpvController.selectAudioTrack(track)
             } else {
-                mpvController.selectSubtitleTrack(track)
+                selectMPVSubtitleTrack(track)
             }
         case .vlc:
             #if os(iOS)
@@ -240,10 +245,6 @@ extension StreamPlayerView {
         }
     }
 
-    func matchingTrack(for choice: PlaybackTrackChoice, in tracks: [PlayerMediaTrack]) -> PlayerMediaTrack? {
-        StreamPlayerTrackPolicy.matchingTrack(for: choice, in: tracks)
-    }
-
     func externalSubtitleTrackID(for subtitle: ExternalSubtitleTrack) -> String {
         StreamPlayerTrackPolicy.externalSubtitleTrackID(for: subtitle)
     }
@@ -252,7 +253,7 @@ extension StreamPlayerView {
         StreamPlayerTrackPolicy.selectedTrackChoice(from: tracks, kind: kind)
     }
 
-    func trackChoice(from track: PlayerMediaTrack) -> PlaybackTrackChoice {
-        StreamPlayerTrackPolicy.trackChoice(from: track)
+    func trackChoice(from track: PlayerMediaTrack, in tracks: [PlayerMediaTrack]) -> PlaybackTrackChoice {
+        StreamPlayerTrackPolicy.trackChoice(from: track, in: tracks)
     }
 }
