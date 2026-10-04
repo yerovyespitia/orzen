@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Security
 
 struct TorznabConfiguration: Sendable {
@@ -239,25 +240,23 @@ enum TorznabSearchClient {
         let title = searchTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty else { return [] }
 
-        let suffix: String
-        if let episode, let season = episode.season, let number = episode.episode {
-            suffix = String(format: "S%02dE%02d", season, number)
-        } else if item.cinemetaType == .series {
-            suffix = ""
-        } else {
-            suffix = item.displayYear?.firstYear ?? ""
-        }
-        let category = item.cinemetaType == .series ? "5000" : "2000"
-        let baseQuery = [title, suffix].filter { !$0.isEmpty }.joined(separator: " ")
-        var queries = [baseQuery]
+        let queries = TorrentSearchStrategy.queries(title: title, item: item, episode: episode)
+        guard let baseQuery = queries.first else { return [] }
+        var queriesToFetch = queries
         if includeSpanish {
-            queries += ["\(baseQuery) castellano", "\(baseQuery) latino"]
+            queriesToFetch += ["\(baseQuery) castellano", "\(baseQuery) latino"]
+        }
+        let category: String
+        if item.cinemetaType == .series {
+            category = TorrentSearchStrategy.isAnime(item) ? "5070" : "5000"
+        } else {
+            category = "2000"
         }
 
         var found: [TorrentSearchResult] = []
         var firstError: Error?
         await withTaskGroup(of: Result<[TorrentSearchResult], Error>.self) { group in
-            for query in queries {
+            for query in queriesToFetch {
                 group.addTask {
                     do { return .success(try await fetch(configuration: configuration, query: query, category: category)) }
                     catch { return .failure(error) }
@@ -286,11 +285,9 @@ enum TorznabSearchClient {
             throw TorznabSearchError.invalidEndpoint
         }
         var queryItems = components.queryItems ?? []
-        queryItems.removeAll { ["t", "q", "apikey"].contains($0.name.lowercased()) }
+        queryItems.removeAll { ["t", "q", "apikey", "cat"].contains($0.name.lowercased()) }
         queryItems += [URLQueryItem(name: "t", value: "search"), URLQueryItem(name: "q", value: query)]
-        if !queryItems.contains(where: { $0.name.lowercased() == "cat" }) {
-            queryItems.append(URLQueryItem(name: "cat", value: category))
-        }
+        queryItems.append(URLQueryItem(name: "cat", value: category))
         if !configuration.apiKey.isEmpty {
             queryItems.append(URLQueryItem(name: "apikey", value: configuration.apiKey))
         }
@@ -307,6 +304,38 @@ enum TorznabSearchClient {
         guard parser.parse() else { throw TorznabSearchError.invalidFeed }
         if let providerError = parser.providerError { throw TorznabSearchError.provider(providerError) }
         return parser.results
+    }
+}
+
+private enum TorrentSearchStrategy {
+    static func isAnime(_ item: CatalogItem) -> Bool {
+        item.genres.contains {
+            let genre = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            return genre.caseInsensitiveCompare("anime") == .orderedSame
+                || genre.caseInsensitiveCompare("animation") == .orderedSame
+        }
+    }
+
+    static func queries(title: String, item: CatalogItem, episode: CatalogEpisode?) -> [String] {
+        let cleanTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanTitle.isEmpty else { return [] }
+
+        var suffixes: [String] = []
+        if let episode, let number = episode.episode {
+            if let season = episode.season {
+                suffixes.append(String(format: "S%02dE%02d", season, number))
+            }
+            if isAnime(item) {
+                suffixes.append(String(format: "%02d", number))
+                if number < 10 { suffixes.append(String(number)) }
+            }
+        } else if item.cinemetaType == .movie, let year = item.displayYear?.firstYear {
+            suffixes.append(year)
+        }
+
+        let queries = suffixes.isEmpty ? [cleanTitle] : suffixes.map { "\(cleanTitle) \($0)" }
+        var seen = Set<String>()
+        return queries.filter { seen.insert($0.lowercased()).inserted }
     }
 }
 
@@ -435,27 +464,35 @@ enum LocalTorrentSearchClient {
         let key = SearchKey(contentID: episode?.id ?? item.id, includeSpanish: includeSpanish)
         if !forceRefresh, let cached = cachedResults[key] { return cached }
 
-        let suffix: String
-        if let episode, let season = episode.season, let number = episode.episode {
-            suffix = String(format: "S%02dE%02d", season, number)
-        } else {
-            suffix = item.cinemetaType == .movie ? (item.displayYear?.firstYear ?? "") : ""
-        }
-        let query = [item.title, suffix].filter { !$0.isEmpty }.joined(separator: " ")
+        let queries = TorrentSearchStrategy.queries(title: item.title, item: item, episode: episode)
+        guard let query = queries.first else { return [] }
 
         do {
-            var found: [TorrentSearchResult]
-            if includeSpanish {
-                // Reuse the English listing; extra language queries must not hide it.
-                found = try await search(item: item, episode: episode, includeSpanish: false)
-                for language in ["castellano", "latino", "español"] {
+            var found: [TorrentSearchResult] = []
+            for (index, searchQuery) in queries.enumerated() {
+                guard !Task.isCancelled else { break }
+                let extra = index == 0
+                    ? try await MagnetzSearchClient.fetch(query: searchQuery)
+                    : (try? await MagnetzSearchClient.fetch(query: searchQuery)) ?? []
+                found.append(contentsOf: extra)
+                if !cleaned(found, item: item, episode: episode, includeSpanish: includeSpanish).isEmpty {
+                    break
+                }
+            }
+
+            if includeSpanish,
+               !cleaned(found, item: item, episode: episode, includeSpanish: true)
+                .contains(where: { $0.languageLabel == "Spanish" }) {
+                for language in ["latino", "castellano", "español"] {
                     guard !Task.isCancelled else { break }
                     if let extra = try? await MagnetzSearchClient.fetch(query: "\(query) \(language)") {
                         found.append(contentsOf: extra)
+                        if cleaned(found, item: item, episode: episode, includeSpanish: true)
+                            .contains(where: { $0.languageLabel == "Spanish" }) {
+                            break
+                        }
                     }
                 }
-            } else {
-                found = try await MagnetzSearchClient.fetch(query: query)
             }
 
             if let configuration = TorznabSettingsStore.shared.configuration,
@@ -465,10 +502,14 @@ enum LocalTorrentSearchClient {
             }
             guard !Task.isCancelled else { return cachedResults[key] ?? [] }
             let filtered = cleaned(found, item: item, episode: episode, includeSpanish: includeSpanish)
-            cachedResults[key] = filtered
+            if filtered.isEmpty {
+                cachedResults.removeValue(forKey: key)
+            } else {
+                cachedResults[key] = filtered
+            }
             return filtered
         } catch {
-            if let cached = cachedResults[key] { return cached }
+            if !forceRefresh, let cached = cachedResults[key] { return cached }
             throw error
         }
     }
@@ -493,16 +534,25 @@ enum LocalTorrentSearchClient {
             .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
             .map(String.init)
             .filter { $0.count > 2 && !["the", "and", "los", "las"].contains($0) }
-        guard keywords.allSatisfy({ title.contains($0) }) else { return false }
+        let titleMatches = !keywords.isEmpty && keywords.allSatisfy({ title.contains($0) })
+        guard titleMatches || (TorrentSearchStrategy.isAnime(item) && episode?.episode != nil) else { return false }
         if let episode, let season = episode.season, let number = episode.episode {
             let marker = String(format: "s%02de%02d", season, number)
-            guard title.contains(marker) else { return false }
+            let animeEpisodePattern = String(format: #"(?<![A-Za-z0-9])0?%d(?![A-Za-z0-9])"#, number)
+            let hasAnimeEpisodeNumber = TorrentSearchStrategy.isAnime(item)
+                && title.range(of: animeEpisodePattern, options: .regularExpression) != nil
+            guard title.contains(marker) || hasAnimeEpisodeNumber else { return false }
+        } else if let episode, let number = episode.episode, TorrentSearchStrategy.isAnime(item) {
+            let animeEpisodePattern = String(format: #"(?<![A-Za-z0-9])0?%d(?![A-Za-z0-9])"#, number)
+            guard title.range(of: animeEpisodePattern, options: .regularExpression) != nil else { return false }
         }
         return true
     }
 }
 
 private enum MagnetzSearchClient {
+    private static let logger = Logger(subsystem: "com.yerovyespitia.orzen", category: "MagnetzSearch")
+
     private struct Response: Decodable { let data: [Entry] }
     private struct Entry: Decodable {
         let name: String
@@ -524,16 +574,65 @@ private enum MagnetzSearchClient {
         components.queryItems = [URLQueryItem(name: "query", value: query), URLQueryItem(name: "page", value: "1")]
         var request = URLRequest(url: components.url!)
         request.timeoutInterval = 20
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let response = response as? HTTPURLResponse,
-              (200..<300).contains(response.statusCode) else {
-            throw LocalMediaError.engine("Built-in torrent search is temporarily unavailable.")
+
+        for attempt in 0..<2 {
+            let startedAt = Date()
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let response = response as? HTTPURLResponse else {
+                    throw MagnetzSearchError.invalidResponse
+                }
+                let elapsedMilliseconds = Int(Date().timeIntervalSince(startedAt) * 1_000)
+                let remaining = response.value(forHTTPHeaderField: "x-ratelimit-remaining") ?? "unknown"
+
+                if (500..<600).contains(response.statusCode), attempt == 0 {
+                    logger.error("Magnetz returned HTTP \(response.statusCode, privacy: .public); retrying once after \(elapsedMilliseconds, privacy: .public)ms")
+                    try await Task.sleep(nanoseconds: 750_000_000)
+                    continue
+                }
+                if response.statusCode == 429, attempt == 0,
+                   let retryAfter = response.value(forHTTPHeaderField: "Retry-After").flatMap(TimeInterval.init),
+                   retryAfter > 0, retryAfter <= 10 {
+                    logger.error("Magnetz rate limited the request; retrying after \(retryAfter, privacy: .public)s")
+                    try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))
+                    continue
+                }
+                guard (200..<300).contains(response.statusCode) else {
+                    logger.error("Magnetz returned HTTP \(response.statusCode, privacy: .public), remaining=\(remaining, privacy: .public), elapsed=\(elapsedMilliseconds, privacy: .public)ms")
+                    throw MagnetzSearchError.httpStatus(response.statusCode)
+                }
+
+                logger.notice("Magnetz search succeeded, remaining=\(remaining, privacy: .public), elapsed=\(elapsedMilliseconds, privacy: .public)ms")
+                return try JSONDecoder().decode(Response.self, from: data).data.compactMap { entry in
+                    guard let magnet = URL(string: entry.magnetLink) else { return nil }
+                    return TorrentSearchResult(id: entry.infoHash.lowercased(), title: entry.name,
+                        infoHash: entry.infoHash, downloadURL: magnet, size: entry.size,
+                        seeders: entry.seeders, peers: entry.leechers)
+                }
+            } catch let error as MagnetzSearchError {
+                throw error
+            } catch let error as URLError where error.code != .cancelled && attempt == 0 {
+                logger.error("Magnetz transport error \(error.code.rawValue, privacy: .public); retrying once")
+                try await Task.sleep(nanoseconds: 500_000_000)
+            }
         }
-        return try JSONDecoder().decode(Response.self, from: data).data.compactMap { entry in
-            guard let magnet = URL(string: entry.magnetLink) else { return nil }
-            return TorrentSearchResult(id: entry.infoHash.lowercased(), title: entry.name,
-                infoHash: entry.infoHash, downloadURL: magnet, size: entry.size,
-                seeders: entry.seeders, peers: entry.leechers)
+        throw MagnetzSearchError.unavailable
+    }
+}
+
+private enum MagnetzSearchError: LocalizedError {
+    case invalidResponse
+    case httpStatus(Int)
+    case unavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidResponse, .unavailable:
+            "Built-in torrent search is temporarily unavailable. Try again in a moment."
+        case .httpStatus(429):
+            "Built-in torrent search reached its request limit. Wait a moment and try again."
+        case .httpStatus:
+            "Built-in torrent search is temporarily unavailable. Try again in a moment."
         }
     }
 }

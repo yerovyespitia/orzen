@@ -182,6 +182,7 @@ struct LocalMediaSourcesView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
+                .disabled(isSearching)
                 .help("Refresh torrents")
             }
             if hasSearched && !isSearching && results.isEmpty && searchError == nil {
