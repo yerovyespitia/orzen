@@ -47,6 +47,7 @@ struct CatalogPosterCard: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
         }
+        .modifier(CatalogDownloadIndicator(item: item))
         .animation(.easeInOut(duration: 0.2), value: isHovered)
         .onHover { hovering in
             isHovered = hovering
@@ -88,5 +89,60 @@ struct CatalogPosterCard: View {
                 return value
             }
             .joined(separator: " • ")
+    }
+}
+
+struct CatalogDownloadIndicator: ViewModifier {
+    let item: CatalogItem
+    @ObservedObject private var library = LocalMediaLibraryStore.shared
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .bottomTrailing) {
+                if library.hasDownload(for: item) {
+                    CatalogDownloadBadge()
+                        .padding(8)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+            .accessibilityLabel(item.title)
+            .accessibilityValue(library.hasDownload(for: item) ? downloadDescription : "")
+            .help(library.hasDownload(for: item) ? downloadDescription : item.title)
+    }
+
+    private var downloadDescription: String {
+        item.cinemetaType == .series ? "Downloaded episodes available" : "Downloaded"
+    }
+}
+
+private struct CatalogDownloadBadge: View {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        surface
+            .colorScheme(.dark)
+    }
+
+    private var symbol: some View {
+        Image(systemName: "arrow.down.to.line")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: 28, height: 28)
+    }
+
+    @ViewBuilder
+    private var surface: some View {
+        if reduceTransparency {
+            symbol.background(Color.black.opacity(0.85), in: Circle())
+        } else if #available(iOS 26, macOS 26, *) {
+            symbol.glassEffect(.regular, in: Circle())
+        } else {
+            symbol
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay {
+                    Circle().stroke(.white.opacity(0.16), lineWidth: 1)
+                }
+        }
     }
 }

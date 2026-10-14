@@ -87,7 +87,10 @@ struct LocalMediaVersion: Identifiable, Codable, Equatable, Sendable {
 final class LocalMediaLibraryStore: ObservableObject {
     static let shared = LocalMediaLibraryStore()
 
-    @Published private(set) var versions: [LocalMediaVersion] = []
+    @Published private(set) var versions: [LocalMediaVersion] = [] {
+        didSet { refreshDownloadedCatalogKeys() }
+    }
+    @Published private(set) var downloadedCatalogKeys: Set<String> = []
     @Published private(set) var storageError: String?
 
     let rootURL: URL
@@ -106,6 +109,7 @@ final class LocalMediaLibraryStore: ObservableObject {
         #endif
         rootURL = root ?? testRoot ?? documentsURL.appending(path: "Orzen", directoryHint: .isDirectory)
         indexURL = rootURL.appending(path: "library.json")
+        defer { refreshDownloadedCatalogKeys() }
 
         #if os(macOS)
         do {
@@ -128,8 +132,30 @@ final class LocalMediaLibraryStore: ObservableObject {
 
     func applySnapshot(_ snapshot: LocalMediaLibrarySnapshot) {
         guard !LocalMediaServiceRuntime.isService else { return }
-        if versions != snapshot.versions { versions = snapshot.versions }
+        if versions != snapshot.versions {
+            versions = snapshot.versions
+        } else {
+            // Recheck desktop files even when the server's index has not changed.
+            refreshDownloadedCatalogKeys()
+        }
         storageError = snapshot.storageError
+    }
+
+    func hasDownload(for item: CatalogItem) -> Bool {
+        guard let type = item.cinemetaType else { return false }
+        return downloadedCatalogKeys.contains("\(type.rawValue):\(item.id)")
+    }
+
+    private func refreshDownloadedCatalogKeys() {
+        let keys = Set(versions.compactMap { version -> String? in
+            guard version.status == .completed,
+                  let path = version.videoRelativePath, !path.isEmpty else { return nil }
+            #if os(macOS)
+            guard fileManager.fileExists(atPath: rootURL.appending(path: path).path) else { return nil }
+            #endif
+            return "\(version.contentType.rawValue):\(version.catalogID)"
+        })
+        if downloadedCatalogKeys != keys { downloadedCatalogKeys = keys }
     }
 
     func availableVersions(for item: CatalogItem, episode: CatalogEpisode?) -> [LocalMediaVersion] {

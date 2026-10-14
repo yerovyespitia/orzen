@@ -3,6 +3,76 @@ import XCTest
 
 @MainActor
 final class LocalMediaServiceTests: XCTestCase {
+    func testDownloadIndicatorRequiresCompletedVideo() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try Data("video".utf8).write(to: root.appending(path: "movie.mp4"))
+        let library = LocalMediaLibraryStore(root: root)
+        let item = TestFixtures.item()
+        var version = LocalMediaVersion(item: item, episode: nil, infoHash: "movie", torrentTitle: "Movie")
+        version.videoRelativePath = "movie.mp4"
+
+        for status in [LocalMediaVersion.Status.queued, .downloading, .paused, .failed] {
+            version.status = status
+            library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: [version]))
+            XCTAssertFalse(library.hasDownload(for: item), "\(status) is not downloaded")
+        }
+        version.status = .completed
+        library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: [version]))
+        XCTAssertTrue(library.hasDownload(for: item))
+        for path: String? in [nil, ""] {
+            version.videoRelativePath = path
+            library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: [version]))
+            XCTAssertFalse(library.hasDownload(for: item))
+        }
+    }
+
+    func testSeriesIndicatorTracksAnyCompletedEpisodeAndRemoval() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try Data("video".utf8).write(to: root.appending(path: "episode.mp4"))
+        let library = LocalMediaLibraryStore(root: root)
+        let series = TestFixtures.item(type: .series)
+        var completed = LocalMediaVersion(item: series,
+            episode: TestFixtures.episode(id: "episode-1", number: 1), infoHash: "episode-1", torrentTitle: "S1E1")
+        completed.status = .completed
+        completed.videoRelativePath = "episode.mp4"
+        let queued = LocalMediaVersion(item: series,
+            episode: TestFixtures.episode(id: "episode-2", number: 2), infoHash: "episode-2", torrentTitle: "S1E2")
+        library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: [completed, queued]))
+        XCTAssertTrue(library.hasDownload(for: series))
+        XCTAssertFalse(library.hasDownload(for: TestFixtures.item()))
+        library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: [queued]))
+        XCTAssertFalse(library.hasDownload(for: series))
+        library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: [completed]))
+        XCTAssertTrue(library.hasDownload(for: series))
+        library.applySnapshot(.init(instanceID: UUID(), revision: 0, versions: []))
+        XCTAssertFalse(library.hasDownload(for: series))
+    }
+
+    #if os(macOS)
+    func testDownloadIndicatorRechecksRemovedFilesWithUnchangedSnapshot() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let file = root.appending(path: "movie.mp4")
+        try Data("video".utf8).write(to: file)
+        let library = LocalMediaLibraryStore(root: root)
+        let item = TestFixtures.item()
+        var version = LocalMediaVersion(item: item, episode: nil, infoHash: "movie", torrentTitle: "Movie")
+        version.status = .completed
+        version.videoRelativePath = "movie.mp4"
+        let snapshot = LocalMediaLibrarySnapshot(instanceID: UUID(), revision: 0, versions: [version])
+        library.applySnapshot(snapshot)
+        XCTAssertTrue(library.hasDownload(for: item))
+        try FileManager.default.removeItem(at: file)
+        library.applySnapshot(snapshot)
+        XCTAssertFalse(library.hasDownload(for: item))
+    }
+    #endif
+
     func testLocalCollectionsPersistWithoutChangingRemoteCollections() {
         let isolated = TestFixtures.isolatedDefaults()
         defer { isolated.defaults.removePersistentDomain(forName: isolated.suiteName) }

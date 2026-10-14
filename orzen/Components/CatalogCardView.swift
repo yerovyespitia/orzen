@@ -256,6 +256,7 @@ struct CatalogCardView: View {
             isHovered = hovering
         }
         .clipped()
+        .modifier(CatalogDownloadIndicator(item: item))
     }
 }
 

@@ -14,6 +14,13 @@ final class RemoteLocalMediaClient: ObservableObject {
     private var token: String? { didSet {
         UserDefaults.standard.set(token, forKey: "localMedia.macToken")
         isPaired = token != nil
+        if token != oldValue {
+            libraryGeneration = UUID()
+            cursor = LocalMediaSnapshotCursor()
+            LocalMediaLibraryStore.shared.applySnapshot(
+                .init(instanceID: UUID(), revision: 0, versions: [])
+            )
+        }
     } }
 
     private init() {
@@ -68,18 +75,21 @@ final class RemoteLocalMediaClient: ObservableObject {
         message = nil
     }
 
-    #if os(macOS)
     private var refreshRequest: UInt64 = 0
     private var cursor = LocalMediaSnapshotCursor()
+    private var libraryGeneration = UUID()
 
     func refreshLibrary() async throws {
         refreshRequest += 1
         let requestNumber = refreshRequest
+        let generation = libraryGeneration
         let snapshot: LocalMediaLibrarySnapshot = try await request("snapshot")
-        guard cursor.accepts(snapshot, request: requestNumber) else { return }
+        guard !Task.isCancelled, generation == libraryGeneration,
+              cursor.accepts(snapshot, request: requestNumber) else { return }
         LocalMediaLibraryStore.shared.applySnapshot(snapshot)
     }
 
+    #if os(macOS)
     func configureSearch(_ configuration: LocalMediaSearchConfiguration) async throws {
         let _: LocalMediaActionResponse = try await request("configuration", method: "POST", body: configuration)
     }

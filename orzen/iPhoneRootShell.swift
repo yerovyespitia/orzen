@@ -5,6 +5,8 @@ import UIKit
 
 struct iPhoneRootShell: View {
     @ObservedObject private var playbackStore = StreamPlaybackStore.shared
+    @ObservedObject private var localMediaClient = RemoteLocalMediaClient.shared
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(LocalMediaModePreference.storageKey) private var localMediaModeEnabled = false
     @State private var selectedTab: RootTab = .home
     @State private var homeScrollToTopRequest = 0
@@ -47,6 +49,21 @@ struct iPhoneRootShell: View {
                 try? await Task.sleep(for: .seconds(3))
             }
         }
+        .task(id: libraryRefreshID) {
+            guard scenePhase == .active, localMediaClient.isPaired else { return }
+            while !Task.isCancelled {
+                try? await localMediaClient.refreshLibrary()
+                do {
+                    try await Task.sleep(for: .seconds(3))
+                } catch {
+                    return
+                }
+            }
+        }
+    }
+
+    private var libraryRefreshID: String {
+        "\(scenePhase):\(localMediaClient.host):\(localMediaClient.isPaired)"
     }
 
     @available(iOS 26, *)
