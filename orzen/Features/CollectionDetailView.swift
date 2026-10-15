@@ -60,11 +60,14 @@ struct CollectionDetailView: View {
             ) {
                 InfoView(item: item)
             } else {
-                DetailUnavailableView(
-                    systemImage: "film",
-                    title: "Title unavailable",
-                    message: "This title is no longer in the collection."
-                )
+                OrzenCollectionScreen(title: currentCollection.name) {
+                    DetailUnavailableView(
+                        systemImage: "film",
+                        title: "Title unavailable",
+                        message: "This title is no longer in the collection."
+                    )
+                    .orzenScreenContentInset()
+                }
             }
         }
     }
